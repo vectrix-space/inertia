@@ -2,11 +2,15 @@ package space.vectrix.inertia;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import space.vectrix.flare.SyncMap;
 
 import java.util.Collection;
 import java.util.function.Function;
 
+/**
+ * The main accessor to the component system.
+ *
+ * @since 0.1.0
+ */
 public final class Inertia {
   /**
    * Creates a new {@link Universe} from the specified {@link Universe.Builder}

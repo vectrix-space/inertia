@@ -7,6 +7,8 @@ import java.lang.annotation.Target;
 
 /**
  * Represents a class that is to behave like as a component.
+ *
+ * @since 0.1.0
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
@@ -17,6 +19,7 @@ public @interface Component {
    * <p>The identifier must match the format [a-Z0-9_-].</p>
    *
    * @return The component identifier
+   * @since 0.1.0
    */
   String id();
 
@@ -24,6 +27,7 @@ public @interface Component {
    * The component name.
    *
    * @return The component name
+   * @since 0.1.0
    */
   String name();
 }

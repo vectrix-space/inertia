@@ -10,6 +10,7 @@ import java.lang.reflect.Field;
  *
  * @param <T> The target type
  * @param <M> The member type
+ * @since 0.1.0
  */
 @FunctionalInterface
 public interface MemberInjector<T, M> {
@@ -19,6 +20,7 @@ public interface MemberInjector<T, M> {
    * @param target The target to inject into
    * @param member The member to inject
    * @throws Throwable If an exception occurred
+   * @since 0.1.0
    */
   void member(final @NonNull T target, final @NonNull M member) throws Throwable;
 
@@ -27,6 +29,7 @@ public interface MemberInjector<T, M> {
    *
    * @param <T> The target type
    * @param <M> The member type
+   * @since 0.1.0
    */
   @FunctionalInterface
   interface Factory<T, M> {
@@ -38,6 +41,7 @@ public interface MemberInjector<T, M> {
      * @param field The target field
      * @return A new member injector
      * @throws Exception If an exception occurred
+     * @since 0.1.0
      */
     @NonNull MemberInjector<T, M> create(final @NonNull Object object, final @NonNull Field field) throws Exception;
   }

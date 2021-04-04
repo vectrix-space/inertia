@@ -10,21 +10,24 @@ import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.Map;
 
-public final class ComponentRegistry {
+public final class SimpleComponentRegistry implements ComponentRegistry {
   private final Int2ObjectMap<ComponentType> components = new Int2ObjectOpenHashMap<>(100);
   private final Map<Class<?>, ComponentType> componentsTyped = new IdentityHashMap<>(50);
   private final Map<String, ComponentType> componentsNamed = new HashMap<>(50);
 
-  public ComponentRegistry() {}
+  public SimpleComponentRegistry() {}
 
+  @Override
   public @Nullable ComponentType get(final int index) {
     return this.components.get(index);
   }
 
+  @Override
   public @Nullable ComponentType get(final @NonNull Class<?> type) {
     return this.componentsTyped.get(type);
   }
 
+  @Override
   public @Nullable ComponentType get(final @NonNull String identifier) {
     return this.componentsNamed.get(identifier);
   }

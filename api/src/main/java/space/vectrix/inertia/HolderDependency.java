@@ -7,6 +7,8 @@ import java.lang.annotation.Target;
 
 /**
  * Represents a holder dependency to be injected when instantiated.
+ *
+ * @since 0.1.0
  */
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
