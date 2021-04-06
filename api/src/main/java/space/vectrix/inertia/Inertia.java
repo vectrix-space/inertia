@@ -2,6 +2,7 @@ package space.vectrix.inertia;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import space.vectrix.inertia.holder.Holder;
 
 import java.util.Collection;
 import java.util.function.Function;
@@ -23,8 +24,8 @@ public final class Inertia {
    * @return The new universe
    * @since 0.1.0
    */
-  public static <H, C> Universe<H, C> create(final @NonNull Class<? extends Universe.Builder<?, ?>> universeBuilder,
-                                             final @NonNull Function<Universe.Builder<H, C>, Universe<H, C>> buildingFunction) {
+  public static <H extends Holder<C>, C> Universe<H, C> create(final @NonNull Class<? extends Universe.Builder<?, ?>> universeBuilder,
+                                                               final @NonNull Function<Universe.Builder<H, C>, Universe<H, C>> buildingFunction) {
     final Universe.Builder<H, C> builder = Inertia.createBuilder(universeBuilder);
     final Universe<H, C> universe = buildingFunction.apply(builder);
     return Universes.compute(universe);
@@ -40,7 +41,7 @@ public final class Inertia {
    * @return The universe, if present
    * @since 0.1.0
    */
-  public static <H, C> @Nullable Universe<H, C> get(final @NonNull String identifier) {
+  public static <H extends Holder<C>, C> @Nullable Universe<H, C> get(final @NonNull String identifier) {
     return Universes.get(identifier);
   }
 
@@ -55,7 +56,7 @@ public final class Inertia {
   }
 
   @SuppressWarnings("unchecked")
-  private static <H, C> Universe.Builder<H, C> createBuilder(final @NonNull Class<? extends Universe.Builder<?, ?>> universeBuilder) {
+  private static <H extends Holder<C>, C> Universe.Builder<H, C> createBuilder(final @NonNull Class<? extends Universe.Builder<?, ?>> universeBuilder) {
     try {
       return (Universe.Builder<H, C>) universeBuilder.newInstance();
     } catch(final Throwable throwable) {

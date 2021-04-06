@@ -2,6 +2,7 @@ package space.vectrix.inertia.component;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import space.vectrix.inertia.Universe;
+import space.vectrix.inertia.holder.Holder;
 import space.vectrix.inertia.injector.MemberInjector;
 
 /**
@@ -11,7 +12,7 @@ import space.vectrix.inertia.injector.MemberInjector;
  * @param <C> The component type
  * @since 0.1.0
  */
-public interface ComponentResolver<H, C> {
+public interface ComponentResolver<H extends Holder<C>, C> {
   /**
    * Resolves the {@link ComponentType} from the specified {@link Class}
    * type.
@@ -30,7 +31,7 @@ public interface ComponentResolver<H, C> {
    * @param componentType The component type
    * @param componentInjector The component injector
    * @param holderInjector The holder injector
-   * @param <T> The component type
+   * @param <T> The specific component type
    * @return The component
    * @since 0.1.0
    */
@@ -55,6 +56,6 @@ public interface ComponentResolver<H, C> {
      * @return The component resolver
      * @since 0.1.0
      */
-    <H, C> @NonNull ComponentResolver<H, C> create(final @NonNull Universe<H, C> universe);
+    <H extends Holder<C>, C> @NonNull ComponentResolver<H, C> create(final @NonNull Universe<H, C> universe);
   }
 }

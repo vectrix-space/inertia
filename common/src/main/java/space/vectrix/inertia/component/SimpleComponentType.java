@@ -12,15 +12,18 @@ public final class SimpleComponentType implements ComponentType {
   private final String id;
   private final String name;
   private final Class<?> component;
+  private final ComponentStructure structure;
 
   public SimpleComponentType(final int index,
                              final String id,
                              final String name,
-                             final Class<?> component) {
+                             final Class<?> component,
+                             final ComponentStructure structure) {
     this.index = index;
     this.id = id;
     this.name = name;
     this.component = component;
+    this.structure = structure;
   }
 
   @Override
@@ -51,5 +54,9 @@ public final class SimpleComponentType implements ComponentType {
   @Override
   public @NonNull Set<ComponentType> optionalDependencies() {
     return this.optionalDependencies;
+  }
+
+  public @NonNull ComponentStructure structure() {
+    return this.structure;
   }
 }
