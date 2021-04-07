@@ -100,7 +100,6 @@ public interface Universe<H extends Holder<C>, C> {
    */
   @NonNull ComponentRegistry components();
 
-
   interface Builder<H extends Holder<C>, C> {
     /**
      * Returns this {@link Builder} with the specified {@link String}

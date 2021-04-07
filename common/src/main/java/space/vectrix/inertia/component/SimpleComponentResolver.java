@@ -24,6 +24,8 @@
  */
 package space.vectrix.inertia.component;
 
+import static java.util.Objects.requireNonNull;
+
 import com.google.common.graph.GraphBuilder;
 import com.google.common.graph.MutableGraph;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -40,13 +42,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 @SuppressWarnings("UnstableApiUsage")
 public final class SimpleComponentResolver<H extends Holder<C>, C> implements ComponentResolver<H, C> {
   public static SimpleComponentResolver.Factory FACTORY = new SimpleComponentResolver.Factory();
-
   private final AtomicInteger index = new AtomicInteger();
   private final MutableGraph<ComponentType> componentDependencies = GraphBuilder.undirected()
     .allowsSelfLoops(false)
     .expectedNodeCount(1000)
     .build();
-
   private final Universe<H, C> universe;
 
   /* package */ SimpleComponentResolver(final Universe<H, C> universe) {
@@ -55,6 +55,7 @@ public final class SimpleComponentResolver<H extends Holder<C>, C> implements Co
 
   @Override
   public @NonNull ComponentType resolve(final @NonNull Class<?> type) {
+    requireNonNull(type, "type");
     return this.resolve(null, type);
   }
 
@@ -63,6 +64,10 @@ public final class SimpleComponentResolver<H extends Holder<C>, C> implements Co
                                          final @NonNull ComponentType componentType,
                                          final MemberInjector.@NonNull Factory<?, C> componentInjector,
                                          final MemberInjector.@NonNull Factory<?, H> holderInjector) {
+    requireNonNull(holder, "holder");
+    requireNonNull(componentType, "componentType");
+    requireNonNull(componentInjector, "componentInjector");
+    requireNonNull(holderInjector, "holderInjector");
     return this.create(holder, componentInjector, holderInjector, null, componentType);
   }
 
@@ -142,6 +147,7 @@ public final class SimpleComponentResolver<H extends Holder<C>, C> implements Co
 
     @Override
     public <H extends Holder<C>, C> @NonNull ComponentResolver<H, C> create(final @NonNull Universe<H, C> universe) {
+      requireNonNull(universe, "universe");
       return new SimpleComponentResolver<>(universe);
     }
   }

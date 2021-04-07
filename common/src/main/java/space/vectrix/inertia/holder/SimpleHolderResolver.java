@@ -24,6 +24,8 @@
  */
 package space.vectrix.inertia.holder;
 
+import static java.util.Objects.requireNonNull;
+
 import org.checkerframework.checker.nullness.qual.NonNull;
 import space.vectrix.inertia.Universe;
 
@@ -31,9 +33,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public final class SimpleHolderResolver<H extends Holder<C>, C> implements HolderResolver<H, C> {
   public static SimpleHolderResolver.Factory FACTORY = new SimpleHolderResolver.Factory();
-
   private final AtomicInteger index = new AtomicInteger();
-
   private final Universe<H, C> universe;
 
   /* package */ SimpleHolderResolver(final Universe<H, C> universe) {
@@ -42,6 +42,7 @@ public final class SimpleHolderResolver<H extends Holder<C>, C> implements Holde
 
   @Override
   public <T extends H> @NonNull T create(final @NonNull HolderFunction<H, C, T> holderFunction) {
+    requireNonNull(holderFunction, "holderFunction");
     // TODO: Store this somewhere and do other injection things.
     return holderFunction.apply(this.universe, this.index.getAndIncrement());
   }
@@ -51,6 +52,7 @@ public final class SimpleHolderResolver<H extends Holder<C>, C> implements Holde
 
     @Override
     public @NonNull <H extends Holder<C>, C> HolderResolver<H, C> create(final @NonNull Universe<H, C> universe) {
+      requireNonNull(universe, "universe");
       return new SimpleHolderResolver<>(universe);
     }
   }

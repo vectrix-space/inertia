@@ -53,9 +53,7 @@ public final class ASMMemberInjectorFactory<T, M> implements MemberInjector.Fact
   private static final String SUPER_NAME = "java/lang/Object";
   private static final String INJECTOR_DESCRIPTION = "(Ljava/lang/Object;Ljava/lang/Object;)V";
   private static final String[] GENERATED_INJECTOR_NAME = new String[] { Type.getInternalName(MemberInjector.class) };
-
   private final AtomicInteger identifier = new AtomicInteger();
-
   private final LoadingCache<Field, Class<? extends MemberInjector<T, M>>> cache;
   private final DelegateClassLoader classLoader;
   private final String session;
@@ -70,26 +68,20 @@ public final class ASMMemberInjectorFactory<T, M> implements MemberInjector.Fact
 
   public ASMMemberInjectorFactory(final @NonNull ClassLoader parent) {
     requireNonNull(parent, "parent");
-
     this.classLoader = new DelegateClassLoader(parent);
-
     this.cache = CacheBuilder.newBuilder()
       .initialCapacity(16)
       .weakValues()
       .build(CacheLoader.from(field -> {
         requireNonNull(field, "field");
-
         final Class<?> target = field.getDeclaringClass();
         final Class<?> type = field.getType();
         final String targetName = Type.getInternalName(target);
         final String typeName = Type.getInternalName(type);
-
         final String name = this.createClasspath(target, field, type);
-
         final ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
         classWriter.visit(V1_8, ACC_PUBLIC | ACC_FINAL, name.replace('.', '/'), null,
           ASMMemberInjectorFactory.SUPER_NAME, ASMMemberInjectorFactory.GENERATED_INJECTOR_NAME);
-
         MethodVisitor methodVisitor;
         {
           methodVisitor = classWriter.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null);
@@ -100,7 +92,6 @@ public final class ASMMemberInjectorFactory<T, M> implements MemberInjector.Fact
           methodVisitor.visitMaxs(0, 0);
           methodVisitor.visitEnd();
         }
-
         {
           methodVisitor = classWriter.visitMethod(ACC_PUBLIC, "member", ASMMemberInjectorFactory.INJECTOR_DESCRIPTION, null, null);
           methodVisitor.visitCode();
@@ -113,18 +104,18 @@ public final class ASMMemberInjectorFactory<T, M> implements MemberInjector.Fact
           methodVisitor.visitMaxs(0, 0);
           methodVisitor.visitEnd();
         }
-
         classWriter.visitEnd();
         return this.classLoader.defineClass(name, classWriter.toByteArray());
       }));
   }
 
   @Override
-  public @NonNull MemberInjector<T, M> create(final @NonNull Object object, final @NonNull Field field) throws Exception {
-    if (!Modifier.isPublic(object.getClass().getModifiers())) throw new IllegalStateException(String.format("Target class '%s' must be public!", object.getClass().getName()));
+  public @NonNull MemberInjector<T, M> create(final @NonNull Object target, final @NonNull Field field) throws Exception {
+    requireNonNull(target, "target");
+    requireNonNull(field, "field");
+    if (!Modifier.isPublic(target.getClass().getModifiers())) throw new IllegalStateException(String.format("Target class '%s' must be public!", target.getClass().getName()));
     if (!Modifier.isPublic(field.getModifiers())) throw new IllegalStateException(String.format("Injectable field '%s' must be public!", field));
     if (Modifier.isFinal(field.getModifiers())) throw new IllegalStateException(String.format("Injectable field '%s' must NOT be final!", field));
-
     return this.cache.getUnchecked(field).newInstance();
   }
 

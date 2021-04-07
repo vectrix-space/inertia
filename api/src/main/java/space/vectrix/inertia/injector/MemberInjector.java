@@ -61,12 +61,12 @@ public interface MemberInjector<T, M> {
      * Creates a new {@link MemberInjector} for the specified {@link Object}
      * target and {@link Field} field.
      *
-     * @param object The target object
+     * @param target The target object
      * @param field The target field
      * @return A new member injector
      * @throws Exception If an exception occurred
      * @since 0.1.0
      */
-    @NonNull MemberInjector<T, M> create(final @NonNull Object object, final @NonNull Field field) throws Exception;
+    @NonNull MemberInjector<T, M> create(final @NonNull Object target, final @NonNull Field field) throws Exception;
   }
 }

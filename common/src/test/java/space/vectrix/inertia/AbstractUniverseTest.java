@@ -101,7 +101,7 @@ abstract class AbstractUniverseTest {
 
   static final class TestMemberInjectorFactory<M> implements MemberInjector.Factory<Object, M> {
     @Override
-    public @NonNull MemberInjector<Object, M> create(final @NonNull Object object, final @NonNull Field field) throws Exception {
+    public @NonNull MemberInjector<Object, M> create(final @NonNull Object target, final @NonNull Field field) throws Exception {
       return new TestMemberInjector<>();
     }
   }

@@ -24,6 +24,8 @@
  */
 package space.vectrix.inertia.component;
 
+import static java.util.Objects.requireNonNull;
+
 import it.unimi.dsi.fastutil.Function;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
@@ -48,12 +50,14 @@ public final class SimpleComponentRegistry implements ComponentRegistry {
   }
 
   @Override
-  public @NonNull  Optional<ComponentType> get(final @NonNull Class<?> type) {
+  public @NonNull Optional<ComponentType> get(final @NonNull Class<?> type) {
+    requireNonNull(type, "type");
     return Optional.ofNullable(this.componentsTyped.get(type));
   }
 
   @Override
-  public @NonNull  Optional<ComponentType> get(final @NonNull String identifier) {
+  public @NonNull Optional<ComponentType> get(final @NonNull String identifier) {
+    requireNonNull(identifier, "identifier");
     return Optional.ofNullable(this.componentsNamed.get(identifier));
   }
 

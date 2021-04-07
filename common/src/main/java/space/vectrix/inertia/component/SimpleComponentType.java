@@ -24,6 +24,8 @@
  */
 package space.vectrix.inertia.component;
 
+import static java.util.Objects.requireNonNull;
+
 import org.checkerframework.checker.nullness.qual.NonNull;
 
 import java.util.HashSet;
@@ -44,10 +46,10 @@ public final class SimpleComponentType implements ComponentType {
                              final Class<?> component,
                              final ComponentStructure structure) {
     this.index = index;
-    this.id = id;
-    this.name = name;
-    this.component = component;
-    this.structure = structure;
+    this.id = requireNonNull(id, "id");
+    this.name = requireNonNull(name, "name");
+    this.component = requireNonNull(component, "component");
+    this.structure = requireNonNull(structure, "structure");
   }
 
   @Override
