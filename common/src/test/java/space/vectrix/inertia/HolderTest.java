@@ -24,6 +24,7 @@
  */
 package space.vectrix.inertia;
 
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -60,6 +61,7 @@ class HolderTest extends AbstractUniverseTest {
     assertFalse(holder.getComponent(Object.class).isPresent());
     assertTrue(holder.getComponent("test").isPresent());
     assertFalse(holder.getComponent("fake").isPresent());
+    assertThat(holder.getComponents()).hasSize(1);
   }
 
   @Test

@@ -28,11 +28,12 @@ import it.unimi.dsi.fastutil.Function;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.Map;
+import java.util.Optional;
 
 public final class SimpleComponentRegistry implements ComponentRegistry {
   private final Int2ObjectMap<ComponentType> components = new Int2ObjectOpenHashMap<>(100);
@@ -42,18 +43,23 @@ public final class SimpleComponentRegistry implements ComponentRegistry {
   public SimpleComponentRegistry() {}
 
   @Override
-  public @Nullable ComponentType get(final int index) {
-    return this.components.get(index);
+  public @NonNull Optional<ComponentType> get(final int index) {
+    return Optional.ofNullable(this.components.get(index));
   }
 
   @Override
-  public @Nullable ComponentType get(final @NonNull Class<?> type) {
-    return this.componentsTyped.get(type);
+  public @NonNull  Optional<ComponentType> get(final @NonNull Class<?> type) {
+    return Optional.ofNullable(this.componentsTyped.get(type));
   }
 
   @Override
-  public @Nullable ComponentType get(final @NonNull String identifier) {
-    return this.componentsNamed.get(identifier);
+  public @NonNull  Optional<ComponentType> get(final @NonNull String identifier) {
+    return Optional.ofNullable(this.componentsNamed.get(identifier));
+  }
+
+  @Override
+  public @NonNull Collection<ComponentType> all() {
+    return this.components.values();
   }
 
   public @NonNull ComponentType add(final @NonNull ComponentType type) {

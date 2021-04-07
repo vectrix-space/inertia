@@ -55,6 +55,7 @@ class InjectorTest {
     final ComponentType orangeComponentType = assertDoesNotThrow(() -> universe.component(OrangeComponent.class).get());
     final OrangeComponent orangeComponent = assertDoesNotThrow(() -> universe.<OrangeComponent>component(holder, orangeComponentType).get());
     assertNotNull(orangeComponent.getApple());
+    assertNotNull(orangeComponent.getHolder());
     assertTrue(holder.getComponent(AppleComponent.class).isPresent());
   }
 
@@ -74,6 +75,10 @@ class InjectorTest {
 
     public AppleComponent getApple() {
       return this.appleComponent;
+    }
+
+    public Holder<Object> getHolder() {
+      return this.holder;
     }
   }
 

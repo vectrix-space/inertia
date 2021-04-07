@@ -29,6 +29,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import space.vectrix.inertia.component.ComponentType;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.Map;
@@ -73,6 +74,11 @@ public abstract class AbstractHolder<C> implements Holder<C> {
   @Override
   public @NonNull <T extends C> Optional<T> getComponent(final @NonNull String identifier) {
     return Optional.ofNullable((T) this.componentsNamed.get(identifier));
+  }
+
+  @Override
+  public @NonNull Collection<? extends C> getComponents() {
+    return this.components.values();
   }
 
   @Override

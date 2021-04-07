@@ -27,6 +27,7 @@ package space.vectrix.inertia.holder;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import space.vectrix.inertia.component.ComponentType;
 
+import java.util.Collection;
 import java.util.Optional;
 
 /**
@@ -88,6 +89,15 @@ public interface Holder<C> {
    * @since 0.1.0
    */
   <T extends C> @NonNull Optional<T> getComponent(final @NonNull String identifier);
+
+  /**
+   * Returns a {@link Collection} of {@code C} components stored in this
+   * holder.
+   *
+   * @return A collection of stored components
+   * @since 0.1.0
+   */
+  @NonNull Collection<? extends C> getComponents();
 
   /**
    * Returns {@code true} if it removed the component with the specified

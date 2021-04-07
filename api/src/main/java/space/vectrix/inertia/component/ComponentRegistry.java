@@ -25,7 +25,9 @@
 package space.vectrix.inertia.component;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
+
+import java.util.Collection;
+import java.util.Optional;
 
 /**
  * The component registry.
@@ -41,7 +43,7 @@ public interface ComponentRegistry {
    * @return The component type, if present
    * @since 0.1.0
    */
-  @Nullable ComponentType get(final int index);
+  @NonNull Optional<ComponentType> get(final int index);
 
   /**
    * Returns the {@link ComponentType} with the specified {@link Class}
@@ -51,7 +53,7 @@ public interface ComponentRegistry {
    * @return The component type, if present
    * @since 0.1.0
    */
-  @Nullable ComponentType get(final @NonNull Class<?> type);
+  @NonNull Optional<ComponentType> get(final @NonNull Class<?> type);
 
   /**
    * Returns the {@link ComponentType} with the specified {@link String}
@@ -61,5 +63,14 @@ public interface ComponentRegistry {
    * @return The component type, if present
    * @since 0.1.0
    */
-  @Nullable ComponentType get(final @NonNull String identifier);
+  @NonNull Optional<ComponentType> get(final @NonNull String identifier);
+
+  /**
+   * Returns a {@link Collection} of {@link ComponentType}s in this
+   * registry.
+   *
+   * @return A collection of registered component types
+   * @since 0.1.0
+   */
+  @NonNull Collection<ComponentType> all();
 }
