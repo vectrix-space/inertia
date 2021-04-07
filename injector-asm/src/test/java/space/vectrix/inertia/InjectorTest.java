@@ -25,64 +25,56 @@
 package space.vectrix.inertia;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.junit.jupiter.api.Test;
+import space.vectrix.inertia.component.ComponentType;
 import space.vectrix.inertia.component.SimpleComponentResolver;
 import space.vectrix.inertia.holder.AbstractHolder;
 import space.vectrix.inertia.holder.Holder;
 import space.vectrix.inertia.holder.SimpleHolderResolver;
-import space.vectrix.inertia.injector.MemberInjector;
+import space.vectrix.inertia.injector.ASMMemberInjectorFactory;
 
-import java.lang.reflect.Field;
-import java.util.concurrent.CompletableFuture;
-
-abstract class AbstractUniverseTest {
+class InjectorTest {
   final Universe.Builder<Holder<Object>, Object> builderDefaults(final Universe.Builder<Holder<Object>, Object> builder) {
     return builder
       .holderResolver(SimpleHolderResolver.FACTORY)
       .componentResolver(SimpleComponentResolver.FACTORY)
-      .holderInjector(new TestMemberInjectorFactory<>())
-      .componentInjector(new TestMemberInjectorFactory<>());
+      .holderInjector(new ASMMemberInjectorFactory<>())
+      .componentInjector(new ASMMemberInjectorFactory<>());
   }
 
   @Test
-  void testCreate() {
-    assertThrows(IllegalStateException.class, () -> Inertia.create(Object.class, builder -> this.builderDefaults(builder)
-      .id("valid_universe")
-      .build()));
-    final Universe<Holder<Object>, Object> universe = assertDoesNotThrow(() -> Inertia.create(SimpleUniverse.Builder.class, builder -> this.builderDefaults(builder)
-      .id("valid_universe")
-      .build()));
-    assertEquals("valid_universe", universe.id());
-  }
-
-  @Test
-  void testCreateHolder() {
+  void testInjection() {
     final Universe<Holder<Object>, Object> universe = this.builderDefaults(new SimpleUniverse.Builder<>())
       .id("holder_universe")
       .build();
-    final CompletableFuture<TestHolder> holderFuture = assertDoesNotThrow(() -> universe.holder(TestHolder::new));
-    final TestHolder holder = assertDoesNotThrow(() -> holderFuture.get());
-    assertEquals(universe, holder.universe());
+    final TestHolder holder = assertDoesNotThrow(() -> universe.holder(TestHolder::new).get());
+    final ComponentType appleComponentType = assertDoesNotThrow(() -> universe.component(AppleComponent.class).get());
+    final ComponentType orangeComponentType = assertDoesNotThrow(() -> universe.component(OrangeComponent.class).get());
+    final OrangeComponent orangeComponent = assertDoesNotThrow(() -> universe.<OrangeComponent>component(holder, orangeComponentType).get());
+    assertNotNull(orangeComponent.getApple());
+    assertTrue(holder.getComponent(AppleComponent.class).isPresent());
   }
 
-  @Test
-  void testCreateComponent() {
-    final Universe<Holder<Object>, Object> universe = this.builderDefaults(new SimpleUniverse.Builder<>())
-      .id("component_universe")
-      .build();
-    final CompletableFuture<TestHolder> holderFuture = universe.holder(TestHolder::new);
-    final TestHolder holder = assertDoesNotThrow(() -> holderFuture.get());
-    final CompletableFuture<TestComponent> componentFuture = universe.component(holder, TestComponent.class);
-    assertDoesNotThrow(() -> componentFuture.get());
+  @Component(id = "apple", name = "Apple")
+  public static final class AppleComponent {
+    @HolderDependency public Holder<Object> holder;
+
+    public AppleComponent() {}
   }
 
-  @Component(id = "test", name = "Test")
-  public static final class TestComponent {
-    public TestComponent() {}
+  @Component(id = "orange", name = "Orange")
+  public static final class OrangeComponent {
+    @ComponentDependency public AppleComponent appleComponent;
+    @HolderDependency public Holder<Object> holder;
+
+    public OrangeComponent() {}
+
+    public AppleComponent getApple() {
+      return this.appleComponent;
+    }
   }
 
   static final class TestHolder extends AbstractHolder<Object> {
@@ -96,20 +88,6 @@ abstract class AbstractUniverseTest {
 
     public Universe<Holder<Object>, Object> universe() {
       return this.universe;
-    }
-  }
-
-  static final class TestMemberInjectorFactory<M> implements MemberInjector.Factory<Object, M> {
-    @Override
-    public @NonNull MemberInjector<Object, M> create(final @NonNull Object object, final @NonNull Field field) throws Exception {
-      return new TestMemberInjector<>();
-    }
-  }
-
-  static final class TestMemberInjector<M> implements MemberInjector<Object, M> {
-    @Override
-    public void member(final @NonNull Object target, final @NonNull M member) throws Throwable {
-      // No-op
     }
   }
 }

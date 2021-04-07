@@ -86,7 +86,7 @@ public abstract class AbstractHolder<C> implements Holder<C> {
   }
 
   @Override
-  public void clearComponent() {
+  public void clearComponents() {
     this.components.clear();
     this.componentsTyped.clear();
     this.componentsNamed.clear();

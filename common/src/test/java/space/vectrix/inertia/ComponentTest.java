@@ -24,17 +24,25 @@
  */
 package space.vectrix.inertia;
 
-import static com.google.common.truth.Truth.assertThat;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import org.junit.jupiter.api.Test;
 import space.vectrix.inertia.holder.Holder;
 
-class InertiaTest extends AbstractUniverseTest {
+class ComponentTest extends AbstractUniverseTest {
   @Test
-  void testGetAndSize() {
-    final Universe<Holder<Object>, Object> universe = Inertia.get("valid_universe");
-    assertNotNull(universe);
-    assertThat(Inertia.getAll()).hasSize(1);
+  void testGet() {
+    final Universe<Holder<Object>, Object> universe = this.builderDefaults(new SimpleUniverse.Builder<>())
+      .id("holder_universe")
+      .build();
+    assertDoesNotThrow(() -> universe.component(TestComponent.class).get());
+    assertNotNull(universe.components().get(0));
+    assertNull(universe.components().get(1));
+    assertNotNull(universe.components().get(TestComponent.class));
+    assertNull(universe.components().get(Object.class));
+    assertNotNull(universe.components().get("test"));
+    assertNull(universe.components().get("fake"));
   }
 }

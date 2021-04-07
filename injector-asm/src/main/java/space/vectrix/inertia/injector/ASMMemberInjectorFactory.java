@@ -29,6 +29,7 @@ import static org.objectweb.asm.Opcodes.ACC_FINAL;
 import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
 import static org.objectweb.asm.Opcodes.ALOAD;
 import static org.objectweb.asm.Opcodes.CHECKCAST;
+import static org.objectweb.asm.Opcodes.ILOAD;
 import static org.objectweb.asm.Opcodes.INVOKESPECIAL;
 import static org.objectweb.asm.Opcodes.PUTFIELD;
 import static org.objectweb.asm.Opcodes.RETURN;
@@ -62,6 +63,10 @@ public final class ASMMemberInjectorFactory<T, M> implements MemberInjector.Fact
 
   {
     this.session = UUID.randomUUID().toString().substring(26);
+  }
+
+  public ASMMemberInjectorFactory() {
+    this(ASMMemberInjectorFactory.class.getClassLoader());
   }
 
   public ASMMemberInjectorFactory(final @NonNull ClassLoader parent) {
@@ -104,7 +109,7 @@ public final class ASMMemberInjectorFactory<T, M> implements MemberInjector.Fact
           methodVisitor.visitTypeInsn(CHECKCAST, targetName);
           methodVisitor.visitVarInsn(ALOAD, 2);
           methodVisitor.visitTypeInsn(CHECKCAST, typeName);
-          methodVisitor.visitFieldInsn(PUTFIELD, targetName, field.getName(), typeName);
+          methodVisitor.visitFieldInsn(PUTFIELD, targetName, field.getName(), Type.getDescriptor(type));
           methodVisitor.visitInsn(RETURN);
           methodVisitor.visitMaxs(0, 0);
           methodVisitor.visitEnd();

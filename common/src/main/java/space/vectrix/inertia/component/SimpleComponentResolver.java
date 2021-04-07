@@ -97,8 +97,7 @@ public final class SimpleComponentResolver<H extends Holder<C>, C> implements Co
                                  final @NonNull ComponentType componentType) {
     final Class<?> componentClass = componentType.type();
     final T componentInstance = (T) this.createInstance(componentClass);
-    holder.addComponent(componentType, componentInstance);
-    if(componentType instanceof SimpleComponentType) {
+    if(holder.addComponent(componentType, componentInstance) && componentType instanceof SimpleComponentType) {
       final ComponentStructure structure = ((SimpleComponentType) componentType).structure();
       for (final Map.Entry<Class<?>, Field> holderEntry : structure.getHolders().entrySet()) {
         this.injectMember(holderInjector, holderEntry.getValue(), componentInstance, holder);

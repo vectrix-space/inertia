@@ -104,5 +104,5 @@ public interface Holder<C> {
    *
    * @since 0.1.0
    */
-  void clearComponent();
+  void clearComponents();
 }
