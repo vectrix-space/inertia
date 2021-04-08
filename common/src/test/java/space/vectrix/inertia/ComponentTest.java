@@ -35,7 +35,7 @@ import space.vectrix.inertia.holder.Holder;
 class ComponentTest extends AbstractUniverseTest {
   @Test
   void testGet() {
-    final Universe<Holder<Object>, Object> universe = this.builderDefaults(new SimpleUniverse.Builder<>())
+    final Universe<Holder<Object>, Object> universe = new SimpleUniverse.Builder<>()
       .id("holder_universe")
       .build();
     assertDoesNotThrow(() -> universe.component(TestComponent.class).get());

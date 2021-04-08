@@ -66,13 +66,6 @@ public final class SimpleComponentRegistry implements ComponentRegistry {
     return this.components.values();
   }
 
-  public @NonNull ComponentType add(final @NonNull ComponentType type) {
-    this.components.putIfAbsent(type.index(), type);
-    this.componentsTyped.putIfAbsent(type.type(), type);
-    this.componentsNamed.putIfAbsent(type.id(), type);
-    return type;
-  }
-
   public @NonNull ComponentType computeIfAbsent(final @NonNull Class<?> type, final @NonNull Function<Class<?>, ComponentType> computation) {
     return this.componentsTyped.computeIfAbsent(type, key -> {
       final ComponentType componentType = computation.apply(key);

@@ -22,30 +22,42 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package space.vectrix.inertia.injector;
+package space.vectrix.inertia.holder;
 
-import static java.util.Objects.requireNonNull;
-
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
-import java.lang.reflect.Field;
+import java.util.Collection;
+import java.util.Optional;
 
-public final class DummyMemberInjectorFactory<T, M> implements MemberInjector.Factory<T, M> {
-  private final DummyMemberInjector<T, M> dummyInjector = new DummyMemberInjector<>();
+public final class SimpleHolderRegistry<H extends Holder<C>, C> implements HolderRegistry<H, C> {
+  private final Int2ObjectMap<H> holders = new Int2ObjectOpenHashMap<>(100);
+  private final Multimap<Class<?>, H> holdersTyped = HashMultimap.create(10, 50);
 
-  public DummyMemberInjectorFactory() {}
+  public SimpleHolderRegistry() {}
 
   @Override
-  public @NonNull MemberInjector<T, M> create(final @NonNull Object target, final @NonNull Field field) throws Exception {
-    requireNonNull(target, "target");
-    requireNonNull(field, "field");
-    return this.dummyInjector;
+  public @NonNull Optional<H> get(final int index) {
+    return Optional.ofNullable(this.holders.get(index));
   }
 
-  /* package */ static final class DummyMemberInjector<T, M> implements MemberInjector<T, M> {
-    @Override
-    public void member(final @NonNull T target, final @NonNull M member) throws Throwable {
-      // no-op
+  @Override
+  @SuppressWarnings("unchecked")
+  public <T extends H> @NonNull Collection<T> get(final @NonNull Class<T> type) {
+    return (Collection<T>) this.holdersTyped.get(type);
+  }
+
+  @Override
+  public @NonNull Collection<? extends H> all() {
+    return this.holders.values();
+  }
+
+  public <T extends H> void put(final int index, final @NonNull Class<?> type, final @NonNull T holder) {
+    if (this.holdersTyped.put(type, holder)) {
+      this.holders.put(index, holder);
     }
   }
 }

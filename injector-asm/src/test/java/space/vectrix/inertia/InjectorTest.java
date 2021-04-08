@@ -30,17 +30,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 import space.vectrix.inertia.component.ComponentType;
-import space.vectrix.inertia.component.SimpleComponentResolver;
 import space.vectrix.inertia.holder.AbstractHolder;
 import space.vectrix.inertia.holder.Holder;
-import space.vectrix.inertia.holder.SimpleHolderResolver;
 import space.vectrix.inertia.injector.ASMMemberInjectorFactory;
 
 class InjectorTest {
   final Universe.Builder<Holder<Object>, Object> builderDefaults(final Universe.Builder<Holder<Object>, Object> builder) {
     return builder
-      .holderResolver(SimpleHolderResolver.FACTORY)
-      .componentResolver(SimpleComponentResolver.FACTORY)
       .holderInjector(new ASMMemberInjectorFactory<>())
       .componentInjector(new ASMMemberInjectorFactory<>());
   }

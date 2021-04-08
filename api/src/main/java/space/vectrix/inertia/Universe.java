@@ -29,6 +29,7 @@ import space.vectrix.inertia.component.ComponentRegistry;
 import space.vectrix.inertia.component.ComponentResolver;
 import space.vectrix.inertia.component.ComponentType;
 import space.vectrix.inertia.holder.Holder;
+import space.vectrix.inertia.holder.HolderRegistry;
 import space.vectrix.inertia.holder.HolderResolver;
 import space.vectrix.inertia.injector.MemberInjector;
 
@@ -91,6 +92,14 @@ public interface Universe<H extends Holder<C>, C> {
    * @since 0.1.0
    */
   <T extends C> @NonNull CompletableFuture<ComponentType> component(final @NonNull Class<T> component);
+
+  /**
+   * Returns the {@link HolderRegistry}.
+   *
+   * @return The holder registry
+   * @since 0.1.0
+   */
+  @NonNull HolderRegistry<H, C> holders();
 
   /**
    * Returns the {@link ComponentRegistry}.

@@ -38,8 +38,20 @@ import java.util.concurrent.CompletableFuture;
 
 class HolderTest extends AbstractUniverseTest {
   @Test
+  void testGet() {
+    final Universe<Holder<Object>, Object> universe = new SimpleUniverse.Builder<>()
+      .id("holder_universe")
+      .build();
+    assertDoesNotThrow(() -> universe.holder(TestHolder::new).get());
+    assertTrue(universe.holders().get(0).isPresent());
+    assertFalse(universe.holders().get(1).isPresent());
+    assertFalse(universe.holders().get(TestHolder.class).isEmpty());
+    assertThat(universe.holders().all()).hasSize(1);
+  }
+
+  @Test
   void testHolderIndex() {
-    final Universe<Holder<Object>, Object> universe = this.builderDefaults(new SimpleUniverse.Builder<>())
+    final Universe<Holder<Object>, Object> universe = new SimpleUniverse.Builder<>()
       .id("holder_universe")
       .build();
     final CompletableFuture<TestHolder> holderFuture = assertDoesNotThrow(() -> universe.holder(TestHolder::new));
@@ -48,8 +60,8 @@ class HolderTest extends AbstractUniverseTest {
   }
 
   @Test
-  void testGet() {
-    final Universe<Holder<Object>, Object> universe = this.builderDefaults(new SimpleUniverse.Builder<>())
+  void testHolderGet() {
+    final Universe<Holder<Object>, Object> universe = new SimpleUniverse.Builder<>()
       .id("holder_universe")
       .build();
     final TestHolder holder = assertDoesNotThrow(() -> universe.holder(TestHolder::new).get());
@@ -65,8 +77,8 @@ class HolderTest extends AbstractUniverseTest {
   }
 
   @Test
-  void testRemove() {
-    final Universe<Holder<Object>, Object> universe = this.builderDefaults(new SimpleUniverse.Builder<>())
+  void testHolderRemove() {
+    final Universe<Holder<Object>, Object> universe = new SimpleUniverse.Builder<>()
       .id("holder_universe")
       .build();
     final TestHolder holder = assertDoesNotThrow(() -> universe.holder(TestHolder::new).get());
@@ -78,8 +90,8 @@ class HolderTest extends AbstractUniverseTest {
   }
 
   @Test
-  void testClear() {
-    final Universe<Holder<Object>, Object> universe = this.builderDefaults(new SimpleUniverse.Builder<>())
+  void testHolderClear() {
+    final Universe<Holder<Object>, Object> universe = new SimpleUniverse.Builder<>()
       .id("holder_universe")
       .build();
     final TestHolder holder = assertDoesNotThrow(() -> universe.holder(TestHolder::new).get());

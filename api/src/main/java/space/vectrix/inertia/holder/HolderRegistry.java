@@ -22,30 +22,47 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package space.vectrix.inertia.injector;
-
-import static java.util.Objects.requireNonNull;
+package space.vectrix.inertia.holder;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 
-import java.lang.reflect.Field;
+import java.util.Collection;
+import java.util.Optional;
 
-public final class DummyMemberInjectorFactory<T, M> implements MemberInjector.Factory<T, M> {
-  private final DummyMemberInjector<T, M> dummyInjector = new DummyMemberInjector<>();
+/**
+ * The holder registry.
+ *
+ * @param <H> The holder type
+ * @since 0.1.0
+ */
+public interface HolderRegistry<H extends Holder<C>, C> {
+  /**
+   * Returns the {@code H} holder with the specified {@code int}
+   * index, if it exists.
+   *
+   * @param index The holder index
+   * @return The holder instance, if present
+   * @since 0.1.0
+   */
+  @NonNull Optional<H> get(final int index);
 
-  public DummyMemberInjectorFactory() {}
+  /**
+   * Returns a {@link Collection} of {@code T} holders in this
+   * registry.
+   *
+   * @param type The holder class
+   * @param <T> The specific holder type
+   * @return A collection of holder instances of that type
+   * @since 0.1.0
+   */
+  <T extends H> @NonNull Collection<T> get(final @NonNull Class<T> type);
 
-  @Override
-  public @NonNull MemberInjector<T, M> create(final @NonNull Object target, final @NonNull Field field) throws Exception {
-    requireNonNull(target, "target");
-    requireNonNull(field, "field");
-    return this.dummyInjector;
-  }
-
-  /* package */ static final class DummyMemberInjector<T, M> implements MemberInjector<T, M> {
-    @Override
-    public void member(final @NonNull T target, final @NonNull M member) throws Throwable {
-      // no-op
-    }
-  }
+  /**
+   * Returns a {@link Collection} of {@code H} holders in this
+   * registry.
+   *
+   * @return A collection of holder instances
+   * @since 0.1.0
+   */
+  @NonNull Collection<? extends H> all();
 }

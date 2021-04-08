@@ -40,20 +40,12 @@ import java.lang.reflect.Field;
 import java.util.concurrent.CompletableFuture;
 
 abstract class AbstractUniverseTest {
-  final Universe.Builder<Holder<Object>, Object> builderDefaults(final Universe.Builder<Holder<Object>, Object> builder) {
-    return builder
-      .holderResolver(SimpleHolderResolver.FACTORY)
-      .componentResolver(SimpleComponentResolver.FACTORY)
-      .holderInjector(new TestMemberInjectorFactory<>())
-      .componentInjector(new TestMemberInjectorFactory<>());
-  }
-
   @Test
   void testCreate() {
-    assertThrows(IllegalStateException.class, () -> Inertia.create(Object.class, builder -> this.builderDefaults(builder)
-      .id("valid_universe")
+    assertThrows(IllegalStateException.class, () -> Inertia.create(Object.class, builder -> builder
+      .id("invalid_universe")
       .build()));
-    final Universe<Holder<Object>, Object> universe = assertDoesNotThrow(() -> Inertia.create(SimpleUniverse.Builder.class, builder -> this.builderDefaults(builder)
+    final Universe<Holder<Object>, Object> universe = assertDoesNotThrow(() -> Inertia.create(SimpleUniverse.Builder.class, builder -> builder
       .id("valid_universe")
       .build()));
     assertEquals("valid_universe", universe.id());
@@ -61,7 +53,7 @@ abstract class AbstractUniverseTest {
 
   @Test
   void testCreateHolder() {
-    final Universe<Holder<Object>, Object> universe = this.builderDefaults(new SimpleUniverse.Builder<>())
+    final Universe<Holder<Object>, Object> universe = new SimpleUniverse.Builder<>()
       .id("holder_universe")
       .build();
     final CompletableFuture<TestHolder> holderFuture = assertDoesNotThrow(() -> universe.holder(TestHolder::new));
@@ -71,7 +63,7 @@ abstract class AbstractUniverseTest {
 
   @Test
   void testCreateComponent() {
-    final Universe<Holder<Object>, Object> universe = this.builderDefaults(new SimpleUniverse.Builder<>())
+    final Universe<Holder<Object>, Object> universe = new SimpleUniverse.Builder<>()
       .id("component_universe")
       .build();
     final CompletableFuture<TestHolder> holderFuture = universe.holder(TestHolder::new);
@@ -96,20 +88,6 @@ abstract class AbstractUniverseTest {
 
     public Universe<Holder<Object>, Object> universe() {
       return this.universe;
-    }
-  }
-
-  static final class TestMemberInjectorFactory<M> implements MemberInjector.Factory<Object, M> {
-    @Override
-    public @NonNull MemberInjector<Object, M> create(final @NonNull Object target, final @NonNull Field field) throws Exception {
-      return new TestMemberInjector<>();
-    }
-  }
-
-  static final class TestMemberInjector<M> implements MemberInjector<Object, M> {
-    @Override
-    public void member(final @NonNull Object target, final @NonNull M member) throws Throwable {
-      // No-op
     }
   }
 }

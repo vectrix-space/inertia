@@ -33,7 +33,9 @@ import space.vectrix.inertia.component.ComponentType;
 import space.vectrix.inertia.component.SimpleComponentRegistry;
 import space.vectrix.inertia.component.SimpleComponentResolver;
 import space.vectrix.inertia.holder.Holder;
+import space.vectrix.inertia.holder.HolderRegistry;
 import space.vectrix.inertia.holder.HolderResolver;
+import space.vectrix.inertia.holder.SimpleHolderRegistry;
 import space.vectrix.inertia.holder.SimpleHolderResolver;
 import space.vectrix.inertia.injector.DummyMemberInjectorFactory;
 import space.vectrix.inertia.injector.MemberInjector;
@@ -45,6 +47,7 @@ public final class SimpleUniverse<H extends Holder<C>, C> implements Universe<H,
   private final ComponentResolver<H, C> componentResolver;
   private final MemberInjector.Factory<?, H> holderInjector;
   private final MemberInjector.Factory<?, C> componentInjector;
+  private final HolderRegistry<H, C> holders;
   private final ComponentRegistry components;
   private final String id;
 
@@ -54,7 +57,7 @@ public final class SimpleUniverse<H extends Holder<C>, C> implements Universe<H,
     this.componentResolver = builder.componentResolver.create(this);
     this.componentInjector = builder.componentInjector;
     this.holderInjector = builder.holderInjector;
-
+    this.holders = new SimpleHolderRegistry<>();
     this.components = new SimpleComponentRegistry();
   }
 
@@ -90,13 +93,18 @@ public final class SimpleUniverse<H extends Holder<C>, C> implements Universe<H,
   }
 
   @Override
+  public @NonNull HolderRegistry<H, C> holders() {
+    return this.holders;
+  }
+
+  @Override
   public @NonNull ComponentRegistry components() {
     return this.components;
   }
 
   public static final class Builder<H extends Holder<C>, C> implements Universe.Builder<H, C> {
-    private HolderResolver.Factory holderResolver = SimpleHolderResolver.FACTORY;
-    private ComponentResolver.Factory componentResolver = SimpleComponentResolver.FACTORY;
+    private HolderResolver.Factory holderResolver = new SimpleHolderResolver.Factory();
+    private ComponentResolver.Factory componentResolver = new SimpleComponentResolver.Factory();
     private MemberInjector.Factory<?, H> holderInjector = new DummyMemberInjectorFactory<>();
     private MemberInjector.Factory<?, C> componentInjector = new DummyMemberInjectorFactory<>();
     private String id;

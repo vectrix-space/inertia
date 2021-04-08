@@ -41,7 +41,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 @SuppressWarnings("UnstableApiUsage")
 public final class SimpleComponentResolver<H extends Holder<C>, C> implements ComponentResolver<H, C> {
-  public static SimpleComponentResolver.Factory FACTORY = new SimpleComponentResolver.Factory();
   private final AtomicInteger index = new AtomicInteger();
   private final MutableGraph<ComponentType> componentDependencies = GraphBuilder.undirected()
     .allowsSelfLoops(false)
@@ -143,7 +142,7 @@ public final class SimpleComponentResolver<H extends Holder<C>, C> implements Co
   }
 
   public static final class Factory implements ComponentResolver.Factory {
-    /* package */ Factory() {}
+    public Factory() {}
 
     @Override
     public <H extends Holder<C>, C> @NonNull ComponentResolver<H, C> create(final @NonNull Universe<H, C> universe) {
