@@ -25,14 +25,16 @@
 package space.vectrix.inertia;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import space.vectrix.inertia.component.ComponentRegistry;
 import space.vectrix.inertia.component.ComponentResolver;
 import space.vectrix.inertia.component.ComponentType;
+import space.vectrix.inertia.component.ComponentTypes;
+import space.vectrix.inertia.component.Components;
 import space.vectrix.inertia.holder.Holder;
-import space.vectrix.inertia.holder.HolderRegistry;
 import space.vectrix.inertia.holder.HolderResolver;
+import space.vectrix.inertia.holder.Holders;
 import space.vectrix.inertia.injector.MemberInjector;
 
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -52,62 +54,140 @@ public interface Universe<H extends Holder<C>, C> {
   @NonNull String id();
 
   /**
-   * Creates a new {@code T} holder using the specified {@link HolderResolver.HolderFunction}.
+   * Creates a new holder and returns an {@code int} index.
+   *
+   * @return The new holder index
+   * @since 0.1.0
+   */
+  int createHolder();
+
+  /**
+   * Creates a new {@code T} holder using the specified {@link HolderResolver.HolderFunction}
+   * with a new {@code int} index.
    *
    * @param holderFunction The holder function
    * @param <T> The specific holder type
    * @return A completable future containing the holder
    * @since 0.1.0
    */
-  <T extends H> @NonNull CompletableFuture<T> holder(final HolderResolver.@NonNull HolderFunction<H, C, T> holderFunction);
+  <T extends H> @NonNull CompletableFuture<T> createHolder(final HolderResolver.@NonNull HolderFunction<H, C, T> holderFunction);
 
   /**
-   * Creates a new {@code C} component from the specified {@link Class} for
-   * the {@code H} holder.
+   * Creates a new {@code T} component for the specified {@code int} holder
+   * and {@link ComponentType}.
    *
-   * @param holder The holder
-   * @param component The component class
-   * @return A completable future containing the component
-   * @since 0.1.0
-   */
-  <T extends C> @NonNull CompletableFuture<T> component(final @NonNull H holder, final @NonNull Class<T> component);
-
-  /**
-   * Returns a new {@link CompletableFuture} with the specified component
-   * {@link ComponentType}.
-   *
-   * @param holder The holder
+   * @param holder The holder index
    * @param componentType The component type
+   * @param <T> The specific component type
    * @return A completable future containing the component
    * @since 0.1.0
    */
-  <T extends C> @NonNull CompletableFuture<T> component(final @NonNull H holder, final @NonNull ComponentType componentType);
+  <T extends C> @NonNull CompletableFuture<T> createComponent(final int holder, final @NonNull ComponentType componentType);
 
   /**
-   * Returns a new {@link CompletableFuture} with the specified component
-   * {@link Class} as a {@link ComponentType}.
+   * Creates a new {@code T} component for the specified {@code H} holder
+   * and {@link ComponentType}.
    *
-   * @param component The component class
-   * @return A completable future with a component type
+   * @param holder The holder instance
+   * @param componentType The component type
+   * @param <T> The specific component type
+   * @return A completable future containing the component
    * @since 0.1.0
    */
-  <T extends C> @NonNull CompletableFuture<ComponentType> component(final @NonNull Class<T> component);
+  <T extends C> @NonNull CompletableFuture<T> createComponent(final @NonNull H holder, final @NonNull ComponentType componentType);
 
   /**
-   * Returns the {@link HolderRegistry}.
+   * Removes the holder with the specified {@code int} index.
    *
-   * @return The holder registry
+   * @param index The holder index
    * @since 0.1.0
    */
-  @NonNull HolderRegistry<H, C> holders();
+  void removeHolder(final int index);
 
   /**
-   * Returns the {@link ComponentRegistry}.
+   * Removes the specified {@code T} holder.
    *
-   * @return The component registry
+   * @param holder The holder
    * @since 0.1.0
    */
-  @NonNull ComponentRegistry components();
+  void removeHolder(final @NonNull H holder);
+
+  /**
+   * Removes the component for the specified {@code int} holder
+   * with the specified {@link ComponentType}.
+   *
+   * @param holder The holder index
+   * @param componentType The component type
+   * @since 0.1.0
+   */
+  void removeComponent(final int holder, final @NonNull ComponentType componentType);
+
+  /**
+   * Removes the component for the specified {@code H} holder with the
+   * specified {@link ComponentType}.
+   *
+   * @param holder The holder instance
+   * @param componentType The component type
+   * @since 0.1.0
+   */
+  void removeComponent(final @NonNull H holder, final @NonNull ComponentType componentType);
+
+  /**
+   * Returns the {@code T} holder with the specified {@code int}
+   * index, if it exists.
+   *
+   * @param index The holder index
+   * @param <T> The specific holder type
+   * @return The holder instance, if present
+   * @since 0.1.0
+   */
+  <T extends H> @NonNull Optional<T> getHolder(final int index);
+
+  /**
+   * Returns the {@code T} component for the specified {@code int} holder
+   * with the specified {@link ComponentType}.
+   *
+   * @param holder The holder index
+   * @param componentType The component type
+   * @param <T> The specific component type
+   * @return The component, if present
+   */
+  <T extends C> @NonNull Optional<T> getComponent(final int holder, final @NonNull ComponentType componentType);
+
+  /**
+   * Returns the {@code T} component for the specified {@code H} holder
+   * with the specified {@link ComponentType}.
+   *
+   * @param holder The holder index
+   * @param componentType The component type
+   * @param <T> The specific component type
+   * @return The component, if present
+   */
+  <T extends C> @NonNull Optional<T> getComponent(final @NonNull H holder, final @NonNull ComponentType componentType);
+
+  /**
+   * Returns the {@link Holders}.
+   *
+   * @return The holders registry
+   * @since 0.1.0
+   */
+  @NonNull Holders<H, C> holders();
+
+  /**
+   * Returns the {@link Components}.
+   *
+   * @return The components registry
+   * @since 0.1.0
+   */
+  @NonNull Components<H, C> components();
+
+  /**
+   * Returns the {@link ComponentTypes}.
+   *
+   * @return The component types registry
+   * @since 0.1.0
+   */
+  @NonNull ComponentTypes componentTypes();
 
   interface Builder<H extends Holder<C>, C> {
     /**

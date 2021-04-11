@@ -35,7 +35,7 @@ import java.util.Optional;
  * @param <H> The holder type
  * @since 0.1.0
  */
-public interface HolderRegistry<H extends Holder<C>, C> {
+public interface Holders<H extends Holder<C>, C> {
   /**
    * Returns the {@code H} holder with the specified {@code int}
    * index, if it exists.

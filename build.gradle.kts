@@ -36,7 +36,9 @@ subprojects {
   }
 
   indra {
-    github("vectrix-space", "inertia")
+    github("vectrix-space", "inertia") {
+      ci = true
+    }
 
     mitLicense()
 

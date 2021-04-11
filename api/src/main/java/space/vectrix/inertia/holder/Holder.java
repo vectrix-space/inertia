@@ -58,46 +58,15 @@ public interface Holder<C> {
   <T extends C> boolean addComponent(final @NonNull ComponentType type, final @NonNull T component);
 
   /**
-   * Returns the {@code T} component with the specified {@code index}, if
-   * it exists.
+   * Returns the {@code T} component with the specified {@link ComponentType},
+   * if it exists.
    *
-   * @param index The component index
-   * @param <T> The component type
+   * @param componentType The component type
+   * @param <T> The specific component type
    * @return The component, if present
    * @since 0.1.0
    */
-  <T extends C> @NonNull Optional<T> getComponent(final int index);
-
-  /**
-   * Returns the {@code T} component with the specified {@link Class}, if
-   * it exists.
-   *
-   * @param type The component class
-   * @param <T> The component type
-   * @return The component, if present
-   * @since 0.1.0
-   */
-  <T extends C> @NonNull Optional<T> getComponent(final @NonNull Class<T> type);
-
-  /**
-   * Returns the {@code T} component with the specified {@link String}, if
-   * it exists.
-   *
-   * @param identifier The component identifier
-   * @param <T> The component type
-   * @return The component, if present
-   * @since 0.1.0
-   */
-  <T extends C> @NonNull Optional<T> getComponent(final @NonNull String identifier);
-
-  /**
-   * Returns a {@link Collection} of {@code C} components stored in this
-   * holder.
-   *
-   * @return A collection of stored components
-   * @since 0.1.0
-   */
-  @NonNull Collection<? extends C> getComponents();
+  <T extends C> @NonNull Optional<T> getComponent(final @NonNull ComponentType componentType);
 
   /**
    * Returns {@code true} if it removed the component with the specified
@@ -108,6 +77,15 @@ public interface Holder<C> {
    * @since 0.1.0
    */
   boolean removeComponent(final @NonNull ComponentType type);
+
+  /**
+   * Returns a {@link Collection} of {@code C} components stored in this
+   * holder.
+   *
+   * @return A collection of stored components
+   * @since 0.1.0
+   */
+  @NonNull Collection<? extends C> getComponents();
 
   /**
    * Clears the components in this holder.

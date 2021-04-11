@@ -39,12 +39,12 @@ class ComponentTest extends AbstractUniverseTest {
       .id("holder_universe")
       .build();
     assertDoesNotThrow(() -> universe.component(TestComponent.class).get());
-    assertTrue(universe.components().get(0).isPresent());
-    assertFalse(universe.components().get(1).isPresent());
-    assertTrue(universe.components().get(TestComponent.class).isPresent());
-    assertFalse(universe.components().get(Object.class).isPresent());
-    assertTrue(universe.components().get("test").isPresent());
-    assertFalse(universe.components().get("fake").isPresent());
-    assertThat(universe.components().all()).hasSize(1);
+    assertTrue(universe.componentTypes().get(0).isPresent());
+    assertFalse(universe.componentTypes().get(1).isPresent());
+    assertTrue(universe.componentTypes().get(TestComponent.class).isPresent());
+    assertFalse(universe.componentTypes().get(Object.class).isPresent());
+    assertTrue(universe.componentTypes().get("test").isPresent());
+    assertFalse(universe.componentTypes().get("fake").isPresent());
+    assertThat(universe.componentTypes().all()).hasSize(1);
   }
 }

@@ -37,7 +37,7 @@ import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.Optional;
 
-public final class SimpleComponentRegistry implements ComponentRegistry {
+public final class SimpleComponentRegistry implements ComponentTypes {
   private final Int2ObjectMap<ComponentType> components = new Int2ObjectOpenHashMap<>(100);
   private final Map<Class<?>, ComponentType> componentsTyped = new IdentityHashMap<>(50);
   private final Map<String, ComponentType> componentsNamed = new HashMap<>(50);

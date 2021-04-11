@@ -33,7 +33,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import java.util.Collection;
 import java.util.Optional;
 
-public final class SimpleHolderRegistry<H extends Holder<C>, C> implements HolderRegistry<H, C> {
+public final class SimpleHolderRegistry<H extends Holder<C>, C> implements Holders<H, C> {
   private final Int2ObjectMap<H> holders = new Int2ObjectOpenHashMap<>(100);
   private final Multimap<Class<?>, H> holdersTyped = HashMultimap.create(10, 50);
 

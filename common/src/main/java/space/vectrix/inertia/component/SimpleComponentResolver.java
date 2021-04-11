@@ -71,7 +71,7 @@ public final class SimpleComponentResolver<H extends Holder<C>, C> implements Co
   }
 
   private ComponentType resolve(final @Nullable ComponentType parent, final @NonNull Class<?> type) {
-    final ComponentType componentType = ((SimpleComponentRegistry) this.universe.components()).computeIfAbsent(type, key -> {
+    final ComponentType componentType = ((SimpleComponentRegistry) this.universe.componentTypes()).computeIfAbsent(type, key -> {
       final Component component = type.getAnnotation(Component.class);
       if(component == null) throw new IllegalArgumentException("Target type must have a component annotation!");
       return new SimpleComponentType(this.index.getAndIncrement(), component.id(), component.name(), type, ComponentStructure.generate(type));
@@ -108,7 +108,7 @@ public final class SimpleComponentResolver<H extends Holder<C>, C> implements Co
       }
       for (final ComponentType dependency : this.componentDependencies.adjacentNodes(componentType)) {
         if (parentType != null && dependency.index() == componentType.index()) continue;
-        final C dependencyInstance = holder.getComponent(dependency.index())
+        final C dependencyInstance = holder.getComponent(dependency)
           .orElseGet(() -> this.create(holder, componentInjector, holderInjector, componentType, dependency));
         final Field requiredField = structure.getRequiredDependencies().get(dependency.type());
         if (requiredField != null) {

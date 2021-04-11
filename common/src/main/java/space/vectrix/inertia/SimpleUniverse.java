@@ -27,13 +27,13 @@ package space.vectrix.inertia;
 import static java.util.Objects.requireNonNull;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import space.vectrix.inertia.component.ComponentRegistry;
+import space.vectrix.inertia.component.ComponentTypes;
 import space.vectrix.inertia.component.ComponentResolver;
 import space.vectrix.inertia.component.ComponentType;
 import space.vectrix.inertia.component.SimpleComponentRegistry;
 import space.vectrix.inertia.component.SimpleComponentResolver;
 import space.vectrix.inertia.holder.Holder;
-import space.vectrix.inertia.holder.HolderRegistry;
+import space.vectrix.inertia.holder.Holders;
 import space.vectrix.inertia.holder.HolderResolver;
 import space.vectrix.inertia.holder.SimpleHolderRegistry;
 import space.vectrix.inertia.holder.SimpleHolderResolver;
@@ -47,8 +47,8 @@ public final class SimpleUniverse<H extends Holder<C>, C> implements Universe<H,
   private final ComponentResolver<H, C> componentResolver;
   private final MemberInjector.Factory<?, H> holderInjector;
   private final MemberInjector.Factory<?, C> componentInjector;
-  private final HolderRegistry<H, C> holders;
-  private final ComponentRegistry components;
+  private final Holders<H, C> holders;
+  private final ComponentTypes components;
   private final String id;
 
   /* package */ SimpleUniverse(final SimpleUniverse.Builder<H, C> builder) {
@@ -93,12 +93,12 @@ public final class SimpleUniverse<H extends Holder<C>, C> implements Universe<H,
   }
 
   @Override
-  public @NonNull HolderRegistry<H, C> holders() {
+  public @NonNull Holders<H, C> holders() {
     return this.holders;
   }
 
   @Override
-  public @NonNull ComponentRegistry components() {
+  public @NonNull ComponentTypes componentTypes() {
     return this.components;
   }
 

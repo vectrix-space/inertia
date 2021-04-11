@@ -34,7 +34,7 @@ import java.util.Optional;
  *
  * @since 0.1.0
  */
-public interface ComponentRegistry {
+public interface ComponentTypes {
   /**
    * Returns the {@link ComponentType} with the specified {@code int}
    * index, if it exists.
