@@ -1,4 +1,5 @@
 plugins {
+  id("signing")
   id("net.kyori.indra") version "1.3.1"
   id("net.kyori.indra.publishing") version "1.3.1" apply false
   id("net.kyori.indra.license-header") version "1.3.1" apply false
@@ -33,6 +34,13 @@ subprojects {
     testImplementation("com.google.truth.extensions:truth-java8-extension:1.1.2")
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.1")
     testImplementation("org.junit.jupiter:junit-jupiter-engine:5.7.1")
+  }
+
+  signing {
+    val signingKey: String? by project
+    val signingPassword: String? by project
+    useInMemoryPgpKeys(signingKey, signingPassword)
+    sign(configurations.archives.get())
   }
 
   indra {
