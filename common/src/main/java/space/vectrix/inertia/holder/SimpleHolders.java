@@ -24,40 +24,69 @@
  */
 package space.vectrix.inertia.holder;
 
+import static java.util.Objects.requireNonNull;
+
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
 import java.util.Collection;
 import java.util.Optional;
 
-public final class SimpleHolderRegistry<H extends Holder<C>, C> implements Holders<H, C> {
-  private final Int2ObjectMap<H> holders = new Int2ObjectOpenHashMap<>(100);
-  private final Multimap<Class<?>, H> holdersTyped = HashMultimap.create(10, 50);
+public final class SimpleHolders<H extends Holder<C>, C> extends AbstractHolders<H, C> {
+  private final IntSet holders = new IntOpenHashSet(100);
+  private final Int2ObjectMap<H> holderInstances = new Int2ObjectOpenHashMap<>(100);
+  private final Multimap<Class<?>, H> holderInstancesTyped = HashMultimap.create(10, 50);
 
-  public SimpleHolderRegistry() {}
+  public SimpleHolders() {}
 
   @Override
   public @NonNull Optional<H> get(final int index) {
-    return Optional.ofNullable(this.holders.get(index));
+    return Optional.ofNullable(this.holderInstances.get(index));
   }
 
   @Override
   @SuppressWarnings("unchecked")
   public <T extends H> @NonNull Collection<T> get(final @NonNull Class<T> type) {
-    return (Collection<T>) this.holdersTyped.get(type);
+    requireNonNull(type, "type");
+    return (Collection<T>) this.holderInstancesTyped.get(type);
   }
 
   @Override
   public @NonNull Collection<? extends H> all() {
-    return this.holders.values();
+    return this.holderInstances.values();
   }
 
-  public <T extends H> void put(final int index, final @NonNull Class<?> type, final @NonNull T holder) {
-    if (this.holdersTyped.put(type, holder)) {
-      this.holders.put(index, holder);
+  @Override
+  public boolean add(final int index) {
+    return this.holders.add(index);
+  }
+
+  @Override
+  public <T extends H> void put(final int index, final @NonNull T holder) {
+    if(this.add(index)) {
+      this.holderInstances.put(index, holder);
+      this.holderInstancesTyped.put(holder.getClass(), holder);
+    }
+  }
+
+  @Override
+  public boolean remove(final int index) {
+    if(this.holders.remove(index)) {
+      this.removeInstance(index);
+      return true;
+    }
+    return false;
+  }
+
+  private void removeInstance(final int index) {
+    final H holder = this.holderInstances.remove(index);
+    if(holder != null) {
+      this.holderInstancesTyped.remove(holder.getClass(), holder);
     }
   }
 }

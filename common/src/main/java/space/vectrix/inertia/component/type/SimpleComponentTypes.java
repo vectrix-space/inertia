@@ -22,7 +22,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package space.vectrix.inertia.component;
+package space.vectrix.inertia.component.type;
 
 import static java.util.Objects.requireNonNull;
 
@@ -37,12 +37,12 @@ import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.Optional;
 
-public final class SimpleComponentRegistry implements ComponentTypes {
+public final class SimpleComponentTypes implements ComponentTypes {
   private final Int2ObjectMap<ComponentType> components = new Int2ObjectOpenHashMap<>(100);
   private final Map<Class<?>, ComponentType> componentsTyped = new IdentityHashMap<>(50);
   private final Map<String, ComponentType> componentsNamed = new HashMap<>(50);
 
-  public SimpleComponentRegistry() {}
+  public SimpleComponentTypes() {}
 
   @Override
   public @NonNull Optional<ComponentType> get(final int index) {

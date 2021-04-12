@@ -40,11 +40,26 @@ public final class SimpleHolderResolver<H extends Holder<C>, C> implements Holde
   }
 
   @Override
+  public int create() {
+    final AbstractHolders<H, C> holders = (AbstractHolders<H, C>) this.universe.holders();
+    int laps = 0;
+    for(; ; ) {
+      int index = this.index.getAndIncrement();
+      if(holders.add(index)) return index;
+      if(index == Integer.MAX_VALUE) { // Ensure we don't go infinitely through the indexes to find a free one.
+        if(laps > 0) throw new IndexOutOfBoundsException("Reached maximum amount of holder indexes!");
+        laps++;
+      }
+    }
+  }
+
+  @Override
   public <T extends H> @NonNull T create(final @NonNull HolderFunction<H, C, T> holderFunction) {
     requireNonNull(holderFunction, "holderFunction");
-    final int index = this.index.getAndIncrement();
+    final AbstractHolders<H, C> holders = (AbstractHolders<H, C>) this.universe.holders();
+    final int index = this.create();
     final T holderInstance = holderFunction.apply(this.universe, index);
-    ((SimpleHolderRegistry<H, C>) this.universe.holders()).put(index, holderInstance.getClass(), holderInstance);
+    holders.put(index, holderInstance);
     return holderInstance;
   }
 

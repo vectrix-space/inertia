@@ -29,7 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
-import space.vectrix.inertia.component.ComponentType;
+import space.vectrix.inertia.component.type.ComponentType;
 import space.vectrix.inertia.holder.AbstractHolder;
 import space.vectrix.inertia.holder.Holder;
 import space.vectrix.inertia.injector.ASMMemberInjectorFactory;

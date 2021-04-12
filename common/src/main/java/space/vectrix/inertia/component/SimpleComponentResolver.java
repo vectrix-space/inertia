@@ -32,6 +32,10 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import space.vectrix.inertia.Component;
 import space.vectrix.inertia.Universe;
+import space.vectrix.inertia.component.type.ComponentStructure;
+import space.vectrix.inertia.component.type.ComponentType;
+import space.vectrix.inertia.component.type.SimpleComponentType;
+import space.vectrix.inertia.component.type.SimpleComponentTypes;
 import space.vectrix.inertia.holder.Holder;
 import space.vectrix.inertia.injector.MemberInjector;
 
@@ -71,7 +75,7 @@ public final class SimpleComponentResolver<H extends Holder<C>, C> implements Co
   }
 
   private ComponentType resolve(final @Nullable ComponentType parent, final @NonNull Class<?> type) {
-    final ComponentType componentType = ((SimpleComponentRegistry) this.universe.componentTypes()).computeIfAbsent(type, key -> {
+    final ComponentType componentType = ((SimpleComponentTypes) this.universe.componentTypes()).computeIfAbsent(type, key -> {
       final Component component = type.getAnnotation(Component.class);
       if(component == null) throw new IllegalArgumentException("Target type must have a component annotation!");
       return new SimpleComponentType(this.index.getAndIncrement(), component.id(), component.name(), type, ComponentStructure.generate(type));
@@ -83,10 +87,10 @@ public final class SimpleComponentResolver<H extends Holder<C>, C> implements Co
     }
     if(componentType instanceof SimpleComponentType) {
       final ComponentStructure structure = ((SimpleComponentType) componentType).structure();
-      for (final Class<?> dependency : structure.getRequiredDependencies().keySet()) {
+      for(final Class<?> dependency : structure.getRequiredDependencies().keySet()) {
         componentType.requiredDependencies().add(this.resolve(componentType, dependency));
       }
-      for (final Class<?> dependency : structure.getOptionalDependencies().keySet()) {
+      for(final Class<?> dependency : structure.getOptionalDependencies().keySet()) {
         componentType.optionalDependencies().add(this.resolve(componentType, dependency));
       }
     }
@@ -99,23 +103,24 @@ public final class SimpleComponentResolver<H extends Holder<C>, C> implements Co
                                  final MemberInjector.@NonNull Factory<?, H> holderInjector,
                                  final @Nullable ComponentType parentType,
                                  final @NonNull ComponentType componentType) {
+    final AbstractComponents<H, C> components = (AbstractComponents<H, C>) this.universe.components();
     final Class<?> componentClass = componentType.type();
     final T componentInstance = (T) this.createInstance(componentClass);
-    if(holder.addComponent(componentType, componentInstance) && componentType instanceof SimpleComponentType) {
+    if(components.put(holder.getIndex(), componentType, componentInstance) && componentType instanceof SimpleComponentType) {
       final ComponentStructure structure = ((SimpleComponentType) componentType).structure();
-      for (final Map.Entry<Class<?>, Field> holderEntry : structure.getHolders().entrySet()) {
+      for(final Map.Entry<Class<?>, Field> holderEntry : structure.getHolders().entrySet()) {
         this.injectMember(holderInjector, holderEntry.getValue(), componentInstance, holder);
       }
-      for (final ComponentType dependency : this.componentDependencies.adjacentNodes(componentType)) {
-        if (parentType != null && dependency.index() == componentType.index()) continue;
+      for(final ComponentType dependency : this.componentDependencies.adjacentNodes(componentType)) {
+        if(parentType != null && dependency.index() == componentType.index()) continue;
         final C dependencyInstance = holder.getComponent(dependency)
           .orElseGet(() -> this.create(holder, componentInjector, holderInjector, componentType, dependency));
         final Field requiredField = structure.getRequiredDependencies().get(dependency.type());
-        if (requiredField != null) {
+        if(requiredField != null) {
           this.injectMember(componentInjector, requiredField, componentInstance, dependencyInstance);
         }
         final Field optionalField = structure.getOptionalDependencies().get(dependency.type());
-        if (optionalField != null) {
+        if(optionalField != null) {
           this.injectMember(componentInjector, optionalField, componentInstance, dependencyInstance);
         }
       }

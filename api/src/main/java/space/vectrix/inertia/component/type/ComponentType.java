@@ -22,63 +22,63 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package space.vectrix.inertia.holder;
+package space.vectrix.inertia.component.type;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import space.vectrix.inertia.component.type.ComponentType;
 
-import java.util.Collection;
-import java.util.Optional;
+import java.util.Set;
 
 /**
- * Represents a holder of components.
+ * The component type.
  *
- * @param <C> The component type
  * @since 0.1.0
  */
-public interface Holder<C> {
+public interface ComponentType {
   /**
-   * Returns the holder index.
+   * The component index.
    *
-   * @return The holder index
+   * @return The index
    * @since 0.1.0
    */
-  int getIndex();
+  int index();
 
   /**
-   * Returns the {@code T} component with the specified {@link ComponentType},
-   * if it exists.
+   * The component identifier.
    *
-   * @param componentType The component type
-   * @param <T> The specific component type
-   * @return The component, if present
+   * @return The identifier
    * @since 0.1.0
    */
-  <T extends C> @NonNull Optional<T> getComponent(final @NonNull ComponentType componentType);
+  @NonNull String id();
 
   /**
-   * Returns {@code true} if it removed the component with the specified
-   * {@link ComponentType}, otherwise returns false.
+   * The component name.
    *
-   * @param type The component type
-   * @return True if the component was removed, otherwise false
+   * @return The name
    * @since 0.1.0
    */
-  boolean removeComponent(final @NonNull ComponentType type);
+  @NonNull String name();
 
   /**
-   * Returns a {@link Collection} of {@code C} components stored in this
-   * holder.
+   * The component type.
    *
-   * @return A collection of stored components
+   * @return The type
    * @since 0.1.0
    */
-  @NonNull Collection<? extends C> getComponents();
+  @NonNull Class<?> type();
 
   /**
-   * Clears the components in this holder.
+   * The component required {@link ComponentType} dependencies.
    *
+   * @return The required dependencies
    * @since 0.1.0
    */
-  void clearComponents();
+  @NonNull Set<ComponentType> requiredDependencies();
+
+  /**
+   * The component optional {@link ComponentType} dependencies.
+   *
+   * @return The optional dependencies
+   * @since 0.1.0
+   */
+  @NonNull Set<ComponentType> optionalDependencies();
 }

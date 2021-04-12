@@ -26,9 +26,9 @@ package space.vectrix.inertia;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import space.vectrix.inertia.component.ComponentResolver;
-import space.vectrix.inertia.component.ComponentType;
-import space.vectrix.inertia.component.ComponentTypes;
 import space.vectrix.inertia.component.Components;
+import space.vectrix.inertia.component.type.ComponentType;
+import space.vectrix.inertia.component.type.ComponentTypes;
 import space.vectrix.inertia.holder.Holder;
 import space.vectrix.inertia.holder.HolderResolver;
 import space.vectrix.inertia.holder.Holders;
@@ -118,9 +118,10 @@ public interface Universe<H extends Holder<C>, C> {
    *
    * @param holder The holder index
    * @param componentType The component type
+   * @return True if the component was removed, otherwise false
    * @since 0.1.0
    */
-  void removeComponent(final int holder, final @NonNull ComponentType componentType);
+  boolean removeComponent(final int holder, final @NonNull ComponentType componentType);
 
   /**
    * Removes the component for the specified {@code H} holder with the
@@ -128,9 +129,26 @@ public interface Universe<H extends Holder<C>, C> {
    *
    * @param holder The holder instance
    * @param componentType The component type
+   * @return True if the component was removed, otherwise false
    * @since 0.1.0
    */
-  void removeComponent(final @NonNull H holder, final @NonNull ComponentType componentType);
+  boolean removeComponent(final @NonNull H holder, final @NonNull ComponentType componentType);
+
+  /**
+   * Removes all components for the specified {@code int} holder.
+   *
+   * @param holder The holder index
+   * @since 0.1.0
+   */
+  void removeComponents(final int holder);
+
+  /**
+   * Removes all components for the specified {@code H} holder.
+   *
+   * @param holder The holder instance
+   * @since 0.1.0
+   */
+  void removeComponents(final @NonNull H holder);
 
   /**
    * Returns the {@code T} holder with the specified {@code int}
@@ -219,6 +237,24 @@ public interface Universe<H extends Holder<C>, C> {
      * @since 0.1.0
      */
     @NonNull Builder<H, C> componentResolver(final ComponentResolver.@NonNull Factory resolver);
+
+    /**
+     * Returns this {@link Builder} with the specified {@link Holders} registry.
+     *
+     * @param registry The holder registry
+     * @return This builder
+     * @since 0.1.0
+     */
+    @NonNull Builder<H, C> holderRegistry(final @NonNull Holders<H, C> registry);
+
+    /**
+     * Returns this {@link Builder} with the specified {@link Components} registry.
+     *
+     * @param registry The component registry
+     * @return The builder
+     * @since 0.1.0
+     */
+    @NonNull Builder<H, C> componentRegistry(final @NonNull Components<H, C> registry);
 
     /**
      * Returns this {@link Builder} with the specified {@link MemberInjector.Factory}

@@ -31,7 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
-import space.vectrix.inertia.component.ComponentType;
+import space.vectrix.inertia.component.type.ComponentType;
 import space.vectrix.inertia.holder.Holder;
 
 import java.util.concurrent.CompletableFuture;

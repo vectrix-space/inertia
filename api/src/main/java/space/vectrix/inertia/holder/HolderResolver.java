@@ -36,6 +36,14 @@ import space.vectrix.inertia.Universe;
  */
 public interface HolderResolver<H extends Holder<C>, C> {
   /**
+   * Creates the {@code int} holder.
+   *
+   * @return The holder index
+   * @since 0.1.0
+   */
+  int create();
+
+  /**
    * Creates the {@code T} holder using the specified {@link HolderFunction}.
    *
    * @param holderFunction The holder function

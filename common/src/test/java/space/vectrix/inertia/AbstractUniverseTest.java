@@ -28,15 +28,10 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.junit.jupiter.api.Test;
-import space.vectrix.inertia.component.SimpleComponentResolver;
 import space.vectrix.inertia.holder.AbstractHolder;
 import space.vectrix.inertia.holder.Holder;
-import space.vectrix.inertia.holder.SimpleHolderResolver;
-import space.vectrix.inertia.injector.MemberInjector;
 
-import java.lang.reflect.Field;
 import java.util.concurrent.CompletableFuture;
 
 abstract class AbstractUniverseTest {

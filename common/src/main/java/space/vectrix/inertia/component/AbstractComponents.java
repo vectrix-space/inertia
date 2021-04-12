@@ -25,52 +25,10 @@
 package space.vectrix.inertia.component;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import space.vectrix.inertia.component.type.ComponentType;
+import space.vectrix.inertia.holder.Holder;
 
-import java.util.Collection;
-import java.util.Optional;
-
-/**
- * The component registry.
- *
- * @since 0.1.0
- */
-public interface ComponentTypes {
-  /**
-   * Returns the {@link ComponentType} with the specified {@code int}
-   * index, if it exists.
-   *
-   * @param index The component index
-   * @return The component type, if present
-   * @since 0.1.0
-   */
-  @NonNull Optional<ComponentType> get(final int index);
-
-  /**
-   * Returns the {@link ComponentType} with the specified {@link Class}
-   * type, if it exists.
-   *
-   * @param type The component class
-   * @return The component type, if present
-   * @since 0.1.0
-   */
-  @NonNull Optional<ComponentType> get(final @NonNull Class<?> type);
-
-  /**
-   * Returns the {@link ComponentType} with the specified {@link String}
-   * identifier, if it exists.
-   *
-   * @param identifier The component identifier
-   * @return The component type, if present
-   * @since 0.1.0
-   */
-  @NonNull Optional<ComponentType> get(final @NonNull String identifier);
-
-  /**
-   * Returns a {@link Collection} of {@link ComponentType}s in this
-   * registry.
-   *
-   * @return A collection of registered component types
-   * @since 0.1.0
-   */
-  @NonNull Collection<ComponentType> all();
+public abstract class AbstractComponents<H extends Holder<C>, C> implements Components<H, C> {
+  public abstract <T extends C> boolean put(final int holder, final @NonNull ComponentType componentType, final @NonNull T component);
+  public abstract boolean remove(final int holder, final @NonNull ComponentType componentType);
 }

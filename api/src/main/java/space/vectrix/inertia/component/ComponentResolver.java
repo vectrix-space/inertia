@@ -26,6 +26,7 @@ package space.vectrix.inertia.component;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import space.vectrix.inertia.Universe;
+import space.vectrix.inertia.component.type.ComponentType;
 import space.vectrix.inertia.holder.Holder;
 import space.vectrix.inertia.injector.MemberInjector;
 

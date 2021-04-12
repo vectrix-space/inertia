@@ -22,63 +22,55 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package space.vectrix.inertia.holder;
+package space.vectrix.inertia.component.type;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import space.vectrix.inertia.component.type.ComponentType;
 
 import java.util.Collection;
 import java.util.Optional;
 
 /**
- * Represents a holder of components.
+ * The component registry.
  *
- * @param <C> The component type
  * @since 0.1.0
  */
-public interface Holder<C> {
+public interface ComponentTypes {
   /**
-   * Returns the holder index.
+   * Returns the {@link ComponentType} with the specified {@code int}
+   * index, if it exists.
    *
-   * @return The holder index
+   * @param index The component index
+   * @return The component type, if present
    * @since 0.1.0
    */
-  int getIndex();
+  @NonNull Optional<ComponentType> get(final int index);
 
   /**
-   * Returns the {@code T} component with the specified {@link ComponentType},
-   * if it exists.
+   * Returns the {@link ComponentType} with the specified {@link Class}
+   * type, if it exists.
    *
-   * @param componentType The component type
-   * @param <T> The specific component type
-   * @return The component, if present
+   * @param type The component class
+   * @return The component type, if present
    * @since 0.1.0
    */
-  <T extends C> @NonNull Optional<T> getComponent(final @NonNull ComponentType componentType);
+  @NonNull Optional<ComponentType> get(final @NonNull Class<?> type);
 
   /**
-   * Returns {@code true} if it removed the component with the specified
-   * {@link ComponentType}, otherwise returns false.
+   * Returns the {@link ComponentType} with the specified {@link String}
+   * identifier, if it exists.
    *
-   * @param type The component type
-   * @return True if the component was removed, otherwise false
+   * @param identifier The component identifier
+   * @return The component type, if present
    * @since 0.1.0
    */
-  boolean removeComponent(final @NonNull ComponentType type);
+  @NonNull Optional<ComponentType> get(final @NonNull String identifier);
 
   /**
-   * Returns a {@link Collection} of {@code C} components stored in this
-   * holder.
+   * Returns a {@link Collection} of {@link ComponentType}s in this
+   * registry.
    *
-   * @return A collection of stored components
+   * @return A collection of registered component types
    * @since 0.1.0
    */
-  @NonNull Collection<? extends C> getComponents();
-
-  /**
-   * Clears the components in this holder.
-   *
-   * @since 0.1.0
-   */
-  void clearComponents();
+  @NonNull Collection<ComponentType> all();
 }
