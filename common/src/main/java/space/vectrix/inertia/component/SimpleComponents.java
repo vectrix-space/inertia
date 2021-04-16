@@ -28,18 +28,22 @@ import static java.util.Objects.requireNonNull;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.ints.IntIterator;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import space.vectrix.flare.SyncMap;
 import space.vectrix.inertia.component.type.ComponentType;
 import space.vectrix.inertia.holder.Holder;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 public final class SimpleComponents<H extends Holder<C>, C> extends AbstractComponents<H, C> {
   private final Int2ObjectMap<C> componentInstances = new Int2ObjectOpenHashMap<>(100);
-  private final Int2ObjectMap<Collection<C>> componentInstancesGrouped = new Int2ObjectOpenHashMap<>(10);
+  private final Int2ObjectMap<IntSet> componentInstancesGrouped = new Int2ObjectOpenHashMap<>(10);
 
   @Override
   @SuppressWarnings("unchecked")
@@ -57,9 +61,11 @@ public final class SimpleComponents<H extends Holder<C>, C> extends AbstractComp
 
   @Override
   public @NonNull Collection<? extends C> all(final int holder) {
-    final Collection<C> components = this.componentInstancesGrouped.get(holder);
+    final IntSet components = this.componentInstancesGrouped.get(holder);
     if(components == null) return Collections.emptySet();
-    return components;
+    final List<C> instances = new ArrayList<>(components.size());
+    for(final int component : components) instances.add(this.componentInstances.get(this.getCombinedIndex(holder, component)));
+    return instances;
   }
 
   @Override
@@ -77,7 +83,7 @@ public final class SimpleComponents<H extends Holder<C>, C> extends AbstractComp
   public <T extends C> boolean put(final int holder, final @NonNull ComponentType componentType, final @NonNull T component) {
     final int index = this.getCombinedIndex(holder, componentType.index());
     if(this.componentInstances.putIfAbsent(index, component) == null) {
-      this.componentInstancesGrouped.computeIfAbsent(holder, key -> SyncMap.hashset()).add(component);
+      this.componentInstancesGrouped.computeIfAbsent(holder, key -> new IntOpenHashSet()).add(componentType.index());
       return true;
     }
     return false;
@@ -85,18 +91,30 @@ public final class SimpleComponents<H extends Holder<C>, C> extends AbstractComp
 
   @Override
   public boolean remove(final int holder, final @NonNull ComponentType componentType) {
-    final int index = this.getCombinedIndex(holder, componentType.index());
-    return this.removeInstance(holder, index);
-  }
-
-  private boolean removeInstance(final int holder, final int combinedIndex) {
-    final C component = this.componentInstances.remove(combinedIndex);
-    if(component != null) {
-      final Collection<C> components = this.componentInstancesGrouped.get(holder);
-      if (components != null) components.remove(component);
-      return true;
+    final IntSet components = this.componentInstancesGrouped.get(holder);
+    if(components != null) {
+      final IntIterator componentIterator = components.iterator();
+      while(componentIterator.hasNext()) {
+        final int componentIndex = componentIterator.nextInt();
+        if(componentIndex == componentType.index()) {
+          this.componentInstances.remove(this.getCombinedIndex(holder, componentIndex));
+          componentIterator.remove();
+          return true;
+        }
+      }
     }
     return false;
+  }
+
+  @Override
+  public void remove(final int holder) {
+    final IntSet components = this.componentInstancesGrouped.remove(holder);
+    if(components != null) {
+      final IntIterator componentIterator = components.iterator();
+      while(componentIterator.hasNext()) {
+        this.componentInstances.remove(this.getCombinedIndex(holder, componentIterator.nextInt()));
+      }
+    }
   }
 
   private int getCombinedIndex(final int holder, final int component) {

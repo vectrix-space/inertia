@@ -44,7 +44,7 @@ public interface Holders<H extends Holder<C>, C> {
    * @return The holder instance, if present
    * @since 0.1.0
    */
-  @NonNull Optional<H> get(final int index);
+  <T extends H> @NonNull Optional<T> get(final int index);
 
   /**
    * Returns a {@link Collection} of {@code T} holders in this

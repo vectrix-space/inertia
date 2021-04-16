@@ -26,24 +26,43 @@ package space.vectrix.inertia.injector;
 
 import static java.util.Objects.requireNonNull;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.lanternpowered.lmbda.LambdaFactory;
 
-public final class DummyMemberInjectorFactory<T, M, I> implements InjectionMethod.Factory<T, M, I> {
-  private final DummyMemberInjector<T, M> dummyInjector = new DummyMemberInjector<>();
+import java.lang.invoke.MethodHandle;
+import java.util.function.BiConsumer;
 
-  public DummyMemberInjectorFactory() {}
+public final class LmbdaInjectionMethodFactory<T, M> implements InjectionMethod.Factory<T, M, MethodHandle> {
+  private final LoadingCache<MethodHandle, LmbdaMemberInjector<T, M>> cache;
 
-  @Override
-  public @NonNull InjectionMethod<T, M> create(final @NonNull Object target, final @NonNull I input) throws Exception {
-    requireNonNull(target, "target");
-    requireNonNull(input, "input");
-    return this.dummyInjector;
+  public LmbdaInjectionMethodFactory() {
+    this.cache = CacheBuilder.newBuilder()
+      .initialCapacity(16)
+      .weakValues()
+      .build(CacheLoader.from(methodHandle -> {
+        requireNonNull(methodHandle, "methodHandle");
+        return new LmbdaMemberInjector<>(LambdaFactory.createBiConsumer(methodHandle));
+      }));
   }
 
-  /* package */ static final class DummyMemberInjector<T, M> implements InjectionMethod<T, M> {
+  @Override
+  public @NonNull InjectionMethod<T, M> create(final @NonNull Object target, final @NonNull MethodHandle input) throws Exception {
+    return this.cache.getUnchecked(input);
+  }
+
+  /* package */ static final class LmbdaMemberInjector<T, M> implements InjectionMethod<T, M> {
+    private final BiConsumer<T, M> injector;
+
+    /* package */ LmbdaMemberInjector(final BiConsumer<T, M> injector) {
+      this.injector = injector;
+    }
+
     @Override
     public void member(final @NonNull T target, final @NonNull M member) throws Throwable {
-      // no-op
+      this.injector.accept(target, member);
     }
   }
 }

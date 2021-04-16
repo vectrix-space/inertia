@@ -26,47 +26,15 @@ package space.vectrix.inertia.injector;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 
-import java.lang.reflect.Field;
+import java.util.Map;
 
-/**
- * Functional interface that can inject members on a defined field on a target
- * object when needed.
- *
- * @param <T> The target type
- * @param <M> The member type
- * @since 0.1.0
- */
-@FunctionalInterface
-public interface MemberInjector<T, M> {
-  /**
-   * Injects the member at the appropriate field on the given target.
-   *
-   * @param target The target to inject into
-   * @param member The member to inject
-   * @throws Throwable If an exception occurred
-   * @since 0.1.0
-   */
-  void member(final @NonNull T target, final @NonNull M member) throws Throwable;
+public interface InjectionStructure<I> {
+  @NonNull Map<Class<?>, I> getRequired();
+  @NonNull Map<Class<?>, I> getOptional();
+  @NonNull Map<Class<?>, I> getHolders();
 
-  /**
-   * The factory for creating an {@link MemberInjector}.
-   *
-   * @param <T> The target type
-   * @param <M> The member type
-   * @since 0.1.0
-   */
   @FunctionalInterface
-  interface Factory<T, M> {
-    /**
-     * Creates a new {@link MemberInjector} for the specified {@link Object}
-     * target and {@link Field} field.
-     *
-     * @param target The target object
-     * @param field The target field
-     * @return A new member injector
-     * @throws Exception If an exception occurred
-     * @since 0.1.0
-     */
-    @NonNull MemberInjector<T, M> create(final @NonNull Object target, final @NonNull Field field) throws Exception;
+  interface Factory<I> {
+    @NonNull InjectionStructure<I> create(final @NonNull Class<?> target);
   }
 }

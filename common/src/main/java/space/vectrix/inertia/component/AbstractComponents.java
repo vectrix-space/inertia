@@ -31,4 +31,5 @@ import space.vectrix.inertia.holder.Holder;
 public abstract class AbstractComponents<H extends Holder<C>, C> implements Components<H, C> {
   public abstract <T extends C> boolean put(final int holder, final @NonNull ComponentType componentType, final @NonNull T component);
   public abstract boolean remove(final int holder, final @NonNull ComponentType componentType);
+  public abstract void remove(final int holder);
 }

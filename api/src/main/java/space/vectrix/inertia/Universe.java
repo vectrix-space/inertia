@@ -32,7 +32,8 @@ import space.vectrix.inertia.component.type.ComponentTypes;
 import space.vectrix.inertia.holder.Holder;
 import space.vectrix.inertia.holder.HolderResolver;
 import space.vectrix.inertia.holder.Holders;
-import space.vectrix.inertia.injector.MemberInjector;
+import space.vectrix.inertia.injector.InjectionMethod;
+import space.vectrix.inertia.injector.InjectionStructure;
 
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -257,24 +258,28 @@ public interface Universe<H extends Holder<C>, C> {
     @NonNull Builder<H, C> componentRegistry(final @NonNull Components<H, C> registry);
 
     /**
-     * Returns this {@link Builder} with the specified {@link MemberInjector.Factory}
+     * Returns this {@link Builder} with the specified {@link InjectionMethod.Factory}
      * holder injector.
      *
      * @param injector The holder injector
+     * @param structure The holder structure
+     * @param <I> The injector input type
      * @return This builder
      * @since 0.1.0
      */
-    @NonNull Builder<H, C> holderInjector(final MemberInjector.@NonNull Factory<?, H> injector);
+    <I> @NonNull Builder<H, C> holderInjector(final InjectionMethod.@NonNull Factory<?, H, I> injector, final InjectionStructure.@NonNull Factory<I> structure);
 
     /**
-     * Returns this {@link Builder} with the specified {@link MemberInjector.Factory}
+     * Returns this {@link Builder} with the specified {@link InjectionMethod.Factory}
      * component injector.
      *
      * @param injector The component injector
+     * @param structure The component structure
+     * @param <I> The injector input type
      * @return This builder
      * @since 0.1.0
      */
-    @NonNull Builder<H, C> componentInjector(final MemberInjector.@NonNull Factory<?, C> injector);
+    <I> @NonNull Builder<H, C> componentInjector(final InjectionMethod.@NonNull Factory<?, C, I> injector, final InjectionStructure.@NonNull Factory<I> structure);
 
     /**
      * Returns a new {@link Universe} from this {@link Builder}.

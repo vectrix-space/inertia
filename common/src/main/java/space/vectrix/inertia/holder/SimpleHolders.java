@@ -45,8 +45,9 @@ public final class SimpleHolders<H extends Holder<C>, C> extends AbstractHolders
   public SimpleHolders() {}
 
   @Override
-  public @NonNull Optional<H> get(final int index) {
-    return Optional.ofNullable(this.holderInstances.get(index));
+  @SuppressWarnings("unchecked")
+  public <T extends H> @NonNull Optional<T> get(final int index) {
+    return Optional.ofNullable((T) this.holderInstances.get(index));
   }
 
   @Override

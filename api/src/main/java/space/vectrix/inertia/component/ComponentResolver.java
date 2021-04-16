@@ -28,7 +28,8 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import space.vectrix.inertia.Universe;
 import space.vectrix.inertia.component.type.ComponentType;
 import space.vectrix.inertia.holder.Holder;
-import space.vectrix.inertia.injector.MemberInjector;
+import space.vectrix.inertia.injector.InjectionMethod;
+import space.vectrix.inertia.injector.InjectionStructure;
 
 /**
  * The component resolver.
@@ -43,27 +44,53 @@ public interface ComponentResolver<H extends Holder<C>, C> {
    * type.
    *
    * @param type The component class
+   * @param componentStructure The component structure
    * @return The component type
    * @since 0.1.0
    */
-  @NonNull ComponentType resolve(final @NonNull Class<?> type);
+  @NonNull ComponentType resolve(final @NonNull Class<?> type, final InjectionStructure.@NonNull Factory<?> componentStructure);
+
+  /**
+   * Creates the {@code T} component for the specified {@code int} holder
+   * using the {@link ComponentType} and {@link InjectionMethod}s.
+   *
+   * @param holder The holder index
+   * @param componentType The component type
+   * @param componentInjector The component injector
+   * @param componentStructure The component structure
+   * @param holderInjector The holder injector
+   * @param holderStructure The holder structure
+   * @param <T> The specific component type
+   * @return The component
+   * @since 0.1.0
+   */
+  <T extends C> @NonNull T create(final int holder,
+                                  final @NonNull ComponentType componentType,
+                                  final InjectionMethod.@NonNull Factory<?, C, ?> componentInjector,
+                                  final InjectionStructure.@NonNull Factory<?> componentStructure,
+                                  final InjectionMethod.@NonNull Factory<?, H, ?> holderInjector,
+                                  final InjectionStructure.@NonNull Factory<?> holderStructure);
 
   /**
    * Creates the {@code T} component for the specified {@code H} holder
-   * using the {@link ComponentType} and {@link MemberInjector}s.
+   * using the {@link ComponentType} and {@link InjectionMethod}s.
    *
    * @param holder The holder
    * @param componentType The component type
    * @param componentInjector The component injector
+   * @param componentStructure The component structure
    * @param holderInjector The holder injector
+   * @param holderStructure The holder structure
    * @param <T> The specific component type
    * @return The component
    * @since 0.1.0
    */
   <T extends C> @NonNull T create(final @NonNull H holder,
                                   final @NonNull ComponentType componentType,
-                                  final MemberInjector.@NonNull Factory<?, C> componentInjector,
-                                  final MemberInjector.@NonNull Factory<?, H> holderInjector);
+                                  final InjectionMethod.@NonNull Factory<?, C, ?> componentInjector,
+                                  final InjectionStructure.@NonNull Factory<?> componentStructure,
+                                  final InjectionMethod.@NonNull Factory<?, H, ?> holderInjector,
+                                  final InjectionStructure.@NonNull Factory<?> holderStructure);
 
   /**
    * The factory for creating an {@link ComponentResolver}.

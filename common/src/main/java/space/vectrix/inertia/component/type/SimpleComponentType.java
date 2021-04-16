@@ -27,6 +27,7 @@ package space.vectrix.inertia.component.type;
 import static java.util.Objects.requireNonNull;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import space.vectrix.inertia.injector.InjectionStructure;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -38,13 +39,13 @@ public final class SimpleComponentType implements ComponentType {
   private final String id;
   private final String name;
   private final Class<?> component;
-  private final ComponentStructure structure;
+  private final InjectionStructure<?> structure;
 
   public SimpleComponentType(final int index,
                              final String id,
                              final String name,
                              final Class<?> component,
-                             final ComponentStructure structure) {
+                             final InjectionStructure<?> structure) {
     this.index = index;
     this.id = requireNonNull(id, "id");
     this.name = requireNonNull(name, "name");
@@ -82,7 +83,7 @@ public final class SimpleComponentType implements ComponentType {
     return this.optionalDependencies;
   }
 
-  public @NonNull ComponentStructure structure() {
+  public @NonNull InjectionStructure<?> structure() {
     return this.structure;
   }
 }
