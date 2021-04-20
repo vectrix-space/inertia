@@ -32,7 +32,6 @@ import it.unimi.dsi.fastutil.ints.IntIterator;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import space.vectrix.inertia.component.type.ComponentType;
 import space.vectrix.inertia.holder.Holder;
 
 import java.util.ArrayList;
@@ -41,9 +40,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-public final class SimpleComponents<H extends Holder<C>, C> extends AbstractComponents<H, C> {
+public final class ComponentsImpl<H extends Holder<C>, C> extends AbstractComponents<H, C> {
   private final Int2ObjectMap<C> componentInstances = new Int2ObjectOpenHashMap<>(100);
   private final Int2ObjectMap<IntSet> componentInstancesGrouped = new Int2ObjectOpenHashMap<>(10);
+
+  public ComponentsImpl() {}
 
   @Override
   @SuppressWarnings("unchecked")
@@ -56,7 +57,7 @@ public final class SimpleComponents<H extends Holder<C>, C> extends AbstractComp
   @SuppressWarnings("unchecked")
   public <T extends C> @NonNull Optional<T> get(final @NonNull H holder, final @NonNull ComponentType componentType) {
     requireNonNull(componentType, "componentType");
-    return Optional.ofNullable((T) this.componentInstances.get(this.getCombinedIndex(holder.getIndex(), componentType.index())));
+    return Optional.ofNullable((T) this.componentInstances.get(this.getCombinedIndex(holder.index(), componentType.index())));
   }
 
   @Override
@@ -71,7 +72,7 @@ public final class SimpleComponents<H extends Holder<C>, C> extends AbstractComp
   @Override
   public @NonNull Collection<? extends C> all(final @NonNull H holder) {
     requireNonNull(holder, "holder");
-    return this.all(holder.getIndex());
+    return this.all(holder.index());
   }
 
   @Override

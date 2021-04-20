@@ -25,7 +25,7 @@
 package space.vectrix.inertia.holder;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import space.vectrix.inertia.component.type.ComponentType;
+import space.vectrix.inertia.component.ComponentType;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -43,7 +43,7 @@ public interface Holder<C> {
    * @return The holder index
    * @since 0.1.0
    */
-  int getIndex();
+  int index();
 
   /**
    * Returns the {@code T} component with the specified {@link ComponentType},
@@ -54,7 +54,7 @@ public interface Holder<C> {
    * @return The component, if present
    * @since 0.1.0
    */
-  <T extends C> @NonNull Optional<T> getComponent(final @NonNull ComponentType componentType);
+  <T extends C> @NonNull Optional<T> get(final @NonNull ComponentType componentType);
 
   /**
    * Returns {@code true} if it removed the component with the specified
@@ -64,7 +64,7 @@ public interface Holder<C> {
    * @return True if the component was removed, otherwise false
    * @since 0.1.0
    */
-  boolean removeComponent(final @NonNull ComponentType type);
+  boolean remove(final @NonNull ComponentType type);
 
   /**
    * Returns a {@link Collection} of {@code C} components stored in this
@@ -73,12 +73,12 @@ public interface Holder<C> {
    * @return A collection of stored components
    * @since 0.1.0
    */
-  @NonNull Collection<? extends C> getComponents();
+  @NonNull Collection<? extends C> all();
 
   /**
    * Clears the components in this holder.
    *
    * @since 0.1.0
    */
-  void clearComponents();
+  void clear();
 }

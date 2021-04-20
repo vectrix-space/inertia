@@ -22,63 +22,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package space.vectrix.inertia.component.type;
+package space.vectrix.inertia.injector;
+
+import static java.util.Objects.requireNonNull;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 
-import java.util.Set;
+public final class DummyInjectionMethodFactory<T, M> implements InjectionMethod.Factory<T, M> {
+  private final DummyMemberInjector<T, M> dummyInjector = new DummyMemberInjector<>();
 
-/**
- * The component type.
- *
- * @since 0.1.0
- */
-public interface ComponentType {
-  /**
-   * The component index.
-   *
-   * @return The index
-   * @since 0.1.0
-   */
-  int index();
+  public DummyInjectionMethodFactory() {}
 
-  /**
-   * The component identifier.
-   *
-   * @return The identifier
-   * @since 0.1.0
-   */
-  @NonNull String id();
+  @Override
+  public <I> @NonNull InjectionMethod<T, M> create(final @NonNull I input) throws Exception {
+    requireNonNull(input, "input");
+    return this.dummyInjector;
+  }
 
-  /**
-   * The component name.
-   *
-   * @return The name
-   * @since 0.1.0
-   */
-  @NonNull String name();
-
-  /**
-   * The component type.
-   *
-   * @return The type
-   * @since 0.1.0
-   */
-  @NonNull Class<?> type();
-
-  /**
-   * The component required {@link ComponentType} dependencies.
-   *
-   * @return The required dependencies
-   * @since 0.1.0
-   */
-  @NonNull Set<ComponentType> requiredDependencies();
-
-  /**
-   * The component optional {@link ComponentType} dependencies.
-   *
-   * @return The optional dependencies
-   * @since 0.1.0
-   */
-  @NonNull Set<ComponentType> optionalDependencies();
+  /* package */ static final class DummyMemberInjector<T, M> implements InjectionMethod<T, M> {
+    @Override
+    public void member(final @NonNull T target, final @NonNull M member) throws Throwable {
+      // no-op
+    }
+  }
 }

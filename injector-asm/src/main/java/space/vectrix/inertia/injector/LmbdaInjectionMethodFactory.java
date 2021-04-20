@@ -35,7 +35,7 @@ import org.lanternpowered.lmbda.LambdaFactory;
 import java.lang.invoke.MethodHandle;
 import java.util.function.BiConsumer;
 
-public final class LmbdaInjectionMethodFactory<T, M> implements InjectionMethod.Factory<T, M, MethodHandle> {
+public final class LmbdaInjectionMethodFactory<T, M> implements InjectionMethod.Factory<T, M> {
   private final LoadingCache<MethodHandle, LmbdaMemberInjector<T, M>> cache;
 
   public LmbdaInjectionMethodFactory() {
@@ -49,8 +49,8 @@ public final class LmbdaInjectionMethodFactory<T, M> implements InjectionMethod.
   }
 
   @Override
-  public @NonNull InjectionMethod<T, M> create(final @NonNull Object target, final @NonNull MethodHandle input) throws Exception {
-    return this.cache.getUnchecked(input);
+  public <I> @NonNull InjectionMethod<T, M> create(final @NonNull I input) throws Exception {
+    return this.cache.getUnchecked((MethodHandle) input);
   }
 
   /* package */ static final class LmbdaMemberInjector<T, M> implements InjectionMethod<T, M> {

@@ -37,12 +37,12 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import java.util.Collection;
 import java.util.Optional;
 
-public final class SimpleHolders<H extends Holder<C>, C> extends AbstractHolders<H, C> {
+public final class HoldersImpl<H extends Holder<C>, C> extends AbstractHolders<H, C> {
   private final IntSet holders = new IntOpenHashSet(100);
   private final Int2ObjectMap<H> holderInstances = new Int2ObjectOpenHashMap<>(100);
   private final Multimap<Class<?>, H> holderInstancesTyped = HashMultimap.create(10, 50);
 
-  public SimpleHolders() {}
+  public HoldersImpl() {}
 
   @Override
   @SuppressWarnings("unchecked")
@@ -63,16 +63,21 @@ public final class SimpleHolders<H extends Holder<C>, C> extends AbstractHolders
   }
 
   @Override
-  public boolean add(final int index) {
+  public boolean put(final int index) {
     return this.holders.add(index);
   }
 
   @Override
   public <T extends H> void put(final int index, final @NonNull T holder) {
-    if(this.add(index)) {
+    if(this.put(index)) {
       this.holderInstances.put(index, holder);
       this.holderInstancesTyped.put(holder.getClass(), holder);
     }
+  }
+
+  @Override
+  public boolean contains(int index) {
+    return this.holders.contains(index);
   }
 
   @Override

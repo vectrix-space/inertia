@@ -25,49 +25,27 @@
 package space.vectrix.inertia.component;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import space.vectrix.inertia.holder.Holder;
 
 /**
- * {@inheritDoc}
+ * A component dependency link.
  *
- * Provides methods to use internally for storing and removing
- * {@code H} holder {@code C} components.
- *
- * @param <H> The holder type
- * @param <C> The component type
  * @since 0.1.0
  */
-public abstract class AbstractComponents<H extends Holder<C>, C> implements Components<H, C> {
+public interface ComponentLink {
   /**
-   * Returns {@code true} if the specified {@code T} component for the
-   * {@link ComponentType} and {@code int} holder is stored successfully,
-   * otherwise returns {@code false}.
+   * Returns the {@link ComponentType} for this dependency.
    *
-   * @param holder The holder index
-   * @param componentType The component type
-   * @param component The component instance
-   * @param <T> The specific component type
-   * @return Whether the component was stored
+   * @return The dependency component type
    * @since 0.1.0
    */
-  public abstract <T extends C> boolean put(final int holder, final @NonNull ComponentType componentType, final @NonNull T component);
+  @NonNull ComponentType type();
 
   /**
-   * Returns {@code true} if the specified {@link ComponentType} for the
-   * {@code int} holder is removed successfully, otherwise returns {@code false}.
+   * Returns {@code true} if this dependency is optional,
+   * otherwise {@code false}.
    *
-   * @param holder The holder index
-   * @param componentType The component type
-   * @return Whether the component was removed
+   * @return Whether the dependency is optional or not
    * @since 0.1.0
    */
-  public abstract boolean remove(final int holder, final @NonNull ComponentType componentType);
-
-  /**
-   * Removes the {@code int} holder from the registry.
-   *
-   * @param holder The holder index
-   * @since 0.1.0
-   */
-  public abstract void remove(final int holder);
+  boolean optional();
 }

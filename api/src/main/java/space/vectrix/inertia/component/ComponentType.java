@@ -25,49 +25,52 @@
 package space.vectrix.inertia.component;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import space.vectrix.inertia.holder.Holder;
+
+import java.util.Set;
 
 /**
- * {@inheritDoc}
+ * The component type.
  *
- * Provides methods to use internally for storing and removing
- * {@code H} holder {@code C} components.
- *
- * @param <H> The holder type
- * @param <C> The component type
  * @since 0.1.0
  */
-public abstract class AbstractComponents<H extends Holder<C>, C> implements Components<H, C> {
+public interface ComponentType {
   /**
-   * Returns {@code true} if the specified {@code T} component for the
-   * {@link ComponentType} and {@code int} holder is stored successfully,
-   * otherwise returns {@code false}.
+   * The component index.
    *
-   * @param holder The holder index
-   * @param componentType The component type
-   * @param component The component instance
-   * @param <T> The specific component type
-   * @return Whether the component was stored
+   * @return The index
    * @since 0.1.0
    */
-  public abstract <T extends C> boolean put(final int holder, final @NonNull ComponentType componentType, final @NonNull T component);
+  int index();
 
   /**
-   * Returns {@code true} if the specified {@link ComponentType} for the
-   * {@code int} holder is removed successfully, otherwise returns {@code false}.
+   * The component identifier.
    *
-   * @param holder The holder index
-   * @param componentType The component type
-   * @return Whether the component was removed
+   * @return The identifier
    * @since 0.1.0
    */
-  public abstract boolean remove(final int holder, final @NonNull ComponentType componentType);
+  @NonNull String id();
 
   /**
-   * Removes the {@code int} holder from the registry.
+   * The component name.
    *
-   * @param holder The holder index
+   * @return The name
    * @since 0.1.0
    */
-  public abstract void remove(final int holder);
+  @NonNull String name();
+
+  /**
+   * The component type.
+   *
+   * @return The type
+   * @since 0.1.0
+   */
+  @NonNull Class<?> type();
+
+  /**
+   * The component dependencies.
+   *
+   * @return A set of dependencies
+   * @since 0.1.0
+   */
+  @NonNull Set<ComponentLink> dependencies();
 }

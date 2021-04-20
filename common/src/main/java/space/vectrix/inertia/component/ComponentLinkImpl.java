@@ -22,28 +22,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package space.vectrix.inertia.injector;
-
-import static java.util.Objects.requireNonNull;
+package space.vectrix.inertia.component;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 
-public final class DummyMemberInjectorFactory<T, M, I> implements InjectionMethod.Factory<T, M, I> {
-  private final DummyMemberInjector<T, M> dummyInjector = new DummyMemberInjector<>();
+public final class ComponentLinkImpl implements ComponentLink {
+  private final ComponentType type;
+  private final boolean optional;
 
-  public DummyMemberInjectorFactory() {}
-
-  @Override
-  public @NonNull InjectionMethod<T, M> create(final @NonNull Object target, final @NonNull I input) throws Exception {
-    requireNonNull(target, "target");
-    requireNonNull(input, "input");
-    return this.dummyInjector;
+  /* package */ ComponentLinkImpl(final ComponentType type, final boolean optional) {
+    this.type = type;
+    this.optional = optional;
   }
 
-  /* package */ static final class DummyMemberInjector<T, M> implements InjectionMethod<T, M> {
-    @Override
-    public void member(final @NonNull T target, final @NonNull M member) throws Throwable {
-      // no-op
-    }
+  @Override
+  public @NonNull ComponentType type() {
+    return this.type;
+  }
+
+  @Override
+  public boolean optional() {
+    return this.optional;
   }
 }

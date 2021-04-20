@@ -30,15 +30,22 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
+import space.vectrix.inertia.component.ComponentType;
 import space.vectrix.inertia.holder.Holder;
+
+import java.util.concurrent.CompletableFuture;
 
 class ComponentTest extends AbstractUniverseTest {
   @Test
   void testGet() {
-    final Universe<Holder<Object>, Object> universe = new SimpleUniverse.Builder<>()
+    final Universe<Holder<Object>, Object> universe = new UniverseImpl.Builder<>()
       .id("holder_universe")
       .build();
-    assertDoesNotThrow(() -> universe.component(TestComponent.class).get());
+    final CompletableFuture<TestHolder> holderFuture = universe.createHolder(TestHolder::new);
+    final TestHolder holder = assertDoesNotThrow(() -> holderFuture.get());
+    final CompletableFuture<ComponentType> typeFuture = universe.resolveComponent(TestComponent.class);
+    final ComponentType componentType = assertDoesNotThrow(() -> typeFuture.get());
+    assertDoesNotThrow(() -> universe.createComponent(holder, componentType).get());
     assertTrue(universe.componentTypes().get(0).isPresent());
     assertFalse(universe.componentTypes().get(1).isPresent());
     assertTrue(universe.componentTypes().get(TestComponent.class).isPresent());

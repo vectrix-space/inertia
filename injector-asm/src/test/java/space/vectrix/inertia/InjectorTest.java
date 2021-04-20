@@ -29,42 +29,44 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
-import space.vectrix.inertia.component.type.ComponentType;
+import space.vectrix.inertia.component.ComponentType;
 import space.vectrix.inertia.holder.AbstractHolder;
 import space.vectrix.inertia.holder.Holder;
+import space.vectrix.inertia.injector.LmbdaInjectionMethodFactory;
+import space.vectrix.inertia.injector.LmbdaInjectionStructureFactory;
 
 class InjectorTest {
   final Universe.Builder<Holder<Object>, Object> builderDefaults(final Universe.Builder<Holder<Object>, Object> builder) {
     return builder
-      .holderInjector(new ASMMemberInjectorFactory<>())
-      .componentInjector(new ASMMemberInjectorFactory<>());
+      .holderInjector(new LmbdaInjectionMethodFactory<>(), new LmbdaInjectionStructureFactory<>())
+      .componentInjector(new LmbdaInjectionMethodFactory<>(), new LmbdaInjectionStructureFactory<>());
   }
 
   @Test
   void testInjection() {
-    final Universe<Holder<Object>, Object> universe = this.builderDefaults(new SimpleUniverse.Builder<>())
+    final Universe<Holder<Object>, Object> universe = this.builderDefaults(new UniverseImpl.Builder<>())
       .id("holder_universe")
       .build();
-    final TestHolder holder = assertDoesNotThrow(() -> universe.holder(TestHolder::new).get());
-    final ComponentType appleComponentType = assertDoesNotThrow(() -> universe.component(AppleComponent.class).get());
-    final ComponentType orangeComponentType = assertDoesNotThrow(() -> universe.component(OrangeComponent.class).get());
-    final OrangeComponent orangeComponent = assertDoesNotThrow(() -> universe.<OrangeComponent>component(holder, orangeComponentType).get());
+    final TestHolder holder = assertDoesNotThrow(() -> universe.createHolder(TestHolder::new).get());
+    final ComponentType appleComponentType = assertDoesNotThrow(() -> universe.resolveComponent(AppleComponent.class).get());
+    final ComponentType orangeComponentType = assertDoesNotThrow(() -> universe.resolveComponent(OrangeComponent.class).get());
+    final OrangeComponent orangeComponent = assertDoesNotThrow(() -> universe.<OrangeComponent>createComponent(holder, orangeComponentType).get());
     assertNotNull(orangeComponent.getApple());
     assertNotNull(orangeComponent.getHolder());
-    assertTrue(holder.getComponent(AppleComponent.class).isPresent());
+    assertTrue(holder.get(appleComponentType).isPresent());
   }
 
   @Component(id = "apple", name = "Apple")
   public static final class AppleComponent {
-    @HolderDependency public Holder<Object> holder;
+    @HolderDependency private Holder<Object> holder;
 
     public AppleComponent() {}
   }
 
   @Component(id = "orange", name = "Orange")
   public static final class OrangeComponent {
-    @ComponentDependency public AppleComponent appleComponent;
-    @HolderDependency public Holder<Object> holder;
+    @ComponentDependency private AppleComponent appleComponent;
+    @HolderDependency private Holder<Object> holder;
 
     public OrangeComponent() {}
 
@@ -81,7 +83,7 @@ class InjectorTest {
     private final Universe<Holder<Object>, Object> universe;
 
     protected TestHolder(final Universe<Holder<Object>, Object> universe, final int index) {
-      super(index);
+      super(universe, index);
 
       this.universe = universe;
     }

@@ -29,6 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.junit.jupiter.api.Test;
+import space.vectrix.inertia.component.ComponentType;
 import space.vectrix.inertia.holder.AbstractHolder;
 import space.vectrix.inertia.holder.Holder;
 
@@ -40,7 +41,7 @@ abstract class AbstractUniverseTest {
     assertThrows(IllegalStateException.class, () -> Inertia.create(Object.class, builder -> builder
       .id("invalid_universe")
       .build()));
-    final Universe<Holder<Object>, Object> universe = assertDoesNotThrow(() -> Inertia.create(SimpleUniverse.Builder.class, builder -> builder
+    final Universe<Holder<Object>, Object> universe = assertDoesNotThrow(() -> Inertia.create(UniverseImpl.Builder.class, builder -> builder
       .id("valid_universe")
       .build()));
     assertEquals("valid_universe", universe.id());
@@ -48,22 +49,33 @@ abstract class AbstractUniverseTest {
 
   @Test
   void testCreateHolder() {
-    final Universe<Holder<Object>, Object> universe = new SimpleUniverse.Builder<>()
+    final Universe<Holder<Object>, Object> universe = new UniverseImpl.Builder<>()
       .id("holder_universe")
       .build();
-    final CompletableFuture<TestHolder> holderFuture = assertDoesNotThrow(() -> universe.holder(TestHolder::new));
+    final CompletableFuture<TestHolder> holderFuture = assertDoesNotThrow(() -> universe.createHolder(TestHolder::new));
     final TestHolder holder = assertDoesNotThrow(() -> holderFuture.get());
     assertEquals(universe, holder.universe());
   }
 
   @Test
-  void testCreateComponent() {
-    final Universe<Holder<Object>, Object> universe = new SimpleUniverse.Builder<>()
+  void testResolveComponent() {
+    final Universe<Holder<Object>, Object> universe = new UniverseImpl.Builder<>()
       .id("component_universe")
       .build();
-    final CompletableFuture<TestHolder> holderFuture = universe.holder(TestHolder::new);
+    final CompletableFuture<ComponentType> typeFuture = universe.resolveComponent(TestComponent.class);
+    assertDoesNotThrow(() -> typeFuture.get());
+  }
+
+  @Test
+  void testCreateComponent() {
+    final Universe<Holder<Object>, Object> universe = new UniverseImpl.Builder<>()
+      .id("component_universe")
+      .build();
+    final CompletableFuture<TestHolder> holderFuture = universe.createHolder(TestHolder::new);
     final TestHolder holder = assertDoesNotThrow(() -> holderFuture.get());
-    final CompletableFuture<TestComponent> componentFuture = universe.component(holder, TestComponent.class);
+    final CompletableFuture<ComponentType> typeFuture = universe.resolveComponent(TestComponent.class);
+    final ComponentType componentType = assertDoesNotThrow(() -> typeFuture.get());
+    final CompletableFuture<TestComponent> componentFuture = universe.createComponent(holder, componentType);
     assertDoesNotThrow(() -> componentFuture.get());
   }
 
@@ -72,11 +84,16 @@ abstract class AbstractUniverseTest {
     public TestComponent() {}
   }
 
+  @Component(id = "another", name = "Another")
+  public static final class AnotherComponent {
+    public AnotherComponent() {}
+  }
+
   static final class TestHolder extends AbstractHolder<Object> {
     private final Universe<Holder<Object>, Object> universe;
 
     protected TestHolder(final Universe<Holder<Object>, Object> universe, final int index) {
-      super(index);
+      super(universe, index);
 
       this.universe = universe;
     }

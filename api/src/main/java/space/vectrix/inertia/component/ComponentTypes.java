@@ -22,7 +22,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package space.vectrix.inertia.component.type;
+package space.vectrix.inertia.component;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 
@@ -72,5 +72,5 @@ public interface ComponentTypes {
    * @return A collection of registered component types
    * @since 0.1.0
    */
-  @NonNull Collection<ComponentType> all();
+  @NonNull Collection<? extends ComponentType> all();
 }

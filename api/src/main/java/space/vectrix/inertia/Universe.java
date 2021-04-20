@@ -26,9 +26,9 @@ package space.vectrix.inertia;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import space.vectrix.inertia.component.ComponentResolver;
+import space.vectrix.inertia.component.ComponentType;
+import space.vectrix.inertia.component.ComponentTypes;
 import space.vectrix.inertia.component.Components;
-import space.vectrix.inertia.component.type.ComponentType;
-import space.vectrix.inertia.component.type.ComponentTypes;
 import space.vectrix.inertia.holder.Holder;
 import space.vectrix.inertia.holder.HolderResolver;
 import space.vectrix.inertia.holder.Holders;
@@ -74,6 +74,16 @@ public interface Universe<H extends Holder<C>, C> {
   <T extends H> @NonNull CompletableFuture<T> createHolder(final HolderResolver.@NonNull HolderFunction<H, C, T> holderFunction);
 
   /**
+   * Resolves a new {@link ComponentType} for the specified component
+   * {@link Class}.
+   *
+   * @param component The component class
+   * @return A completable future containing the component type
+   * @since 0.1.0
+   */
+  @NonNull CompletableFuture<ComponentType> resolveComponent(final @NonNull Class<? extends C> component);
+
+  /**
    * Creates a new {@code T} component for the specified {@code int} holder
    * and {@link ComponentType}.
    *
@@ -103,7 +113,7 @@ public interface Universe<H extends Holder<C>, C> {
    * @param index The holder index
    * @since 0.1.0
    */
-  void removeHolder(final int index);
+  boolean removeHolder(final int index);
 
   /**
    * Removes the specified {@code T} holder.
@@ -111,7 +121,7 @@ public interface Universe<H extends Holder<C>, C> {
    * @param holder The holder
    * @since 0.1.0
    */
-  void removeHolder(final @NonNull H holder);
+  boolean removeHolder(final @NonNull H holder);
 
   /**
    * Removes the component for the specified {@code int} holder
@@ -263,11 +273,11 @@ public interface Universe<H extends Holder<C>, C> {
      *
      * @param injector The holder injector
      * @param structure The holder structure
-     * @param <I> The injector input type
      * @return This builder
      * @since 0.1.0
      */
-    <I> @NonNull Builder<H, C> holderInjector(final InjectionMethod.@NonNull Factory<?, H, I> injector, final InjectionStructure.@NonNull Factory<I> structure);
+    @NonNull Builder<H, C> holderInjector(final InjectionMethod.@NonNull Factory<?, H> injector,
+                                          final InjectionStructure.@NonNull Factory<H, C> structure);
 
     /**
      * Returns this {@link Builder} with the specified {@link InjectionMethod.Factory}
@@ -275,11 +285,11 @@ public interface Universe<H extends Holder<C>, C> {
      *
      * @param injector The component injector
      * @param structure The component structure
-     * @param <I> The injector input type
      * @return This builder
      * @since 0.1.0
      */
-    <I> @NonNull Builder<H, C> componentInjector(final InjectionMethod.@NonNull Factory<?, C, I> injector, final InjectionStructure.@NonNull Factory<I> structure);
+    @NonNull Builder<H, C> componentInjector(final InjectionMethod.@NonNull Factory<?, C> injector,
+                                             final InjectionStructure.@NonNull Factory<H, C> structure);
 
     /**
      * Returns a new {@link Universe} from this {@link Builder}.

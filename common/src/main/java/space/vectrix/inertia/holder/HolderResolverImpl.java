@@ -31,36 +31,43 @@ import space.vectrix.inertia.Universe;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-public final class SimpleHolderResolver<H extends Holder<C>, C> implements HolderResolver<H, C> {
+public final class HolderResolverImpl<H extends Holder<C>, C> implements HolderResolver<H, C> {
   private final AtomicInteger index = new AtomicInteger();
   private final Universe<H, C> universe;
 
-  /* package */ SimpleHolderResolver(final Universe<H, C> universe) {
+  /* package */ HolderResolverImpl(final Universe<H, C> universe) {
     this.universe = universe;
   }
 
   @Override
   public int create() {
     final AbstractHolders<H, C> holders = (AbstractHolders<H, C>) this.universe.holders();
-    int laps = 0;
-    for(; ; ) {
-      int index = this.index.getAndIncrement();
-      if(holders.add(index)) return index;
-      if(index == Integer.MAX_VALUE) { // Ensure we don't go infinitely through the indexes to find a free one.
-        if(laps > 0) throw new IndexOutOfBoundsException("Reached maximum amount of holder indexes!");
-        laps++;
-      }
-    }
+    final int index = this.nextIndex();
+    holders.put(index);
+    return index;
   }
 
   @Override
   public <T extends H> @NonNull T create(final @NonNull HolderFunction<H, C, T> holderFunction) {
     requireNonNull(holderFunction, "holderFunction");
     final AbstractHolders<H, C> holders = (AbstractHolders<H, C>) this.universe.holders();
-    final int index = this.create();
+    final int index = this.nextIndex();
     final T holderInstance = holderFunction.apply(this.universe, index);
     holders.put(index, holderInstance);
     return holderInstance;
+  }
+
+  private int nextIndex() {
+    final AbstractHolders<H, C> holders = (AbstractHolders<H, C>) this.universe.holders();
+    int laps = 0;
+    for(; ; ) {
+      int index = this.index.getAndIncrement();
+      if(!holders.contains(index)) return index;
+      if(index == Integer.MAX_VALUE) { // Ensure we don't go infinitely through the indexes to find a free one.
+        if(laps > 0) throw new IndexOutOfBoundsException("Reached maximum amount of holder indexes!");
+        laps++;
+      }
+    }
   }
 
   public static final class Factory implements HolderResolver.Factory {
@@ -69,7 +76,7 @@ public final class SimpleHolderResolver<H extends Holder<C>, C> implements Holde
     @Override
     public @NonNull <H extends Holder<C>, C> HolderResolver<H, C> create(final @NonNull Universe<H, C> universe) {
       requireNonNull(universe, "universe");
-      return new SimpleHolderResolver<>(universe);
+      return new HolderResolverImpl<>(universe);
     }
   }
 }

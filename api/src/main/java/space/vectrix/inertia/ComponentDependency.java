@@ -39,10 +39,10 @@ import java.lang.annotation.Target;
 public @interface ComponentDependency {
   /**
    * Determines whether the annotated component field, requires an injection
-   * on instantiation. (Defaults: true)
+   * on instantiation. (Defaults: false)
    *
-   * @return Whether the component is required
+   * @return Whether the component is optional
    * @since 0.1.0
    */
-  boolean required() default true;
+  boolean optional() default false;
 }

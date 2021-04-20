@@ -29,38 +29,39 @@ import static java.util.Objects.requireNonNull;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import space.vectrix.inertia.component.AbstractComponents;
 import space.vectrix.inertia.component.ComponentResolver;
+import space.vectrix.inertia.component.ComponentResolverImpl;
+import space.vectrix.inertia.component.ComponentType;
+import space.vectrix.inertia.component.ComponentTypes;
+import space.vectrix.inertia.component.ComponentTypesImpl;
 import space.vectrix.inertia.component.Components;
-import space.vectrix.inertia.component.SimpleComponentResolver;
-import space.vectrix.inertia.component.SimpleComponents;
-import space.vectrix.inertia.component.type.ComponentType;
-import space.vectrix.inertia.component.type.ComponentTypes;
-import space.vectrix.inertia.component.type.SimpleComponentTypes;
+import space.vectrix.inertia.component.ComponentsImpl;
 import space.vectrix.inertia.holder.AbstractHolders;
 import space.vectrix.inertia.holder.Holder;
 import space.vectrix.inertia.holder.HolderResolver;
+import space.vectrix.inertia.holder.HolderResolverImpl;
 import space.vectrix.inertia.holder.Holders;
-import space.vectrix.inertia.holder.SimpleHolderResolver;
-import space.vectrix.inertia.holder.SimpleHolders;
-import space.vectrix.inertia.injector.DummyMemberInjectorFactory;
+import space.vectrix.inertia.holder.HoldersImpl;
+import space.vectrix.inertia.injector.DummyInjectionMethodFactory;
+import space.vectrix.inertia.injector.DummyInjectionStructureFactory;
 import space.vectrix.inertia.injector.InjectionMethod;
 import space.vectrix.inertia.injector.InjectionStructure;
 
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
-public final class SimpleUniverse<H extends Holder<C>, C> implements Universe<H, C> {
+public final class UniverseImpl<H extends Holder<C>, C> implements Universe<H, C> {
   private final HolderResolver<H, C> holderResolver;
   private final ComponentResolver<H, C> componentResolver;
-  private final InjectionMethod.Factory<?, H, ?> holderInjector;
-  private final InjectionStructure.Factory<?> holderStructure;
-  private final InjectionMethod.Factory<?, C, ?> componentInjector;
-  private final InjectionStructure.Factory<?> componentStructure;
+  private final InjectionMethod.Factory<?, H> holderInjector;
+  private final InjectionStructure.Factory<H, C> holderStructure;
+  private final InjectionMethod.Factory<?, C> componentInjector;
+  private final InjectionStructure.Factory<H, C> componentStructure;
   private final Holders<H, C> holders;
   private final Components<H, C> components;
   private final ComponentTypes componentTypes;
   private final String id;
 
-  /* package */ SimpleUniverse(final SimpleUniverse.Builder<H, C> builder) {
+  /* package */ UniverseImpl(final UniverseImpl.Builder<H, C> builder) {
     this.id = builder.id;
     this.holderResolver = builder.holderResolver.create(this);
     this.componentResolver = builder.componentResolver.create(this);
@@ -70,7 +71,7 @@ public final class SimpleUniverse<H extends Holder<C>, C> implements Universe<H,
     this.componentStructure = builder.componentStructure;
     this.holders = builder.holderRegistry;
     this.components = builder.componentRegistry;
-    this.componentTypes = new SimpleComponentTypes();
+    this.componentTypes = new ComponentTypesImpl<H, C>();
   }
 
   @Override
@@ -90,31 +91,32 @@ public final class SimpleUniverse<H extends Holder<C>, C> implements Universe<H,
   }
 
   @Override
+  public @NonNull CompletableFuture<ComponentType> resolveComponent(final @NonNull Class<? extends C> component) {
+    return CompletableFuture.supplyAsync(() -> this.componentResolver.resolve(component, this.componentStructure, this.componentInjector, this.holderInjector));
+  }
+
+  @Override
   public @NonNull <T extends C> CompletableFuture<T> createComponent(final int holder, final @NonNull ComponentType componentType) {
     requireNonNull(componentType, "componentType");
-    return CompletableFuture.supplyAsync(() ->
-      this.componentResolver.create(holder, componentType, this.componentInjector, this.componentStructure, this.holderInjector, this.holderStructure)
-    );
+    return CompletableFuture.supplyAsync(() -> this.componentResolver.create(holder, componentType));
   }
 
   @Override
   public @NonNull <T extends C> CompletableFuture<T> createComponent(final @NonNull H holder, final @NonNull ComponentType componentType) {
     requireNonNull(holder, "holder");
     requireNonNull(componentType, "componentType");
-    return CompletableFuture.supplyAsync(() ->
-      this.componentResolver.create(holder, componentType, this.componentInjector, this.componentStructure, this.holderInjector, this.holderStructure)
-    );
+    return CompletableFuture.supplyAsync(() -> this.componentResolver.create(holder, componentType));
   }
 
   @Override
-  public void removeHolder(final int index) {
-    ((AbstractHolders<H, C>) this.holders).remove(index);
+  public boolean removeHolder(final int index) {
+    return ((AbstractHolders<H, C>) this.holders).remove(index);
   }
 
   @Override
-  public void removeHolder(final @NonNull H holder) {
+  public boolean removeHolder(final @NonNull H holder) {
     requireNonNull(holder, "holder");
-    ((AbstractHolders<H, C>) this.holders).remove(holder.getIndex());
+    return ((AbstractHolders<H, C>) this.holders).remove(holder.index());
   }
 
   @Override
@@ -127,7 +129,7 @@ public final class SimpleUniverse<H extends Holder<C>, C> implements Universe<H,
   public boolean removeComponent(final @NonNull H holder, final @NonNull ComponentType componentType) {
     requireNonNull(holder, "holder");
     requireNonNull(componentType, "componentType");
-    return ((AbstractComponents<H, C>) this.components).remove(holder.getIndex(), componentType);
+    return ((AbstractComponents<H, C>) this.components).remove(holder.index(), componentType);
   }
 
   @Override
@@ -138,7 +140,7 @@ public final class SimpleUniverse<H extends Holder<C>, C> implements Universe<H,
   @Override
   public void removeComponents(final @NonNull H holder) {
     requireNonNull(holder, "holder");
-    ((AbstractComponents<H, C>) this.components).remove(holder.getIndex());
+    ((AbstractComponents<H, C>) this.components).remove(holder.index());
   }
 
   @Override
@@ -175,14 +177,14 @@ public final class SimpleUniverse<H extends Holder<C>, C> implements Universe<H,
   }
 
   public static final class Builder<H extends Holder<C>, C> implements Universe.Builder<H, C> {
-    private HolderResolver.Factory holderResolver = new SimpleHolderResolver.Factory();
-    private ComponentResolver.Factory componentResolver = new SimpleComponentResolver.Factory();
-    private Holders<H, C> holderRegistry = new SimpleHolders<>();
-    private Components<H, C> componentRegistry = new SimpleComponents<>();
-    private InjectionMethod.Factory<?, H, ?> holderInjector = new DummyMemberInjectorFactory<>();
-    private InjectionStructure.Factory<?> holderStructure;
-    private InjectionMethod.Factory<?, C, ?> componentInjector = new DummyMemberInjectorFactory<>();
-    private InjectionStructure.Factory<?> componentStructure;
+    private HolderResolver.Factory holderResolver = new HolderResolverImpl.Factory();
+    private ComponentResolver.Factory componentResolver = new ComponentResolverImpl.Factory();
+    private Holders<H, C> holderRegistry = new HoldersImpl<>();
+    private Components<H, C> componentRegistry = new ComponentsImpl<>();
+    private InjectionMethod.Factory<?, H> holderInjector = new DummyInjectionMethodFactory<>();
+    private InjectionStructure.Factory<H, C> holderStructure = new DummyInjectionStructureFactory<>();
+    private InjectionMethod.Factory<?, C> componentInjector = new DummyInjectionMethodFactory<>();
+    private InjectionStructure.Factory<H, C> componentStructure = new DummyInjectionStructureFactory<>();
     private String id;
 
     /* package */ Builder() {}
@@ -223,22 +225,28 @@ public final class SimpleUniverse<H extends Holder<C>, C> implements Universe<H,
     }
 
     @Override
-    public <I> Universe.@NonNull Builder<H, C> holderInjector(final InjectionMethod.@NonNull Factory<?, H, I> injector, final InjectionStructure.@NonNull Factory<I> structure) {
+    public Universe.@NonNull Builder<H, C> holderInjector(final InjectionMethod.@NonNull Factory<?, H> injector,
+                                                          final InjectionStructure.@NonNull Factory<H, C> structure) {
       requireNonNull(injector, "injector");
+      requireNonNull(structure, "structure");
       this.holderInjector = injector;
+      this.holderStructure = structure;
       return this;
     }
 
     @Override
-    public <I> Universe.@NonNull Builder<H, C> componentInjector(final InjectionMethod.@NonNull Factory<?, C, I> injector, final InjectionStructure.@NonNull Factory<I> structure) {
+    public Universe.@NonNull Builder<H, C> componentInjector(final InjectionMethod.@NonNull Factory<?, C> injector,
+                                                             final InjectionStructure.@NonNull Factory<H, C> structure) {
       requireNonNull(injector, "injector");
+      requireNonNull(structure, "structure");
       this.componentInjector = injector;
+      this.componentStructure = structure;
       return this;
     }
 
     @Override
     public @NonNull Universe<H, C> build() {
-      return new SimpleUniverse<>(this);
+      return new UniverseImpl<>(this);
     }
   }
 }

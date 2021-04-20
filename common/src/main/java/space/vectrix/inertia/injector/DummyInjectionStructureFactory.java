@@ -22,48 +22,39 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package space.vectrix.inertia.holder;
+package space.vectrix.inertia.injector;
+
+import static java.util.Objects.requireNonNull;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import space.vectrix.inertia.ComponentDependency;
+import space.vectrix.inertia.HolderDependency;
 
-import java.util.Collection;
-import java.util.Optional;
+import java.util.Collections;
+import java.util.Map;
 
-/**
- * The holder registry.
- *
- * @param <H> The holder type
- * @param <C> The component type
- * @since 0.1.0
- */
-public interface Holders<H extends Holder<C>, C> {
-  /**
-   * Returns the {@code T} holder with the specified {@code int}
-   * index, if it exists.
-   *
-   * @param index The holder index
-   * @return The holder instance, if present
-   * @since 0.1.0
-   */
-  <T extends H> @NonNull Optional<T> get(final int index);
+public final class DummyInjectionStructureFactory<H, C> implements InjectionStructure.Factory<H, C> {
+  private final DummyInjectionStructure<H, C> dummyStructure = new DummyInjectionStructure<>();
 
-  /**
-   * Returns a {@link Collection} of {@code T} holders in this
-   * registry.
-   *
-   * @param type The holder class
-   * @param <T> The specific holder type
-   * @return A collection of holder instances of that type
-   * @since 0.1.0
-   */
-  <T extends H> @NonNull Collection<T> get(final @NonNull Class<T> type);
+  public DummyInjectionStructureFactory() {}
 
-  /**
-   * Returns a {@link Collection} of {@code H} holders in this
-   * registry.
-   *
-   * @return A collection of holder instances
-   * @since 0.1.0
-   */
-  @NonNull Collection<? extends H> all();
+  @Override
+  public @NonNull InjectionStructure<H, C> create(final @NonNull Class<?> target,
+                                                  final InjectionMethod.@NonNull Factory<?, C> componentInjectionFactory,
+                                                  final InjectionMethod.@NonNull Factory<?, H> holderInjectionFactory) {
+    requireNonNull(target, "target");
+    return this.dummyStructure;
+  }
+
+  /* package */ static final class DummyInjectionStructure<H, C> implements InjectionStructure<H, C> {
+    @Override
+    public @NonNull Map<Class<?>, Entry<ComponentDependency, ?, C>> components() {
+      return Collections.emptyMap();
+    }
+
+    @Override
+    public @NonNull Map<Class<?>, Entry<HolderDependency, ?, H>> holders() {
+      return Collections.emptyMap();
+    }
+  }
 }

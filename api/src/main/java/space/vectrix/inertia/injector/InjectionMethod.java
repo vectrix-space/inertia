@@ -26,8 +26,6 @@ package space.vectrix.inertia.injector;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 
-import java.lang.reflect.Field;
-
 /**
  * Functional interface that can inject members on a defined field on a target
  * object when needed.
@@ -53,21 +51,20 @@ public interface InjectionMethod<T, M> {
    *
    * @param <T> The target type
    * @param <M> The member type
-   * @param <I> The target input type
    * @since 0.1.0
    */
   @FunctionalInterface
-  interface Factory<T, M, I> {
+  interface Factory<T, M> {
     /**
-     * Creates a new {@link InjectionMethod} for the specified {@link Object}
-     * target and {@link Field} field.
+     * Creates a new {@link InjectionMethod} for the specified {@code I}
+     * input.
      *
-     * @param target The target object
      * @param input The target input
-     * @return A new member injector
+     * @param <I> The target input type
+     * @return The new injection method
      * @throws Exception If an exception occurred
      * @since 0.1.0
      */
-    @NonNull InjectionMethod<T, M> create(final @NonNull Object target, final @NonNull I input) throws Exception;
+    <I> @NonNull InjectionMethod<T, M> create(final @NonNull I input) throws Exception;
   }
 }

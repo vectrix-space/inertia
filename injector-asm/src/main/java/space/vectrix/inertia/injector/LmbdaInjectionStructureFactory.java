@@ -28,6 +28,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import space.vectrix.inertia.ComponentDependency;
 import space.vectrix.inertia.HolderDependency;
 
+import java.lang.annotation.Annotation;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Field;
@@ -36,7 +37,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public final class LmbdaInjectionStructureFactory implements InjectionStructure.Factory<MethodHandle> {
+public final class LmbdaInjectionStructureFactory<H, C> implements InjectionStructure.Factory<H, C> {
   private final MethodHandles.Lookup lookup;
 
   public LmbdaInjectionStructureFactory() {
@@ -48,25 +49,31 @@ public final class LmbdaInjectionStructureFactory implements InjectionStructure.
   }
 
   @Override
-  public @NonNull InjectionStructure<MethodHandle> create(final @NonNull Class<?> target) {
-    final Map<Class<?>, MethodHandle> required = new IdentityHashMap<>();
-    final Map<Class<?>, MethodHandle> optional = new IdentityHashMap<>();
-    final Map<Class<?>, MethodHandle> holders = new IdentityHashMap<>();
+  public @NonNull InjectionStructure<H, C> create(final @NonNull Class<?> target,
+                                                  final InjectionMethod.@NonNull Factory<?, C> componentInjectionFactory,
+                                                  final InjectionMethod.@NonNull Factory<?, H> holderInjectionFactory) {
+    final Map<Class<?>, InjectionStructure.Entry<ComponentDependency, ?, C>> components = new IdentityHashMap<>();
+    final Map<Class<?>, InjectionStructure.Entry<HolderDependency, ?, H>> holders = new IdentityHashMap<>();
 
     this.find(target, Class::getSuperclass, fields -> {
       for(final Field field : fields) {
         final ComponentDependency componentDependency = field.getAnnotation(ComponentDependency.class);
         final HolderDependency holderDependency = field.getAnnotation(HolderDependency.class);
         try {
-          final MethodHandle handle = this.lookup.unreflectSetter(field);
-          if (componentDependency != null) {
-            if (componentDependency.required()) {
-              required.putIfAbsent(field.getType(), handle);
+          if(componentDependency != null || holderDependency != null) {
+            field.setAccessible(true);
+            final MethodHandle handle = this.lookup.unreflectSetter(field);
+            if (componentDependency != null) {
+              components.put(field.getType(), new LmbdaInjectionStructureEntry<>(
+                componentDependency,
+                componentInjectionFactory.create(handle)
+              ));
             } else {
-              optional.putIfAbsent(field.getType(), handle);
+              holders.put(field.getType(), new LmbdaInjectionStructureEntry<>(
+                holderDependency,
+                holderInjectionFactory.create(handle)
+              ));
             }
-          } else if (holderDependency != null) {
-            holders.putIfAbsent(field.getType(), handle);
           }
         } catch(final Throwable throwable) {
           throw new IllegalStateException("Unable to create method handle for '" + field.getName() + "'!", throwable);
@@ -74,7 +81,7 @@ public final class LmbdaInjectionStructureFactory implements InjectionStructure.
       }
     });
 
-    return new LmbdaInjectionStructure(required, optional, holders);
+    return new LmbdaInjectionStructure<>(components, holders);
   }
 
   private void find(final Class<?> component,
@@ -88,32 +95,44 @@ public final class LmbdaInjectionStructureFactory implements InjectionStructure.
     }
   }
 
-  /* package */ final class LmbdaInjectionStructure implements InjectionStructure<MethodHandle> {
-    private final Map<Class<?>, MethodHandle> required;
-    private final Map<Class<?>, MethodHandle> optional;
-    private final Map<Class<?>, MethodHandle> holders;
+  /* package */ static final class LmbdaInjectionStructure<H, C> implements InjectionStructure<H, C> {
+    private final Map<Class<?>, Entry<ComponentDependency, ?, C>> components;
+    private final Map<Class<?>, Entry<HolderDependency, ?, H>> holders;
 
-    /* package */ LmbdaInjectionStructure(final Map<Class<?>, MethodHandle> required,
-                                          final Map<Class<?>, MethodHandle> optional,
-                                          final Map<Class<?>, MethodHandle> holders) {
-      this.required = required;
-      this.optional = optional;
+    /* package */ LmbdaInjectionStructure(final Map<Class<?>, Entry<ComponentDependency, ?, C>> components,
+                                          final Map<Class<?>, Entry<HolderDependency, ?, H>> holders) {
+      this.components = components;
       this.holders = holders;
     }
 
     @Override
-    public @NonNull Map<Class<?>, MethodHandle> getRequired() {
-      return this.required;
+    public @NonNull Map<Class<?>, Entry<ComponentDependency, ?, C>> components() {
+      return this.components;
     }
 
     @Override
-    public @NonNull Map<Class<?>, MethodHandle> getOptional() {
-      return this.optional;
-    }
-
-    @Override
-    public @NonNull Map<Class<?>, MethodHandle> getHolders() {
+    public @NonNull Map<Class<?>, Entry<HolderDependency, ?, H>> holders() {
       return this.holders;
+    }
+  }
+
+  /* package */ static final class LmbdaInjectionStructureEntry<A extends Annotation, T, M> implements InjectionStructure.Entry<A, T, M> {
+    private final A annotation;
+    private final InjectionMethod<T, M> method;
+
+    /* package */ LmbdaInjectionStructureEntry(final A annotation, final InjectionMethod<T, M> method) {
+      this.annotation = annotation;
+      this.method = method;
+    }
+
+    @Override
+    public @NonNull A annotation() {
+      return this.annotation;
+    }
+
+    @Override
+    public @NonNull InjectionMethod<T, M> method() {
+      return this.method;
     }
   }
 }

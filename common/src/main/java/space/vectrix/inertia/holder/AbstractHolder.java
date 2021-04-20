@@ -24,13 +24,24 @@
  */
 package space.vectrix.inertia.holder;
 
+import static java.util.Objects.requireNonNull;
+
 import org.checkerframework.checker.nullness.qual.NonNull;
 import space.vectrix.inertia.Universe;
-import space.vectrix.inertia.component.type.ComponentType;
+import space.vectrix.inertia.component.ComponentType;
 
 import java.util.Collection;
 import java.util.Optional;
 
+/**
+ * {@inheritDoc}
+ *
+ * Provides a convenient implementation of the {@link Holder}
+ * methods.
+ *
+ * @param <C> The component type
+ * @since 0.1.0
+ */
 public abstract class AbstractHolder<C> implements Holder<C> {
   private final Universe<Holder<C>, C> universe;
   private final int index;
@@ -41,27 +52,29 @@ public abstract class AbstractHolder<C> implements Holder<C> {
   }
 
   @Override
-  public int getIndex() {
+  public int index() {
     return this.index;
   }
 
   @Override
-  public @NonNull <T extends C> Optional<T> getComponent(final @NonNull ComponentType componentType) {
+  public @NonNull <T extends C> Optional<T> get(final @NonNull ComponentType componentType) {
+    requireNonNull(componentType, "componentType");
     return this.universe.getComponent(this, componentType);
   }
 
   @Override
-  public boolean removeComponent(final @NonNull ComponentType type) {
-    return this.universe.removeComponent(this, type);
+  public boolean remove(final @NonNull ComponentType componentType) {
+    requireNonNull(componentType, "componentType");
+    return this.universe.removeComponent(this, componentType);
   }
 
   @Override
-  public @NonNull Collection<? extends C> getComponents() {
+  public @NonNull Collection<? extends C> all() {
     return this.universe.components().all(this);
   }
 
   @Override
-  public void clearComponents() {
+  public void clear() {
     this.universe.removeComponents(this);
   }
 }
