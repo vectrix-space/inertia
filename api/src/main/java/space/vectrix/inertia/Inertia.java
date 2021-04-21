@@ -32,7 +32,7 @@ import java.util.Collection;
 import java.util.function.Function;
 
 /**
- * The main accessor to the component system.
+ * The static accessor to {@link Universe}s.
  *
  * @since 0.1.0
  */

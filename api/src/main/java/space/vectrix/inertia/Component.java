@@ -30,7 +30,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Represents a class that is to behave like as a component.
+ * Indicates a component class.
  *
  * @since 0.1.0
  */
