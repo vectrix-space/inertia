@@ -22,27 +22,30 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package space.vectrix.inertia;
+package space.vectrix.inertia.component;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
 /**
- * Represents a component dependency to be injected when instantiated.
+ * A component dependency link.
  *
  * @since 0.1.0
  */
-@Target(ElementType.FIELD)
-@Retention(RetentionPolicy.RUNTIME)
-public @interface ComponentDependency {
+public interface ComponentLink {
   /**
-   * Determines whether the annotated component field, requires an injection
-   * on instantiation. (Defaults: false)
+   * Returns the {@link ComponentType} for this dependency.
    *
-   * @return Whether the component is optional
+   * @return The dependency component type
    * @since 0.1.0
    */
-  boolean optional() default false;
+  @NonNull ComponentType type();
+
+  /**
+   * Returns {@code true} if this dependency is optional,
+   * otherwise {@code false}.
+   *
+   * @return Whether the dependency is optional or not
+   * @since 0.1.0
+   */
+  boolean optional();
 }

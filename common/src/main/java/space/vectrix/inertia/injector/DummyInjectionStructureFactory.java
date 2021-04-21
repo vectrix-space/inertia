@@ -22,39 +22,39 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package space.vectrix.inertia.holder;
+package space.vectrix.inertia.injector;
 
 import static java.util.Objects.requireNonNull;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import space.vectrix.inertia.Universe;
+import space.vectrix.inertia.ComponentDependency;
+import space.vectrix.inertia.HolderDependency;
 
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.Collections;
+import java.util.Map;
 
-public final class SimpleHolderResolver<H extends Holder<C>, C> implements HolderResolver<H, C> {
-  private final AtomicInteger index = new AtomicInteger();
-  private final Universe<H, C> universe;
+public final class DummyInjectionStructureFactory<H, C> implements InjectionStructure.Factory<H, C> {
+  private final DummyInjectionStructure<H, C> dummyStructure = new DummyInjectionStructure<>();
 
-  /* package */ SimpleHolderResolver(final Universe<H, C> universe) {
-    this.universe = universe;
-  }
+  public DummyInjectionStructureFactory() {}
 
   @Override
-  public <T extends H> @NonNull T create(final @NonNull HolderFunction<H, C, T> holderFunction) {
-    requireNonNull(holderFunction, "holderFunction");
-    final int index = this.index.getAndIncrement();
-    final T holderInstance = holderFunction.apply(this.universe, index);
-    ((SimpleHolderRegistry<H, C>) this.universe.holders()).put(index, holderInstance.getClass(), holderInstance);
-    return holderInstance;
+  public @NonNull InjectionStructure<H, C> create(final @NonNull Class<?> target,
+                                                  final InjectionMethod.@NonNull Factory<?, C> componentInjectionFactory,
+                                                  final InjectionMethod.@NonNull Factory<?, H> holderInjectionFactory) {
+    requireNonNull(target, "target");
+    return this.dummyStructure;
   }
 
-  public static final class Factory implements HolderResolver.Factory {
-    public Factory() {}
+  /* package */ static final class DummyInjectionStructure<H, C> implements InjectionStructure<H, C> {
+    @Override
+    public @NonNull Map<Class<?>, Entry<ComponentDependency, ?, C>> components() {
+      return Collections.emptyMap();
+    }
 
     @Override
-    public @NonNull <H extends Holder<C>, C> HolderResolver<H, C> create(final @NonNull Universe<H, C> universe) {
-      requireNonNull(universe, "universe");
-      return new SimpleHolderResolver<>(universe);
+    public @NonNull Map<Class<?>, Entry<HolderDependency, ?, H>> holders() {
+      return Collections.emptyMap();
     }
   }
 }

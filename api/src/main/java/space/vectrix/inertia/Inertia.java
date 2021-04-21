@@ -82,7 +82,7 @@ public final class Inertia {
   @SuppressWarnings("unchecked")
   private static <H extends Holder<C>, C> Universe.Builder<H, C> createBuilder(final @NonNull Class<?> universeBuilder) {
     try {
-      return (Universe.Builder<H, C>) universeBuilder.newInstance();
+      return (Universe.Builder<H, C>) universeBuilder.getDeclaredConstructor().newInstance();
     } catch(final Throwable throwable) {
       throw new IllegalStateException("Unable to create universe builder!", throwable);
     }

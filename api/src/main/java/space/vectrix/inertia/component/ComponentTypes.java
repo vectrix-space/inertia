@@ -22,30 +22,55 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package space.vectrix.inertia.injector;
-
-import static java.util.Objects.requireNonNull;
+package space.vectrix.inertia.component;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 
-import java.lang.reflect.Field;
+import java.util.Collection;
+import java.util.Optional;
 
-public final class DummyMemberInjectorFactory<T, M> implements MemberInjector.Factory<T, M> {
-  private final DummyMemberInjector<T, M> dummyInjector = new DummyMemberInjector<>();
+/**
+ * The component registry.
+ *
+ * @since 0.1.0
+ */
+public interface ComponentTypes {
+  /**
+   * Returns the {@link ComponentType} with the specified {@code int}
+   * index, if it exists.
+   *
+   * @param index The component index
+   * @return The component type, if present
+   * @since 0.1.0
+   */
+  @NonNull Optional<ComponentType> get(final int index);
 
-  public DummyMemberInjectorFactory() {}
+  /**
+   * Returns the {@link ComponentType} with the specified {@link Class}
+   * type, if it exists.
+   *
+   * @param type The component class
+   * @return The component type, if present
+   * @since 0.1.0
+   */
+  @NonNull Optional<ComponentType> get(final @NonNull Class<?> type);
 
-  @Override
-  public @NonNull MemberInjector<T, M> create(final @NonNull Object target, final @NonNull Field field) throws Exception {
-    requireNonNull(target, "target");
-    requireNonNull(field, "field");
-    return this.dummyInjector;
-  }
+  /**
+   * Returns the {@link ComponentType} with the specified {@link String}
+   * identifier, if it exists.
+   *
+   * @param identifier The component identifier
+   * @return The component type, if present
+   * @since 0.1.0
+   */
+  @NonNull Optional<ComponentType> get(final @NonNull String identifier);
 
-  /* package */ static final class DummyMemberInjector<T, M> implements MemberInjector<T, M> {
-    @Override
-    public void member(final @NonNull T target, final @NonNull M member) throws Throwable {
-      // no-op
-    }
-  }
+  /**
+   * Returns a {@link Collection} of {@link ComponentType}s in this
+   * registry.
+   *
+   * @return A collection of registered component types
+   * @since 0.1.0
+   */
+  @NonNull Collection<? extends ComponentType> all();
 }

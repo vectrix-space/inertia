@@ -22,63 +22,72 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package space.vectrix.inertia.holder;
+package space.vectrix.inertia.component;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import space.vectrix.inertia.component.ComponentType;
+import space.vectrix.inertia.holder.Holder;
 
 import java.util.Collection;
 import java.util.Optional;
 
 /**
- * Represents a holder of components.
+ * The components registry.
  *
+ * @param <H> The holder type
  * @param <C> The component type
  * @since 0.1.0
  */
-public interface Holder<C> {
+public interface Components<H extends Holder<C>, C> {
   /**
-   * Returns the holder index.
+   * Returns the {@code T} component for the specified {@code int} holder
+   * and {@link ComponentType}.
    *
-   * @return The holder index
-   * @since 0.1.0
-   */
-  int index();
-
-  /**
-   * Returns the {@code T} component with the specified {@link ComponentType},
-   * if it exists.
-   *
+   * @param holder The holder index
    * @param componentType The component type
    * @param <T> The specific component type
-   * @return The component, if present
+   * @return The component instance, if present
    * @since 0.1.0
    */
-  <T extends C> @NonNull Optional<T> get(final @NonNull ComponentType componentType);
+  <T extends C> @NonNull Optional<T> get(final int holder, final @NonNull ComponentType componentType);
 
   /**
-   * Returns {@code true} if it removed the component with the specified
-   * {@link ComponentType}, otherwise returns false.
+   * Returns the {@code T} component for the specified {@code H} holder
+   * and {@link ComponentType}.
    *
-   * @param type The component type
-   * @return True if the component was removed, otherwise false
+   * @param holder The holder instance
+   * @param componentType The component type
+   * @param <T> The specific component type
+   * @return The component instance, if present
    * @since 0.1.0
    */
-  boolean remove(final @NonNull ComponentType type);
+  <T extends C> @NonNull Optional<T> get(final @NonNull H holder, final @NonNull ComponentType componentType);
 
   /**
-   * Returns a {@link Collection} of {@code C} components stored in this
-   * holder.
+   * Returns a {@link Collection} of {@code C} components in this
+   * registry that belong to the specified {@code int} holder.
    *
-   * @return A collection of stored components
+   * @param holder The holder index
+   * @return A collection of component instances of that holder
+   * @since 0.1.0
+   */
+  @NonNull Collection<? extends C> all(final int holder);
+
+  /**
+   * Returns a {@link Collection} of {@code C} components in this
+   * registry that belong to the specified {@code H} holder.
+   *
+   * @param holder The holder instance
+   * @return A collection of component instances of that holder
+   * @since 0.1.0
+   */
+  @NonNull Collection<? extends C> all(final @NonNull H holder);
+
+  /**
+   * Returns a {@link Collection} of {@code C} components in this
+   * registry.
+   *
+   * @return A collection of component instances
    * @since 0.1.0
    */
   @NonNull Collection<? extends C> all();
-
-  /**
-   * Clears the components in this holder.
-   *
-   * @since 0.1.0
-   */
-  void clear();
 }

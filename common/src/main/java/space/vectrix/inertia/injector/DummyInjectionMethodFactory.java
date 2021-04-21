@@ -22,42 +22,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package space.vectrix.inertia.holder;
+package space.vectrix.inertia.injector;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import static java.util.Objects.requireNonNull;
+
 import org.checkerframework.checker.nullness.qual.NonNull;
 
-import java.util.Collection;
-import java.util.Optional;
+public final class DummyInjectionMethodFactory<T, M> implements InjectionMethod.Factory<T, M> {
+  private final DummyMemberInjector<T, M> dummyInjector = new DummyMemberInjector<>();
 
-public final class SimpleHolderRegistry<H extends Holder<C>, C> implements HolderRegistry<H, C> {
-  private final Int2ObjectMap<H> holders = new Int2ObjectOpenHashMap<>(100);
-  private final Multimap<Class<?>, H> holdersTyped = HashMultimap.create(10, 50);
-
-  public SimpleHolderRegistry() {}
+  public DummyInjectionMethodFactory() {}
 
   @Override
-  public @NonNull Optional<H> get(final int index) {
-    return Optional.ofNullable(this.holders.get(index));
+  public <I> @NonNull InjectionMethod<T, M> create(final @NonNull I input) throws Exception {
+    requireNonNull(input, "input");
+    return this.dummyInjector;
   }
 
-  @Override
-  @SuppressWarnings("unchecked")
-  public <T extends H> @NonNull Collection<T> get(final @NonNull Class<T> type) {
-    return (Collection<T>) this.holdersTyped.get(type);
-  }
-
-  @Override
-  public @NonNull Collection<? extends H> all() {
-    return this.holders.values();
-  }
-
-  public <T extends H> void put(final int index, final @NonNull Class<?> type, final @NonNull T holder) {
-    if (this.holdersTyped.put(type, holder)) {
-      this.holders.put(index, holder);
+  /* package */ static final class DummyMemberInjector<T, M> implements InjectionMethod<T, M> {
+    @Override
+    public void member(final @NonNull T target, final @NonNull M member) throws Throwable {
+      // no-op
     }
   }
 }

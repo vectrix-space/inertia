@@ -22,59 +22,47 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package space.vectrix.inertia.holder;
+package space.vectrix.inertia.injector;
 
 import static java.util.Objects.requireNonNull;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import space.vectrix.inertia.Universe;
-import space.vectrix.inertia.component.ComponentType;
+import org.lanternpowered.lmbda.LambdaFactory;
 
-import java.util.Collection;
-import java.util.Optional;
+import java.lang.invoke.MethodHandle;
+import java.util.function.BiConsumer;
 
-/**
- * {@inheritDoc}
- *
- * Provides a convenient implementation of the {@link Holder}
- * methods.
- *
- * @param <C> The component type
- * @since 0.1.0
- */
-public abstract class AbstractHolder<C> implements Holder<C> {
-  private final Universe<Holder<C>, C> universe;
-  private final int index;
+public final class LmbdaInjectionMethodFactory<T, M> implements InjectionMethod.Factory<T, M> {
+  private final LoadingCache<MethodHandle, LmbdaMemberInjector<T, M>> cache;
 
-  protected AbstractHolder(final @NonNull Universe<Holder<C>, C> universe, final int index) {
-    this.universe = universe;
-    this.index = index;
+  public LmbdaInjectionMethodFactory() {
+    this.cache = CacheBuilder.newBuilder()
+      .initialCapacity(16)
+      .weakValues()
+      .build(CacheLoader.from(methodHandle -> {
+        requireNonNull(methodHandle, "methodHandle");
+        return new LmbdaMemberInjector<>(LambdaFactory.createBiConsumer(methodHandle));
+      }));
   }
 
   @Override
-  public int index() {
-    return this.index;
+  public <I> @NonNull InjectionMethod<T, M> create(final @NonNull I input) throws Exception {
+    return this.cache.getUnchecked((MethodHandle) input);
   }
 
-  @Override
-  public @NonNull <T extends C> Optional<T> get(final @NonNull ComponentType componentType) {
-    requireNonNull(componentType, "componentType");
-    return this.universe.getComponent(this, componentType);
-  }
+  /* package */ static final class LmbdaMemberInjector<T, M> implements InjectionMethod<T, M> {
+    private final BiConsumer<T, M> injector;
 
-  @Override
-  public boolean remove(final @NonNull ComponentType componentType) {
-    requireNonNull(componentType, "componentType");
-    return this.universe.removeComponent(this, componentType);
-  }
+    /* package */ LmbdaMemberInjector(final BiConsumer<T, M> injector) {
+      this.injector = injector;
+    }
 
-  @Override
-  public @NonNull Collection<? extends C> all() {
-    return this.universe.components().all(this);
-  }
-
-  @Override
-  public void clear() {
-    this.universe.removeComponents(this);
+    @Override
+    public void member(final @NonNull T target, final @NonNull M member) throws Throwable {
+      this.injector.accept(target, member);
+    }
   }
 }

@@ -22,47 +22,54 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package space.vectrix.inertia.holder;
+package space.vectrix.inertia.component;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-
-import java.util.Collection;
-import java.util.Optional;
+import space.vectrix.inertia.holder.Holder;
 
 /**
- * The holder registry.
+ * {@inheritDoc}
+ *
+ * Provides methods to use internally for storing and removing
+ * {@code H} holder {@code C} components.
  *
  * @param <H> The holder type
+ * @param <C> The component type
  * @since 0.1.0
  */
-public interface HolderRegistry<H extends Holder<C>, C> {
-  /**
-   * Returns the {@code H} holder with the specified {@code int}
-   * index, if it exists.
-   *
-   * @param index The holder index
-   * @return The holder instance, if present
-   * @since 0.1.0
-   */
-  @NonNull Optional<H> get(final int index);
+public abstract class AbstractComponents<H extends Holder<C>, C> implements Components<H, C> {
+  protected final Object lock = new Object();
 
   /**
-   * Returns a {@link Collection} of {@code T} holders in this
-   * registry.
+   * Returns {@code true} if the specified {@code T} component for the
+   * {@link ComponentType} and {@code int} holder is stored successfully,
+   * otherwise returns {@code false}.
    *
-   * @param type The holder class
-   * @param <T> The specific holder type
-   * @return A collection of holder instances of that type
+   * @param holder The holder index
+   * @param componentType The component type
+   * @param component The component instance
+   * @param <T> The specific component type
+   * @return Whether the component was stored
    * @since 0.1.0
    */
-  <T extends H> @NonNull Collection<T> get(final @NonNull Class<T> type);
+  public abstract <T extends C> boolean put(final int holder, final @NonNull ComponentType componentType, final @NonNull T component);
 
   /**
-   * Returns a {@link Collection} of {@code H} holders in this
-   * registry.
+   * Returns {@code true} if the specified {@link ComponentType} for the
+   * {@code int} holder is removed successfully, otherwise returns {@code false}.
    *
-   * @return A collection of holder instances
+   * @param holder The holder index
+   * @param componentType The component type
+   * @return Whether the component was removed
    * @since 0.1.0
    */
-  @NonNull Collection<? extends H> all();
+  public abstract boolean remove(final int holder, final @NonNull ComponentType componentType);
+
+  /**
+   * Removes the {@code int} holder from the registry.
+   *
+   * @param holder The holder index
+   * @since 0.1.0
+   */
+  public abstract void remove(final int holder);
 }

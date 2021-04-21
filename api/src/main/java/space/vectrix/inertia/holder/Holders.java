@@ -22,21 +22,48 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package space.vectrix.inertia.util;
+package space.vectrix.inertia.holder;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 
-@SuppressWarnings("unchecked")
-public final class DelegateClassLoader extends ClassLoader {
-  static {
-    ClassLoader.registerAsParallelCapable();
-  }
+import java.util.Collection;
+import java.util.Optional;
 
-  public DelegateClassLoader(final ClassLoader parent) {
-   super(parent);
-  }
+/**
+ * The holder registry.
+ *
+ * @param <H> The holder type
+ * @param <C> The component type
+ * @since 0.1.0
+ */
+public interface Holders<H extends Holder<C>, C> {
+  /**
+   * Returns the {@code T} holder with the specified {@code int}
+   * index, if it exists.
+   *
+   * @param index The holder index
+   * @return The holder instance, if present
+   * @since 0.1.0
+   */
+  <T extends H> @NonNull Optional<T> get(final int index);
 
-  public <T> @NonNull Class<T> defineClass(final @NonNull String name, final byte[] bytes) {
-    return (Class<T>) this.defineClass(name, bytes, 0, bytes.length);
-  }
+  /**
+   * Returns a {@link Collection} of {@code T} holders in this
+   * registry.
+   *
+   * @param type The holder class
+   * @param <T> The specific holder type
+   * @return A collection of holder instances of that type
+   * @since 0.1.0
+   */
+  <T extends H> @NonNull Collection<T> get(final @NonNull Class<T> type);
+
+  /**
+   * Returns a {@link Collection} of {@code H} holders in this
+   * registry.
+   *
+   * @return A collection of holder instances
+   * @since 0.1.0
+   */
+  @NonNull Collection<? extends H> all();
 }

@@ -27,24 +27,24 @@ package space.vectrix.inertia.component;
 import static java.util.Objects.requireNonNull;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import space.vectrix.flare.SyncMap;
+import space.vectrix.inertia.injector.InjectionStructure;
 
-import java.util.HashSet;
 import java.util.Set;
 
-public final class SimpleComponentType implements ComponentType {
-  private final Set<ComponentType> requiredDependencies = new HashSet<>();
-  private final Set<ComponentType> optionalDependencies = new HashSet<>();
+public final class ComponentTypeImpl<H, C> implements ComponentType {
+  private final Set<ComponentLink> dependencies = SyncMap.hashset(10);
   private final int index;
   private final String id;
   private final String name;
   private final Class<?> component;
-  private final ComponentStructure structure;
+  private final InjectionStructure<H, C> structure;
 
-  public SimpleComponentType(final int index,
-                             final String id,
-                             final String name,
-                             final Class<?> component,
-                             final ComponentStructure structure) {
+  public ComponentTypeImpl(final int index,
+                           final String id,
+                           final String name,
+                           final Class<?> component,
+                           final InjectionStructure<H, C> structure) {
     this.index = index;
     this.id = requireNonNull(id, "id");
     this.name = requireNonNull(name, "name");
@@ -73,16 +73,29 @@ public final class SimpleComponentType implements ComponentType {
   }
 
   @Override
-  public @NonNull Set<ComponentType> requiredDependencies() {
-    return this.requiredDependencies;
+  public @NonNull Set<ComponentLink> dependencies() {
+    return this.dependencies;
   }
 
-  @Override
-  public @NonNull Set<ComponentType> optionalDependencies() {
-    return this.optionalDependencies;
-  }
-
-  public @NonNull ComponentStructure structure() {
+  /**
+   * Returns the {@link InjectionStructure} for this component
+   * type.
+   *
+   * @return The injection structure
+   * @since 0.1.0
+   */
+  public @NonNull InjectionStructure<H, C> structure() {
     return this.structure;
+  }
+
+  /**
+   * Adds the specified {@link ComponentLink} dependency to this
+   * component type.
+   *
+   * @param link The dependency link
+   * @since 0.1.0
+   */
+  public void dependency(final @NonNull ComponentLink link) {
+    this.dependencies.add(link);
   }
 }

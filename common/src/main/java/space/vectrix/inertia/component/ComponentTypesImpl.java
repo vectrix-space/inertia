@@ -37,41 +37,60 @@ import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.Optional;
 
-public final class SimpleComponentRegistry implements ComponentRegistry {
-  private final Int2ObjectMap<ComponentType> components = new Int2ObjectOpenHashMap<>(100);
-  private final Map<Class<?>, ComponentType> componentsTyped = new IdentityHashMap<>(50);
-  private final Map<String, ComponentType> componentsNamed = new HashMap<>(50);
+public final class ComponentTypesImpl<H, C> implements ComponentTypes {
+  private final Int2ObjectMap<ComponentTypeImpl<H, C>> components = new Int2ObjectOpenHashMap<>(100);
+  private final Map<Class<?>, ComponentTypeImpl<H, C>> componentsTyped = new IdentityHashMap<>(50);
+  private final Map<String, ComponentTypeImpl<H, C>> componentsNamed = new HashMap<>(50);
+  private final Object lock = new Object();
 
-  public SimpleComponentRegistry() {}
+  public ComponentTypesImpl() {}
 
   @Override
   public @NonNull Optional<ComponentType> get(final int index) {
-    return Optional.ofNullable(this.components.get(index));
+    synchronized(this.lock) {
+      return Optional.ofNullable(this.components.get(index));
+    }
   }
 
   @Override
   public @NonNull Optional<ComponentType> get(final @NonNull Class<?> type) {
     requireNonNull(type, "type");
-    return Optional.ofNullable(this.componentsTyped.get(type));
+    synchronized(this.lock) {
+      return Optional.ofNullable(this.componentsTyped.get(type));
+    }
   }
 
   @Override
   public @NonNull Optional<ComponentType> get(final @NonNull String identifier) {
     requireNonNull(identifier, "identifier");
-    return Optional.ofNullable(this.componentsNamed.get(identifier));
+    synchronized(this.lock) {
+      return Optional.ofNullable(this.componentsNamed.get(identifier));
+    }
   }
 
   @Override
-  public @NonNull Collection<ComponentType> all() {
+  public @NonNull Collection<? extends ComponentType> all() {
     return this.components.values();
   }
 
-  public @NonNull ComponentType computeIfAbsent(final @NonNull Class<?> type, final @NonNull Function<Class<?>, ComponentType> computation) {
-    return this.componentsTyped.computeIfAbsent(type, key -> {
-      final ComponentType componentType = computation.apply(key);
-      this.components.put(componentType.index(), componentType);
-      this.componentsNamed.put(componentType.id(), componentType);
-      return componentType;
-    });
+  /**
+   * Puts the specified {@link Class} type and {@link ComponentTypeImpl} into
+   * this registry if it doesn't already exist, otherwise returns the existing
+   * {@link ComponentTypeImpl}.
+   *
+   * @param type The component class
+   * @param computation The function to create and store a new component type
+   * @return The component type
+   * @since 0.1.0
+   */
+  public @NonNull ComponentTypeImpl<H, C> put(final @NonNull Class<?> type, final @NonNull Function<Class<?>, ComponentTypeImpl<H, C>> computation) {
+    synchronized(this.lock) {
+      return this.componentsTyped.computeIfAbsent(type, key -> {
+        final ComponentTypeImpl<H, C> componentType = computation.apply(key);
+        this.components.put(componentType.index(), componentType);
+        this.componentsNamed.put(componentType.id(), componentType);
+        return componentType;
+      });
+    }
   }
 }

@@ -39,10 +39,10 @@ import java.util.concurrent.CompletableFuture;
 class HolderTest extends AbstractUniverseTest {
   @Test
   void testGet() {
-    final Universe<Holder<Object>, Object> universe = new SimpleUniverse.Builder<>()
+    final Universe<Holder<Object>, Object> universe = new UniverseImpl.Builder<>()
       .id("holder_universe")
       .build();
-    assertDoesNotThrow(() -> universe.holder(TestHolder::new).get());
+    assertDoesNotThrow(() -> universe.createHolder(TestHolder::new).get());
     assertTrue(universe.holders().get(0).isPresent());
     assertFalse(universe.holders().get(1).isPresent());
     assertFalse(universe.holders().get(TestHolder.class).isEmpty());
@@ -51,54 +51,51 @@ class HolderTest extends AbstractUniverseTest {
 
   @Test
   void testHolderIndex() {
-    final Universe<Holder<Object>, Object> universe = new SimpleUniverse.Builder<>()
+    final Universe<Holder<Object>, Object> universe = new UniverseImpl.Builder<>()
       .id("holder_universe")
       .build();
-    final CompletableFuture<TestHolder> holderFuture = assertDoesNotThrow(() -> universe.holder(TestHolder::new));
+    final CompletableFuture<TestHolder> holderFuture = assertDoesNotThrow(() -> universe.createHolder(TestHolder::new));
     final TestHolder holder = assertDoesNotThrow(() -> holderFuture.get());
-    assertEquals(0, holder.getIndex());
+    assertEquals(0, holder.index());
   }
 
   @Test
   void testHolderGet() {
-    final Universe<Holder<Object>, Object> universe = new SimpleUniverse.Builder<>()
+    final Universe<Holder<Object>, Object> universe = new UniverseImpl.Builder<>()
       .id("holder_universe")
       .build();
-    final TestHolder holder = assertDoesNotThrow(() -> universe.holder(TestHolder::new).get());
-    final ComponentType componentType = assertDoesNotThrow(() -> universe.component(TestComponent.class).get());
-    assertDoesNotThrow(() -> universe.<TestComponent>component(holder, componentType).get());
-    assertTrue(holder.getComponent(0).isPresent());
-    assertFalse(holder.getComponent(1).isPresent());
-    assertTrue(holder.getComponent(TestComponent.class).isPresent());
-    assertFalse(holder.getComponent(Object.class).isPresent());
-    assertTrue(holder.getComponent("test").isPresent());
-    assertFalse(holder.getComponent("fake").isPresent());
-    assertThat(holder.getComponents()).hasSize(1);
+    final TestHolder holder = assertDoesNotThrow(() -> universe.createHolder(TestHolder::new).get());
+    final ComponentType firstType = assertDoesNotThrow(() -> universe.resolveComponent(TestComponent.class).get());
+    final ComponentType secondType = assertDoesNotThrow(() -> universe.resolveComponent(AnotherComponent.class).get());
+    assertDoesNotThrow(() -> universe.<TestComponent>createComponent(holder, firstType).get());
+    assertTrue(holder.get(firstType).isPresent());
+    assertFalse(holder.get(secondType).isPresent());
+    assertThat(holder.all()).hasSize(1);
   }
 
   @Test
   void testHolderRemove() {
-    final Universe<Holder<Object>, Object> universe = new SimpleUniverse.Builder<>()
+    final Universe<Holder<Object>, Object> universe = new UniverseImpl.Builder<>()
       .id("holder_universe")
       .build();
-    final TestHolder holder = assertDoesNotThrow(() -> universe.holder(TestHolder::new).get());
-    final ComponentType componentType = assertDoesNotThrow(() -> universe.component(TestComponent.class).get());
-    assertDoesNotThrow(() -> universe.<TestComponent>component(holder, componentType).get());
-    assertTrue(holder.getComponent(componentType.index()).isPresent());
-    assertTrue(holder.removeComponent(componentType));
-    assertFalse(holder.getComponent(componentType.index()).isPresent());
+    final TestHolder holder = assertDoesNotThrow(() -> universe.createHolder(TestHolder::new).get());
+    final ComponentType componentType = assertDoesNotThrow(() -> universe.resolveComponent(TestComponent.class).get());
+    assertDoesNotThrow(() -> universe.<TestComponent>createComponent(holder, componentType).get());
+    assertTrue(holder.get(componentType).isPresent());
+    assertTrue(holder.remove(componentType));
+    assertFalse(holder.get(componentType).isPresent());
   }
 
   @Test
   void testHolderClear() {
-    final Universe<Holder<Object>, Object> universe = new SimpleUniverse.Builder<>()
+    final Universe<Holder<Object>, Object> universe = new UniverseImpl.Builder<>()
       .id("holder_universe")
       .build();
-    final TestHolder holder = assertDoesNotThrow(() -> universe.holder(TestHolder::new).get());
-    final ComponentType componentType = assertDoesNotThrow(() -> universe.component(TestComponent.class).get());
-    assertDoesNotThrow(() -> universe.<TestComponent>component(holder, componentType).get());
-    assertTrue(holder.getComponent(componentType.index()).isPresent());
-    assertDoesNotThrow(() -> holder.clearComponents());
-    assertFalse(holder.getComponent(componentType.index()).isPresent());
+    final TestHolder holder = assertDoesNotThrow(() -> universe.createHolder(TestHolder::new).get());
+    final ComponentType componentType = assertDoesNotThrow(() -> universe.resolveComponent(TestComponent.class).get());
+    assertDoesNotThrow(() -> universe.<TestComponent>createComponent(holder, componentType).get());
+    assertTrue(holder.get(componentType).isPresent());
+    assertDoesNotThrow(() -> holder.clear());
+    assertFalse(holder.get(componentType).isPresent());
   }
 }

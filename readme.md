@@ -1,4 +1,4 @@
-Inertia
+Inertia [![Discord](https://img.shields.io/discord/819522977586348052?style=for-the-badge)](https://discord.gg/rYpaxPFQrj)
 =======
 ![GitHub Workflow Status (branch)](https://img.shields.io/github/workflow/status/vectrix-space/inertia/build/master) 
 [![MIT License](https://img.shields.io/badge/license-MIT-blue)](license.txt) 

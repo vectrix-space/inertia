@@ -22,55 +22,59 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package space.vectrix.inertia.component;
+package space.vectrix.inertia.holder;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 
-import java.util.Collection;
-import java.util.Optional;
-
 /**
- * The component registry.
+ * {@inheritDoc}
  *
+ * Provides methods to use internally for storing and removing
+ * {@code H} holders.
+ *
+ * @param <H> The holder type
+ * @param <C> The component type
  * @since 0.1.0
  */
-public interface ComponentRegistry {
-  /**
-   * Returns the {@link ComponentType} with the specified {@code int}
-   * index, if it exists.
-   *
-   * @param index The component index
-   * @return The component type, if present
-   * @since 0.1.0
-   */
-  @NonNull Optional<ComponentType> get(final int index);
+public abstract class AbstractHolders<H extends Holder<C>, C> implements Holders<H, C> {
+  protected final Object lock = new Object();
 
   /**
-   * Returns the {@link ComponentType} with the specified {@link Class}
-   * type, if it exists.
+   * Returns {@code true} if the specified {@code int} holder is stored
+   * successfully, otherwise returns {@code false}.
    *
-   * @param type The component class
-   * @return The component type, if present
+   * @param index The holder index
+   * @return Whether the holder was stored
    * @since 0.1.0
    */
-  @NonNull Optional<ComponentType> get(final @NonNull Class<?> type);
+  public abstract boolean put(final int index);
 
   /**
-   * Returns the {@link ComponentType} with the specified {@link String}
-   * identifier, if it exists.
+   * Puts the specified {@code int} holder with the {@code T} holder instance.
    *
-   * @param identifier The component identifier
-   * @return The component type, if present
+   * @param index The holder index
+   * @param holder The holder instance
+   * @param <T> The specific holder type
    * @since 0.1.0
    */
-  @NonNull Optional<ComponentType> get(final @NonNull String identifier);
+  public abstract <T extends H> void put(final int index, final @NonNull T holder);
 
   /**
-   * Returns a {@link Collection} of {@link ComponentType}s in this
-   * registry.
+   * Returns {@code true} if the specified {@code int} index exists in this
+   * registry, otherwise returns {@code false}.
    *
-   * @return A collection of registered component types
+   * @param index The holder index
+   * @return True if it exists, otherwise false
    * @since 0.1.0
    */
-  @NonNull Collection<ComponentType> all();
+  public abstract boolean contains(final int index);
+
+  /**
+   * Removes the {@code int} holder from the registry.
+   *
+   * @param index The holder index
+   * @return Whether the holder was removed
+   * @since 0.1.0
+   */
+  public abstract boolean remove(final int index);
 }

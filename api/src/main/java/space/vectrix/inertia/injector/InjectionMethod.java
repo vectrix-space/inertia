@@ -22,27 +22,49 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package space.vectrix.inertia;
+package space.vectrix.inertia.injector;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
 /**
- * Represents a component dependency to be injected when instantiated.
+ * Functional interface that can inject members on a defined field on a target
+ * object when needed.
  *
+ * @param <T> The target type
+ * @param <M> The member type
  * @since 0.1.0
  */
-@Target(ElementType.FIELD)
-@Retention(RetentionPolicy.RUNTIME)
-public @interface ComponentDependency {
+@FunctionalInterface
+public interface InjectionMethod<T, M> {
   /**
-   * Determines whether the annotated component field, requires an injection
-   * on instantiation. (Defaults: false)
+   * Injects the member at the appropriate field on the given target.
    *
-   * @return Whether the component is optional
+   * @param target The target to inject into
+   * @param member The member to inject
+   * @throws Throwable If an exception occurred
    * @since 0.1.0
    */
-  boolean optional() default false;
+  void member(final @NonNull T target, final @NonNull M member) throws Throwable;
+
+  /**
+   * The factory for creating an {@link InjectionMethod}.
+   *
+   * @param <T> The target type
+   * @param <M> The member type
+   * @since 0.1.0
+   */
+  @FunctionalInterface
+  interface Factory<T, M> {
+    /**
+     * Creates a new {@link InjectionMethod} for the specified {@code I}
+     * input.
+     *
+     * @param input The target input
+     * @param <I> The target input type
+     * @return The new injection method
+     * @throws Exception If an exception occurred
+     * @since 0.1.0
+     */
+    <I> @NonNull InjectionMethod<T, M> create(final @NonNull I input) throws Exception;
+  }
 }

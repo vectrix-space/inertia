@@ -67,18 +67,10 @@ public interface ComponentType {
   @NonNull Class<?> type();
 
   /**
-   * The component required {@link ComponentType} dependencies.
+   * The component dependencies.
    *
-   * @return The required dependencies
+   * @return A set of dependencies
    * @since 0.1.0
    */
-  @NonNull Set<ComponentType> requiredDependencies();
-
-  /**
-   * The component optional {@link ComponentType} dependencies.
-   *
-   * @return The optional dependencies
-   * @since 0.1.0
-   */
-  @NonNull Set<ComponentType> optionalDependencies();
+  @NonNull Set<ComponentLink> dependencies();
 }
