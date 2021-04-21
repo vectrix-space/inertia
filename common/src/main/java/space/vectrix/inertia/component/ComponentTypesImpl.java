@@ -30,6 +30,7 @@ import it.unimi.dsi.fastutil.Function;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import space.vectrix.inertia.holder.Holder;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -37,7 +38,7 @@ import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.Optional;
 
-public final class ComponentTypesImpl<H, C> implements ComponentTypes {
+public final class ComponentTypesImpl<H extends Holder<C>, C> implements ComponentTypes {
   private final Int2ObjectMap<ComponentTypeImpl<H, C>> components = new Int2ObjectOpenHashMap<>(100);
   private final Map<Class<?>, ComponentTypeImpl<H, C>> componentsTyped = new IdentityHashMap<>(50);
   private final Map<String, ComponentTypeImpl<H, C>> componentsNamed = new HashMap<>(50);

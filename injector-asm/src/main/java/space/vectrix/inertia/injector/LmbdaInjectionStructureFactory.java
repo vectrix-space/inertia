@@ -27,6 +27,7 @@ package space.vectrix.inertia.injector;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import space.vectrix.inertia.ComponentDependency;
 import space.vectrix.inertia.HolderDependency;
+import space.vectrix.inertia.holder.Holder;
 
 import java.lang.annotation.Annotation;
 import java.lang.invoke.MethodHandle;
@@ -37,7 +38,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public final class LmbdaInjectionStructureFactory<H, C> implements InjectionStructure.Factory<H, C> {
+public final class LmbdaInjectionStructureFactory<H extends Holder<C>, C> implements InjectionStructure.Factory<H, C> {
   private final MethodHandles.Lookup lookup;
 
   public LmbdaInjectionStructureFactory() {
@@ -93,7 +94,7 @@ public final class LmbdaInjectionStructureFactory<H, C> implements InjectionStru
     }
   }
 
-  /* package */ static final class LmbdaInjectionStructure<H, C> implements InjectionStructure<H, C> {
+  /* package */ static final class LmbdaInjectionStructure<H extends Holder<C>, C> implements InjectionStructure<H, C> {
     private final Map<Class<?>, Entry<ComponentDependency, ?, C>> components;
     private final Map<Class<?>, Entry<HolderDependency, ?, H>> holders;
 

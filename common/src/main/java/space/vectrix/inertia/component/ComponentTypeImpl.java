@@ -28,11 +28,12 @@ import static java.util.Objects.requireNonNull;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import space.vectrix.flare.SyncMap;
+import space.vectrix.inertia.holder.Holder;
 import space.vectrix.inertia.injector.InjectionStructure;
 
 import java.util.Set;
 
-public final class ComponentTypeImpl<H, C> implements ComponentType {
+public final class ComponentTypeImpl<H extends Holder<C>, C> implements ComponentType {
   private final Set<ComponentLink> dependencies = SyncMap.hashset(10);
   private final int index;
   private final String id;

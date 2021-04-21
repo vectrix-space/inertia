@@ -27,6 +27,7 @@ package space.vectrix.inertia.injector;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import space.vectrix.inertia.ComponentDependency;
 import space.vectrix.inertia.HolderDependency;
+import space.vectrix.inertia.holder.Holder;
 
 import java.lang.annotation.Annotation;
 import java.util.Map;
@@ -38,7 +39,7 @@ import java.util.Map;
  * @param <C> The component type
  * @since 0.1.0
  */
-public interface InjectionStructure<H, C> {
+public interface InjectionStructure<H extends Holder<C>, C> {
   /**
    * Returns a {@link Map} of {@link Class} types to {@link Entry}s
    * for the component dependencies.
@@ -91,7 +92,7 @@ public interface InjectionStructure<H, C> {
    * @since 0.1.0
    */
   @FunctionalInterface
-  interface Factory<H, C> {
+  interface Factory<H extends Holder<C>, C> {
     /**
      * Creates a new {@link InjectionStructure} for the specified {@link Class}
      * target and specified {@link InjectionMethod.Factory}s.

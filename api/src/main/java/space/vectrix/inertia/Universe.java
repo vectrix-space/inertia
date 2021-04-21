@@ -180,6 +180,7 @@ public interface Universe<H extends Holder<C>, C> {
    * @param componentType The component type
    * @param <T> The specific component type
    * @return The component, if present
+   * @since 0.1.0
    */
   <T extends C> @NonNull Optional<T> getComponent(final int holder, final @NonNull ComponentType componentType);
 
@@ -191,6 +192,7 @@ public interface Universe<H extends Holder<C>, C> {
    * @param componentType The component type
    * @param <T> The specific component type
    * @return The component, if present
+   * @since 0.1.0
    */
   <T extends C> @NonNull Optional<T> getComponent(final @NonNull H holder, final @NonNull ComponentType componentType);
 
@@ -218,6 +220,12 @@ public interface Universe<H extends Holder<C>, C> {
    */
   @NonNull ComponentTypes componentTypes();
 
+  /**
+   * The universe builder.
+   *
+   * @param <H> The holder type
+   * @param <C> The component type
+   */
   interface Builder<H extends Holder<C>, C> {
     /**
      * Returns this {@link Builder} with the specified {@link String}

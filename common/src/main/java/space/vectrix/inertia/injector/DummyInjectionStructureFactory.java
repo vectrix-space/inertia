@@ -29,11 +29,12 @@ import static java.util.Objects.requireNonNull;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import space.vectrix.inertia.ComponentDependency;
 import space.vectrix.inertia.HolderDependency;
+import space.vectrix.inertia.holder.Holder;
 
 import java.util.Collections;
 import java.util.Map;
 
-public final class DummyInjectionStructureFactory<H, C> implements InjectionStructure.Factory<H, C> {
+public final class DummyInjectionStructureFactory<H extends Holder<C>, C> implements InjectionStructure.Factory<H, C> {
   private final DummyInjectionStructure<H, C> dummyStructure = new DummyInjectionStructure<>();
 
   public DummyInjectionStructureFactory() {}
@@ -46,7 +47,7 @@ public final class DummyInjectionStructureFactory<H, C> implements InjectionStru
     return this.dummyStructure;
   }
 
-  /* package */ static final class DummyInjectionStructure<H, C> implements InjectionStructure<H, C> {
+  /* package */ static final class DummyInjectionStructure<H extends Holder<C>, C> implements InjectionStructure<H, C> {
     @Override
     public @NonNull Map<Class<?>, Entry<ComponentDependency, ?, C>> components() {
       return Collections.emptyMap();
