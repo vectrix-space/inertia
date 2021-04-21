@@ -47,14 +47,18 @@ public final class HoldersImpl<H extends Holder<C>, C> extends AbstractHolders<H
   @Override
   @SuppressWarnings("unchecked")
   public <T extends H> @NonNull Optional<T> get(final int index) {
-    return Optional.ofNullable((T) this.holderInstances.get(index));
+    synchronized(this.lock) {
+      return Optional.ofNullable((T) this.holderInstances.get(index));
+    }
   }
 
   @Override
   @SuppressWarnings("unchecked")
   public <T extends H> @NonNull Collection<T> get(final @NonNull Class<T> type) {
     requireNonNull(type, "type");
-    return (Collection<T>) this.holderInstancesTyped.get(type);
+    synchronized(this.lock) {
+      return (Collection<T>) this.holderInstancesTyped.get(type);
+    }
   }
 
   @Override
@@ -64,29 +68,37 @@ public final class HoldersImpl<H extends Holder<C>, C> extends AbstractHolders<H
 
   @Override
   public boolean put(final int index) {
-    return this.holders.add(index);
+    synchronized(this.lock) {
+      return this.holders.add(index);
+    }
   }
 
   @Override
   public <T extends H> void put(final int index, final @NonNull T holder) {
-    if(this.put(index)) {
-      this.holderInstances.put(index, holder);
-      this.holderInstancesTyped.put(holder.getClass(), holder);
+    synchronized(this.lock) {
+      if (this.put(index)) {
+        this.holderInstances.put(index, holder);
+        this.holderInstancesTyped.put(holder.getClass(), holder);
+      }
     }
   }
 
   @Override
-  public boolean contains(int index) {
-    return this.holders.contains(index);
+  public boolean contains(final int index) {
+    synchronized(this.lock) {
+      return this.holders.contains(index);
+    }
   }
 
   @Override
   public boolean remove(final int index) {
-    if(this.holders.remove(index)) {
-      this.removeInstance(index);
-      return true;
+    synchronized(this.lock) {
+      if (this.holders.remove(index)) {
+        this.removeInstance(index);
+        return true;
+      }
+      return false;
     }
-    return false;
   }
 
   private void removeInstance(final int index) {

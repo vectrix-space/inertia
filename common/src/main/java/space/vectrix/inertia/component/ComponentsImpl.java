@@ -28,7 +28,6 @@ import static java.util.Objects.requireNonNull;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.ints.IntIterator;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -50,23 +49,28 @@ public final class ComponentsImpl<H extends Holder<C>, C> extends AbstractCompon
   @SuppressWarnings("unchecked")
   public <T extends C> @NonNull Optional<T> get(final int holder, final @NonNull ComponentType componentType) {
     requireNonNull(componentType, "componentType");
-    return Optional.ofNullable((T) this.componentInstances.get(this.getCombinedIndex(holder, componentType.index())));
+    synchronized(this.lock) {
+      return Optional.ofNullable((T) this.componentInstances.get(this.getCombinedIndex(holder, componentType.index())));
+    }
   }
 
   @Override
-  @SuppressWarnings("unchecked")
   public <T extends C> @NonNull Optional<T> get(final @NonNull H holder, final @NonNull ComponentType componentType) {
     requireNonNull(componentType, "componentType");
-    return Optional.ofNullable((T) this.componentInstances.get(this.getCombinedIndex(holder.index(), componentType.index())));
+    return this.get(holder.index(), componentType);
   }
 
   @Override
   public @NonNull Collection<? extends C> all(final int holder) {
-    final IntSet components = this.componentInstancesGrouped.get(holder);
-    if(components == null) return Collections.emptySet();
-    final List<C> instances = new ArrayList<>(components.size());
-    for(final int component : components) instances.add(this.componentInstances.get(this.getCombinedIndex(holder, component)));
-    return instances;
+    synchronized(this.lock) {
+      final IntSet components = this.componentInstancesGrouped.get(holder);
+      if(components == null) return Collections.emptySet();
+      final List<C> instances = new ArrayList<>(components.size());
+      for(final int component : components) {
+        instances.add(this.componentInstances.get(this.getCombinedIndex(holder, component)));
+      }
+      return instances;
+    }
   }
 
   @Override
@@ -82,38 +86,38 @@ public final class ComponentsImpl<H extends Holder<C>, C> extends AbstractCompon
 
   @Override
   public <T extends C> boolean put(final int holder, final @NonNull ComponentType componentType, final @NonNull T component) {
-    final int index = this.getCombinedIndex(holder, componentType.index());
-    if(this.componentInstances.putIfAbsent(index, component) == null) {
-      this.componentInstancesGrouped.computeIfAbsent(holder, key -> new IntOpenHashSet()).add(componentType.index());
-      return true;
+    synchronized(this.lock) {
+      final int index = this.getCombinedIndex(holder, componentType.index());
+      if (this.componentInstances.putIfAbsent(index, component) == null) {
+        this.componentInstancesGrouped.computeIfAbsent(holder, key -> new IntOpenHashSet()).add(componentType.index());
+        return true;
+      }
+      return false;
     }
-    return false;
   }
 
   @Override
   public boolean remove(final int holder, final @NonNull ComponentType componentType) {
-    final IntSet components = this.componentInstancesGrouped.get(holder);
-    if(components != null) {
-      final IntIterator componentIterator = components.iterator();
-      while(componentIterator.hasNext()) {
-        final int componentIndex = componentIterator.nextInt();
-        if(componentIndex == componentType.index()) {
-          this.componentInstances.remove(this.getCombinedIndex(holder, componentIndex));
-          componentIterator.remove();
+    synchronized(this.lock) {
+      if (this.componentInstances.remove(this.getCombinedIndex(holder, componentType.index())) != null) {
+        final IntSet components = this.componentInstancesGrouped.get(holder);
+        if (components != null) {
+          components.remove(componentType.index());
           return true;
         }
       }
+      return false;
     }
-    return false;
   }
 
   @Override
   public void remove(final int holder) {
-    final IntSet components = this.componentInstancesGrouped.remove(holder);
-    if(components != null) {
-      final IntIterator componentIterator = components.iterator();
-      while(componentIterator.hasNext()) {
-        this.componentInstances.remove(this.getCombinedIndex(holder, componentIterator.nextInt()));
+    synchronized(this.lock) {
+      final IntSet components = this.componentInstancesGrouped.remove(holder);
+      if (components != null) {
+        for (final int component : components) {
+          this.componentInstances.remove(this.getCombinedIndex(holder, component));
+        }
       }
     }
   }

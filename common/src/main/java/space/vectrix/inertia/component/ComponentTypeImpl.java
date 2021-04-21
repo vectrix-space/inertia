@@ -27,13 +27,13 @@ package space.vectrix.inertia.component;
 import static java.util.Objects.requireNonNull;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import space.vectrix.flare.SyncMap;
 import space.vectrix.inertia.injector.InjectionStructure;
 
-import java.util.HashSet;
 import java.util.Set;
 
 public final class ComponentTypeImpl<H, C> implements ComponentType {
-  private final Set<ComponentLink> dependencies = new HashSet<>();
+  private final Set<ComponentLink> dependencies = SyncMap.hashset(10);
   private final int index;
   private final String id;
   private final String name;

@@ -54,7 +54,6 @@ public final class LmbdaInjectionStructureFactory<H, C> implements InjectionStru
                                                   final InjectionMethod.@NonNull Factory<?, H> holderInjectionFactory) {
     final Map<Class<?>, InjectionStructure.Entry<ComponentDependency, ?, C>> components = new IdentityHashMap<>();
     final Map<Class<?>, InjectionStructure.Entry<HolderDependency, ?, H>> holders = new IdentityHashMap<>();
-
     this.find(target, Class::getSuperclass, fields -> {
       for(final Field field : fields) {
         final ComponentDependency componentDependency = field.getAnnotation(ComponentDependency.class);
@@ -80,7 +79,6 @@ public final class LmbdaInjectionStructureFactory<H, C> implements InjectionStru
         }
       }
     });
-
     return new LmbdaInjectionStructure<>(components, holders);
   }
 
