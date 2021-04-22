@@ -49,10 +49,10 @@ public interface ComponentResolver<H extends Holder<C>, C> {
    * @return The component type
    * @since 0.1.0
    */
-  @NonNull ComponentType resolve(final @NonNull Class<?> type,
-                                 final InjectionStructure.@NonNull Factory<H, C> componentStructureFactory,
-                                 final InjectionMethod.@NonNull Factory<?, C> componentInjector,
-                                 final InjectionMethod.@NonNull Factory<?, H> holderInjector);
+  <T extends C> @NonNull ComponentType resolve(final @NonNull Class<T> type,
+                                               final InjectionStructure.@NonNull Factory<H, C> componentStructureFactory,
+                                               final InjectionMethod.@NonNull Factory<?, C> componentInjector,
+                                               final InjectionMethod.@NonNull Factory<?, H> holderInjector);
 
   /**
    * Creates the {@code T} component for the specified {@code int} holder
