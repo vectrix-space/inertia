@@ -45,7 +45,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 @SuppressWarnings("UnstableApiUsage")
 public final class ComponentResolverImpl<H extends Holder<C>, C> implements ComponentResolver<H, C> {
   private final AtomicInteger index = new AtomicInteger();
-  private final MutableGraph<ComponentTypeImpl<H, C>> componentDependencies = GraphBuilder.undirected()
+  private final MutableGraph<ComponentTypeImpl<H, C>> dependencies = GraphBuilder.undirected()
     .allowsSelfLoops(false)
     .expectedNodeCount(1000)
     .build();
@@ -113,9 +113,9 @@ public final class ComponentResolverImpl<H extends Holder<C>, C> implements Comp
       ));
     });
     if(parent != null) {
-      this.componentDependencies.putEdge(parent, componentType);
+      this.dependencies.putEdge(parent, componentType);
     } else {
-      this.componentDependencies.addNode(componentType);
+      this.dependencies.addNode(componentType);
     }
     final InjectionStructure<H, C> structure = componentType.structure();
     for(final Map.Entry<Class<?>, InjectionStructure.Entry<ComponentDependency, ?, C>> entry : structure.components().entrySet()) {
@@ -141,7 +141,7 @@ public final class ComponentResolverImpl<H extends Holder<C>, C> implements Comp
         for(final InjectionStructure.Entry<HolderDependency, ?, H> holderEntry : structure.holders().values()) {
           this.injectMember(holderEntry.method(), componentInstance, holder);
         }
-        for(final ComponentTypeImpl<H, C> dependency : this.componentDependencies.adjacentNodes(componentType)) {
+        for(final ComponentTypeImpl<H, C> dependency : this.dependencies.adjacentNodes(componentType)) {
           if(parentType != null && dependency.index() == componentType.index()) continue;
           final InjectionStructure.Entry<ComponentDependency, ?, C> componentInjection = structure.components().get(dependency.type());
           final C dependencyInstance = holder.get(dependency).orElseGet(() -> {

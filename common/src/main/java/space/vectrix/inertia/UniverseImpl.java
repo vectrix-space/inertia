@@ -27,6 +27,7 @@ package space.vectrix.inertia;
 import static java.util.Objects.requireNonNull;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import space.vectrix.inertia.component.AbstractComponents;
 import space.vectrix.inertia.component.ComponentResolver;
 import space.vectrix.inertia.component.ComponentResolverImpl;
@@ -52,6 +53,7 @@ import space.vectrix.inertia.processor.Processor;
 import space.vectrix.inertia.processor.Processors;
 import space.vectrix.inertia.processor.ProcessorsImpl;
 
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
@@ -209,6 +211,24 @@ public final class UniverseImpl<H extends Holder<C>, C> implements Universe<H, C
   @Override
   public @NonNull ComponentTypes componentTypes() {
     return this.componentTypes;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(this.id);
+  }
+
+  @Override
+  public boolean equals(final @Nullable Object other) {
+    if(other == this) return true;
+    if(!(other instanceof Universe)) return false;
+    final Universe<?, ?> that = (Universe<?, ?>) other;
+    return this.id.equals(that.id());
+  }
+
+  @Override
+  public String toString() {
+    return "Universe{id=" + this.id + "}";
   }
 
   public static final class Builder<H extends Holder<C>, C> implements Universe.Builder<H, C> {

@@ -35,7 +35,7 @@ import java.util.Collections;
 import java.util.Map;
 
 public final class DummyInjectionStructureFactory<H extends Holder<C>, C> implements InjectionStructure.Factory<H, C> {
-  private final DummyInjectionStructure<H, C> dummyStructure = new DummyInjectionStructure<>();
+  private final DummyInjectionStructure<H, C> structure = new DummyInjectionStructure<>();
 
   public DummyInjectionStructureFactory() {}
 
@@ -44,7 +44,7 @@ public final class DummyInjectionStructureFactory<H extends Holder<C>, C> implem
                                                   final InjectionMethod.@NonNull Factory<?, C> componentInjectionFactory,
                                                   final InjectionMethod.@NonNull Factory<?, H> holderInjectionFactory) {
     requireNonNull(target, "target");
-    return this.dummyStructure;
+    return this.structure;
   }
 
   /* package */ static final class DummyInjectionStructure<H extends Holder<C>, C> implements InjectionStructure<H, C> {

@@ -29,14 +29,14 @@ import static java.util.Objects.requireNonNull;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
 public final class DummyInjectionMethodFactory<T, M> implements InjectionMethod.Factory<T, M> {
-  private final DummyMemberInjector<T, M> dummyInjector = new DummyMemberInjector<>();
+  private final DummyMemberInjector<T, M> injector = new DummyMemberInjector<>();
 
   public DummyInjectionMethodFactory() {}
 
   @Override
   public <I> @NonNull InjectionMethod<T, M> create(final @NonNull I input) throws Exception {
     requireNonNull(input, "input");
-    return this.dummyInjector;
+    return this.injector;
   }
 
   /* package */ static final class DummyMemberInjector<T, M> implements InjectionMethod<T, M> {

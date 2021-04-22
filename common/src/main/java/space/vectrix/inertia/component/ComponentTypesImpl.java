@@ -40,8 +40,8 @@ import java.util.Optional;
 
 public final class ComponentTypesImpl<H extends Holder<C>, C> implements ComponentTypes {
   private final Int2ObjectMap<ComponentTypeImpl<H, C>> components = new Int2ObjectOpenHashMap<>(100);
-  private final Map<Class<?>, ComponentTypeImpl<H, C>> componentsTyped = new IdentityHashMap<>(50);
-  private final Map<String, ComponentTypeImpl<H, C>> componentsNamed = new HashMap<>(50);
+  private final Map<Class<?>, ComponentTypeImpl<H, C>> typed = new IdentityHashMap<>(50);
+  private final Map<String, ComponentTypeImpl<H, C>> named = new HashMap<>(50);
   private final Object lock = new Object();
 
   public ComponentTypesImpl() {}
@@ -57,7 +57,7 @@ public final class ComponentTypesImpl<H extends Holder<C>, C> implements Compone
   public @NonNull Optional<ComponentType> get(final @NonNull Class<?> type) {
     requireNonNull(type, "type");
     synchronized(this.lock) {
-      return Optional.ofNullable(this.componentsTyped.get(type));
+      return Optional.ofNullable(this.typed.get(type));
     }
   }
 
@@ -65,7 +65,7 @@ public final class ComponentTypesImpl<H extends Holder<C>, C> implements Compone
   public @NonNull Optional<ComponentType> get(final @NonNull String identifier) {
     requireNonNull(identifier, "identifier");
     synchronized(this.lock) {
-      return Optional.ofNullable(this.componentsNamed.get(identifier));
+      return Optional.ofNullable(this.named.get(identifier));
     }
   }
 
@@ -86,10 +86,10 @@ public final class ComponentTypesImpl<H extends Holder<C>, C> implements Compone
    */
   public @NonNull ComponentTypeImpl<H, C> put(final @NonNull Class<?> type, final @NonNull Function<Class<?>, ComponentTypeImpl<H, C>> computation) {
     synchronized(this.lock) {
-      return this.componentsTyped.computeIfAbsent(type, key -> {
+      return this.typed.computeIfAbsent(type, key -> {
         final ComponentTypeImpl<H, C> componentType = computation.apply(key);
         this.components.put(componentType.index(), componentType);
-        this.componentsNamed.put(componentType.id(), componentType);
+        this.named.put(componentType.id(), componentType);
         return componentType;
       });
     }
