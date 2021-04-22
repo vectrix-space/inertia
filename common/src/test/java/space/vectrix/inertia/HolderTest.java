@@ -45,6 +45,7 @@ class HolderTest extends AbstractUniverseTest {
     assertDoesNotThrow(() -> universe.createHolder(TestHolder::new).get());
     assertTrue(universe.holders().get(0).isPresent());
     assertFalse(universe.holders().get(1).isPresent());
+    assertTrue(universe.holders().all(AnotherHolder.class).isEmpty());
     assertFalse(universe.holders().all(TestHolder.class).isEmpty());
     assertThat(universe.holders().all()).hasSize(1);
   }

@@ -44,7 +44,7 @@ import java.util.Optional;
  * @since 0.1.0
  */
 public abstract class AbstractHolder<C> implements Holder<C> {
-  private final Universe<Holder<C>, C> universe;
+  protected final Universe<Holder<C>, C> universe;
   private final int index;
 
   protected AbstractHolder(final @NonNull Universe<Holder<C>, C> universe, final int index) {

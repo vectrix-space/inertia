@@ -263,7 +263,7 @@ public interface Universe<H extends Holder<C>, C> {
    * @return The component types registry
    * @since 0.1.0
    */
-  @NonNull ComponentTypes componentTypes();
+  @NonNull ComponentTypes types();
 
   /**
    * The universe builder.

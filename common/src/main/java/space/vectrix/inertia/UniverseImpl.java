@@ -209,7 +209,7 @@ public final class UniverseImpl<H extends Holder<C>, C> implements Universe<H, C
   }
 
   @Override
-  public @NonNull ComponentTypes componentTypes() {
+  public @NonNull ComponentTypes types() {
     return this.componentTypes;
   }
 

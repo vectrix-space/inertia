@@ -103,7 +103,7 @@ public final class ComponentResolverImpl<H extends Holder<C>, C> implements Comp
                                               final InjectionStructure.@NonNull Factory<H, C> componentStructureFactory,
                                               final InjectionMethod.Factory<?, C> componentInjector,
                                               final InjectionMethod.Factory<?, H> holderInjector) {
-    final ComponentTypeImpl<H, C> componentType = ((ComponentTypesImpl<H, C>) this.universe.componentTypes()).put(type, key -> {
+    final ComponentTypeImpl<H, C> componentType = ((ComponentTypesImpl<H, C>) this.universe.types()).put(type, key -> {
       final Component component = type.getAnnotation(Component.class);
       if(component == null) throw new IllegalArgumentException("Target type must have a component annotation!");
       return new ComponentTypeImpl<>(this.index.getAndIncrement(), component.id(), component.name(), type, componentStructureFactory.create(
