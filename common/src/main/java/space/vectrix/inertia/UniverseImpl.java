@@ -45,17 +45,26 @@ import space.vectrix.inertia.injector.DummyInjectionMethodFactory;
 import space.vectrix.inertia.injector.DummyInjectionStructureFactory;
 import space.vectrix.inertia.injector.InjectionMethod;
 import space.vectrix.inertia.injector.InjectionStructure;
+import space.vectrix.inertia.processor.AbstractProcessors;
+import space.vectrix.inertia.processor.Processing;
+import space.vectrix.inertia.processor.ProcessingImpl;
+import space.vectrix.inertia.processor.Processor;
+import space.vectrix.inertia.processor.Processors;
+import space.vectrix.inertia.processor.ProcessorsImpl;
 
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 
 public final class UniverseImpl<H extends Holder<C>, C> implements Universe<H, C> {
+  private final Processing<H, C> processing;
   private final HolderResolver<H, C> holderResolver;
   private final ComponentResolver<H, C> componentResolver;
   private final InjectionMethod.Factory<?, H> holderInjector;
   private final InjectionStructure.Factory<H, C> holderStructure;
   private final InjectionMethod.Factory<?, C> componentInjector;
   private final InjectionStructure.Factory<H, C> componentStructure;
+  private final Processors<H, C> processors;
   private final Holders<H, C> holders;
   private final Components<H, C> components;
   private final ComponentTypes componentTypes;
@@ -63,12 +72,14 @@ public final class UniverseImpl<H extends Holder<C>, C> implements Universe<H, C
 
   /* package */ UniverseImpl(final UniverseImpl.Builder<H, C> builder) {
     this.id = builder.id;
+    this.processing = builder.processing.create(this);
     this.holderResolver = builder.holderResolver.create(this);
     this.componentResolver = builder.componentResolver.create(this);
     this.holderInjector = builder.holderInjector;
     this.holderStructure = builder.holderStructure;
     this.componentInjector = builder.componentInjector;
     this.componentStructure = builder.componentStructure;
+    this.processors = builder.processorRegistry;
     this.holders = builder.holderRegistry;
     this.components = builder.componentRegistry;
     this.componentTypes = new ComponentTypesImpl<H, C>();
@@ -77,6 +88,19 @@ public final class UniverseImpl<H extends Holder<C>, C> implements Universe<H, C
   @Override
   public @NonNull String id() {
     return this.id;
+  }
+
+  @Override
+  public int tick() {
+    return this.processing.process();
+  }
+
+  @Override
+  public @NonNull <T extends Processor<H, C>> CompletableFuture<T> createProcessor(final @NonNull Class<T> type,
+                                                                                   final @NonNull Function<Universe<H, C>, T> processorFunction) {
+    requireNonNull(type, "type");
+    requireNonNull(processorFunction, "processorFunction");
+    return CompletableFuture.supplyAsync(() -> this.processing.create(type, processorFunction));
   }
 
   @Override
@@ -106,6 +130,12 @@ public final class UniverseImpl<H extends Holder<C>, C> implements Universe<H, C
     requireNonNull(holder, "holder");
     requireNonNull(componentType, "componentType");
     return CompletableFuture.supplyAsync(() -> this.componentResolver.create(holder, componentType));
+  }
+
+  @Override
+  public boolean removeProcessor(final @NonNull Class<? extends Processor<H, C>> processor) {
+    requireNonNull(processor, "processor");
+    return ((AbstractProcessors<H, C>) this.processors).remove(processor);
   }
 
   @Override
@@ -162,6 +192,11 @@ public final class UniverseImpl<H extends Holder<C>, C> implements Universe<H, C
   }
 
   @Override
+  public @NonNull Processors<H, C> processors() {
+    return this.processors;
+  }
+
+  @Override
   public @NonNull Holders<H, C> holders() {
     return this.holders;
   }
@@ -177,8 +212,10 @@ public final class UniverseImpl<H extends Holder<C>, C> implements Universe<H, C
   }
 
   public static final class Builder<H extends Holder<C>, C> implements Universe.Builder<H, C> {
+    private Processing.Factory processing = new ProcessingImpl.Factory();
     private HolderResolver.Factory holderResolver = new HolderResolverImpl.Factory();
     private ComponentResolver.Factory componentResolver = new ComponentResolverImpl.Factory();
+    private Processors<H, C> processorRegistry = new ProcessorsImpl<>();
     private Holders<H, C> holderRegistry = new HoldersImpl<>();
     private Components<H, C> componentRegistry = new ComponentsImpl<>();
     private InjectionMethod.Factory<?, H> holderInjector = new DummyInjectionMethodFactory<>();
@@ -197,6 +234,13 @@ public final class UniverseImpl<H extends Holder<C>, C> implements Universe<H, C
     }
 
     @Override
+    public Universe.@NonNull Builder<H, C> processing(final Processing.@NonNull Factory processing) {
+      requireNonNull(processing, "processing");
+      this.processing = processing;
+      return this;
+    }
+
+    @Override
     public Universe.@NonNull Builder<H, C> holderResolver(final HolderResolver.@NonNull Factory resolver) {
       requireNonNull(resolver, "resolver");
       this.holderResolver = resolver;
@@ -207,6 +251,13 @@ public final class UniverseImpl<H extends Holder<C>, C> implements Universe<H, C
     public Universe.@NonNull Builder<H, C> componentResolver(final ComponentResolver.@NonNull Factory resolver) {
       requireNonNull(resolver, "resolver");
       this.componentResolver = resolver;
+      return this;
+    }
+
+    @Override
+    public Universe.@NonNull Builder<H, C> processorRegistry(final @NonNull Processors<H, C> registry) {
+      requireNonNull(registry, "registry");
+      this.processorRegistry = registry;
       return this;
     }
 

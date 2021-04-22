@@ -22,76 +22,67 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package space.vectrix.inertia.holder;
+package space.vectrix.inertia.processor;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import space.vectrix.inertia.Universe;
+import space.vectrix.inertia.holder.Holder;
+
+import java.util.function.Function;
 
 /**
- * The holder resolver.
+ * The processing system.
  *
  * @param <H> The holder type
  * @param <C> The component type
  * @since 0.1.0
  */
-public interface HolderResolver<H extends Holder<C>, C> {
+public interface Processing<H extends Holder<C>, C> {
   /**
-   * Creates the {@code int} holder.
+   * Creates the {@code T} processor using the specified {@link Class} type
+   * and {@link Function}.
    *
-   * @return The holder index
+   * @param type The processor class
+   * @param processorFunction The processor function
+   * @param <T> The specific processor type
+   * @return The processor instance
    * @since 0.1.0
    */
-  int create();
+  <T extends Processor<H, C>> @NonNull T create(final @NonNull Class<T> type,
+                                                final @NonNull Function<Universe<H, C>, T> processorFunction);
 
   /**
-   * Creates the {@code T} holder using the specified {@link HolderFunction}.
+   * Ticks all the processors contained within this {@link Universe}.
    *
-   * @param holderFunction The holder function
-   * @param <T> The specific holder type
-   * @return The holder
+   * @return The tick index
    * @since 0.1.0
    */
-  <T extends H> @NonNull T create(final @NonNull HolderFunction<H, C, T> holderFunction);
+  int process();
 
   /**
-   * The function for creating a new holder from the supplied
-   * {@link Universe} and {@code index}.
+   * Handles any {@link Throwable}s caused in the processing phases.
    *
-   * @param <H> The holder type
-   * @param <C> The component type
-   * @param <T> The specific holder type
+   * @param throwable The processing exception
    * @since 0.1.0
    */
-  @FunctionalInterface
-  interface HolderFunction<H extends Holder<C>, C, T extends H> {
-    /**
-     * Creates a new {@link Holder} for the specified {@link Universe}
-     * with the specified {@code index}.
-     *
-     * @param universe The universe
-     * @param index The index
-     * @return The new holder
-     * @since 0.1.0
-     */
-    T apply(final @NonNull Universe<H, C> universe, final int index);
-  }
+  void processException(final @NonNull Throwable throwable);
 
   /**
-   * The factory for creating a {@link HolderResolver}.
+   * The factory for creating a {@link Processing} system.
    *
    * @since 0.1.0
    */
   @FunctionalInterface
   interface Factory {
     /**
-     * Creates a new {@link HolderResolver} for the specified {@link Universe}.
+     * Creates a new {@link Processing} system for the specified {@link Universe}.
      *
      * @param universe The universe
      * @param <H> The holder type
      * @param <C> The component type
-     * @return The holder resolver
+     * @return The processing system
      * @since 0.1.0
      */
-    <H extends Holder<C>, C> @NonNull HolderResolver<H, C> create(final @NonNull Universe<H, C> universe);
+    <H extends Holder<C>, C> @NonNull Processing<H, C> create(final @NonNull Universe<H, C> universe);
   }
 }

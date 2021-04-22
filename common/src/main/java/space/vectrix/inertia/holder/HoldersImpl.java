@@ -35,6 +35,7 @@ import it.unimi.dsi.fastutil.ints.IntSet;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.Optional;
 
 public final class HoldersImpl<H extends Holder<C>, C> extends AbstractHolders<H, C> {
@@ -54,7 +55,7 @@ public final class HoldersImpl<H extends Holder<C>, C> extends AbstractHolders<H
 
   @Override
   @SuppressWarnings("unchecked")
-  public <T extends H> @NonNull Collection<T> get(final @NonNull Class<T> type) {
+  public <T extends H> @NonNull Collection<T> all(final @NonNull Class<T> type) {
     requireNonNull(type, "type");
     synchronized(this.lock) {
       return (Collection<T>) this.holderInstancesTyped.get(type);
@@ -64,6 +65,11 @@ public final class HoldersImpl<H extends Holder<C>, C> extends AbstractHolders<H
   @Override
   public @NonNull Collection<? extends H> all() {
     return this.holderInstances.values();
+  }
+
+  @Override
+  public @NonNull Iterator<H> iterator() {
+    return this.holderInstances.values().iterator();
   }
 
   @Override

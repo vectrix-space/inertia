@@ -37,7 +37,7 @@ import java.util.Optional;
  * @param <C> The component type
  * @since 0.1.0
  */
-public interface Components<H extends Holder<C>, C> {
+public interface Components<H extends Holder<C>, C> extends Iterable<C> {
   /**
    * Returns the {@code T} component for the specified {@code int} holder
    * and {@link ComponentType}.

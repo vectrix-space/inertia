@@ -36,6 +36,7 @@ import space.vectrix.inertia.holder.Holder;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 
@@ -82,6 +83,11 @@ public final class ComponentsImpl<H extends Holder<C>, C> extends AbstractCompon
   @Override
   public @NonNull Collection<? extends C> all() {
     return this.componentInstances.values();
+  }
+
+  @Override
+  public @NonNull Iterator<C> iterator() {
+    return this.componentInstances.values().iterator();
   }
 
   @Override
