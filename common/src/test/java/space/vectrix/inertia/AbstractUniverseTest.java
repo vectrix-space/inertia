@@ -32,6 +32,7 @@ import org.junit.jupiter.api.Test;
 import space.vectrix.inertia.component.ComponentType;
 import space.vectrix.inertia.holder.AbstractHolder;
 import space.vectrix.inertia.holder.Holder;
+import space.vectrix.inertia.processor.Processor;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -81,7 +82,17 @@ abstract class AbstractUniverseTest {
 
   @Component(id = "test", name = "Test")
   public static final class TestComponent {
+    private int tick;
+
     public TestComponent() {}
+
+    public int getTick() {
+      return this.tick;
+    }
+
+    public int next() {
+      return ++this.tick;
+    }
   }
 
   @Component(id = "another", name = "Another")
@@ -90,12 +101,18 @@ abstract class AbstractUniverseTest {
   }
 
   static final class TestHolder extends AbstractHolder<Object> {
-    private final Universe<Holder<Object>, Object> universe;
-
     protected TestHolder(final Universe<Holder<Object>, Object> universe, final int index) {
       super(universe, index);
+    }
 
-      this.universe = universe;
+    public Universe<Holder<Object>, Object> universe() {
+      return this.universe;
+    }
+  }
+
+  static final class AnotherHolder extends AbstractHolder<Object> {
+    protected AnotherHolder(final Universe<Holder<Object>, Object> universe, final int index) {
+      super(universe, index);
     }
 
     public Universe<Holder<Object>, Object> universe() {

@@ -27,6 +27,7 @@ package space.vectrix.inertia.holder;
 import static java.util.Objects.requireNonNull;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import space.vectrix.inertia.Universe;
 import space.vectrix.inertia.component.ComponentType;
 
@@ -43,7 +44,7 @@ import java.util.Optional;
  * @since 0.1.0
  */
 public abstract class AbstractHolder<C> implements Holder<C> {
-  private final Universe<Holder<C>, C> universe;
+  protected final Universe<Holder<C>, C> universe;
   private final int index;
 
   protected AbstractHolder(final @NonNull Universe<Holder<C>, C> universe, final int index) {
@@ -76,5 +77,23 @@ public abstract class AbstractHolder<C> implements Holder<C> {
   @Override
   public void clear() {
     this.universe.removeComponents(this);
+  }
+
+  @Override
+  public int hashCode() {
+    return this.index;
+  }
+
+  @Override
+  public boolean equals(final @Nullable Object other) {
+    if(other == this) return true;
+    if(!(other instanceof AbstractHolder)) return false;
+    final AbstractHolder<?> that = (AbstractHolder<?>) other;
+    return this.index == that.index();
+  }
+
+  @Override
+  public String toString() {
+    return "Holder{index=" + this.index + ", universe=" + this.universe.id() + "}";
   }
 }

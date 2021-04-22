@@ -22,48 +22,60 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package space.vectrix.inertia.holder;
+package space.vectrix.inertia.processor;
 
+import net.kyori.coffee.math.range.i.IntRange;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import space.vectrix.inertia.holder.Holder;
 
 import java.util.Collection;
 import java.util.Optional;
 
 /**
- * The holder registry.
+ * The processor registry.
  *
  * @param <H> The holder type
  * @param <C> The component type
  * @since 0.1.0
  */
-public interface Holders<H extends Holder<C>, C> extends Iterable<H> {
+public interface Processors<H extends Holder<C>, C> extends Iterable<Processor<H, C>> {
   /**
-   * Returns the {@code T} holder with the specified {@code int}
-   * index, if it exists.
+   * Returns the {@code T} processor with the specified {@link Class}
+   * type, if it exists.
    *
-   * @param index The holder index
-   * @return The holder instance, if present
+   * @param type The processor class
+   * @param <T> The processor type
+   * @return The processor instance, if present
    * @since 0.1.0
    */
-  <T extends H> @NonNull Optional<T> get(final int index);
+  <T extends Processor<H, C>> @NonNull Optional<T> get(final @NonNull Class<T> type);
 
   /**
-   * Returns a {@link Collection} of {@code T} holders in this
-   * registry.
+   * Returns a {@link Collection} of {@link Processor}s with the
+   * specified {@code int} priority.
    *
-   * @param type The holder class
-   * @param <T> The specific holder type
-   * @return A collection of holder instances of that type
+   * @param priority The priority
+   * @return A collection of processor instances
    * @since 0.1.0
    */
-  <T extends H> @NonNull Collection<T> all(final @NonNull Class<T> type);
+  @NonNull Collection<? extends Processor<H, C>> all(final int priority);
 
   /**
-   * Returns a {@link Collection} of {@code H} holders in this
-   * registry.
+   * Returns a {@link Collection} of {@link Processor}s with
+   * the specified {@link IntRange} priority.
    *
-   * @return A collection of holder instances
+   * @param priorities The range of priorities
+   * @return A collection of processor instances
    * @since 0.1.0
    */
-  @NonNull Collection<? extends H> all();
+  @NonNull Collection<? extends Processor<H, C>> all(final @NonNull IntRange priorities);
+
+  /**
+   * Returns a {@link Collection} of {@link Processor}s in this
+   * registry.
+   *
+   * @return A collection of processor instances
+   * @since 0.1.0
+   */
+  @NonNull Collection<? extends Processor<H, C>> all();
 }

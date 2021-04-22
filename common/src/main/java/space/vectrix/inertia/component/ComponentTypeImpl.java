@@ -27,6 +27,7 @@ package space.vectrix.inertia.component;
 import static java.util.Objects.requireNonNull;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import space.vectrix.flare.SyncMap;
 import space.vectrix.inertia.holder.Holder;
 import space.vectrix.inertia.injector.InjectionStructure;
@@ -98,5 +99,25 @@ public final class ComponentTypeImpl<H extends Holder<C>, C> implements Componen
    */
   public void dependency(final @NonNull ComponentLink link) {
     this.dependencies.add(link);
+  }
+
+  @Override
+  public int hashCode() {
+    return this.index;
+  }
+
+  @Override
+  public boolean equals(final @Nullable Object other) {
+    if(other == this) return true;
+    if(!(other instanceof ComponentType)) return false;
+    final ComponentType that = (ComponentType) other;
+    return this.index == that.index();
+  }
+
+  @Override
+  public String toString() {
+    return "ComponentType{index=" + this.index + ", id=" + this.id
+      + ", name=" + this.name + ", type=" + this.component.getSimpleName()
+      + "}";
   }
 }

@@ -24,6 +24,7 @@
  */
 package space.vectrix.inertia.injector;
 
+import net.kyori.coffee.reflection.Types;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import space.vectrix.inertia.ComponentDependency;
 import space.vectrix.inertia.HolderDependency;
@@ -34,9 +35,8 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Field;
 import java.util.IdentityHashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer;
-import java.util.function.Function;
 
 public final class LmbdaInjectionStructureFactory<H extends Holder<C>, C> implements InjectionStructure.Factory<H, C> {
   private final MethodHandles.Lookup lookup;
@@ -50,26 +50,30 @@ public final class LmbdaInjectionStructureFactory<H extends Holder<C>, C> implem
   }
 
   @Override
-  public @NonNull InjectionStructure<H, C> create(final @NonNull Class<?> target,
-                                                  final InjectionMethod.@NonNull Factory<?, C> componentInjectionFactory,
-                                                  final InjectionMethod.@NonNull Factory<?, H> holderInjectionFactory) {
-    final Map<Class<?>, InjectionStructure.Entry<ComponentDependency, ?, C>> components = new IdentityHashMap<>();
-    final Map<Class<?>, InjectionStructure.Entry<HolderDependency, ?, H>> holders = new IdentityHashMap<>();
-    this.find(target, Class::getSuperclass, fields -> {
-      for(final Field field : fields) {
+  @SuppressWarnings("unchecked")
+  public <T> @NonNull InjectionStructure<H, C> create(final @NonNull Class<T> target,
+                                                      final InjectionMethod.@NonNull Factory<?, C> componentInjectionFactory,
+                                                      final InjectionMethod.@NonNull Factory<?, H> holderInjectionFactory) {
+    final Map<Class<? extends C>, InjectionStructure.Entry<ComponentDependency, ?, C>> components = new IdentityHashMap<>();
+    final Map<Class<? extends H>, InjectionStructure.Entry<HolderDependency, ?, H>> holders = new IdentityHashMap<>();
+    final List<Class<? super T>> ancestors = Types.ancestors(target);
+    for(final Class<? super T> ancestor : ancestors) {
+      if(ancestor.isInterface()) continue;
+      for(final Field field : ancestor.getDeclaredFields()) {
         final ComponentDependency componentDependency = field.getAnnotation(ComponentDependency.class);
         final HolderDependency holderDependency = field.getAnnotation(HolderDependency.class);
         try {
           if(componentDependency != null || holderDependency != null) {
+            final Class<?> type = field.getType();
             field.setAccessible(true);
             final MethodHandle handle = this.lookup.unreflectSetter(field);
             if (componentDependency != null) {
-              components.put(field.getType(), new LmbdaInjectionStructureEntry<>(
+              components.put((Class<? extends C>) type, new LmbdaInjectionStructureEntry<>(
                 componentDependency,
                 componentInjectionFactory.create(handle)
               ));
             } else {
-              holders.put(field.getType(), new LmbdaInjectionStructureEntry<>(
+              holders.put((Class<? extends H>) type, new LmbdaInjectionStructureEntry<>(
                 holderDependency,
                 holderInjectionFactory.create(handle)
               ));
@@ -79,38 +83,27 @@ public final class LmbdaInjectionStructureFactory<H extends Holder<C>, C> implem
           throw new IllegalStateException("Unable to create method handle for '" + field.getName() + "'!", throwable);
         }
       }
-    });
+    }
     return new LmbdaInjectionStructure<>(components, holders);
   }
 
-  private void find(final Class<?> component,
-                    final Function<Class<?>, Class<?>> superType,
-                    final Consumer<Field[]> fieldSearch) {
-    Class<?> searchClass = component;
-    while(searchClass != null) {
-      final Field[] fields = searchClass.getDeclaredFields();
-      fieldSearch.accept(fields);
-      searchClass = superType.apply(searchClass);
-    }
-  }
-
   /* package */ static final class LmbdaInjectionStructure<H extends Holder<C>, C> implements InjectionStructure<H, C> {
-    private final Map<Class<?>, Entry<ComponentDependency, ?, C>> components;
-    private final Map<Class<?>, Entry<HolderDependency, ?, H>> holders;
+    private final Map<Class<? extends C>, Entry<ComponentDependency, ?, C>> components;
+    private final Map<Class<? extends H>, Entry<HolderDependency, ?, H>> holders;
 
-    /* package */ LmbdaInjectionStructure(final Map<Class<?>, Entry<ComponentDependency, ?, C>> components,
-                                          final Map<Class<?>, Entry<HolderDependency, ?, H>> holders) {
+    /* package */ LmbdaInjectionStructure(final Map<Class<? extends C>, Entry<ComponentDependency, ?, C>> components,
+                                          final Map<Class<? extends H>, Entry<HolderDependency, ?, H>> holders) {
       this.components = components;
       this.holders = holders;
     }
 
     @Override
-    public @NonNull Map<Class<?>, Entry<ComponentDependency, ?, C>> components() {
+    public @NonNull Map<Class<? extends C>, Entry<ComponentDependency, ?, C>> components() {
       return this.components;
     }
 
     @Override
-    public @NonNull Map<Class<?>, Entry<HolderDependency, ?, H>> holders() {
+    public @NonNull Map<Class<? extends H>, Entry<HolderDependency, ?, H>> holders() {
       return this.holders;
     }
   }

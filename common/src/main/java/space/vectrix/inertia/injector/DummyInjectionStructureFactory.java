@@ -35,26 +35,26 @@ import java.util.Collections;
 import java.util.Map;
 
 public final class DummyInjectionStructureFactory<H extends Holder<C>, C> implements InjectionStructure.Factory<H, C> {
-  private final DummyInjectionStructure<H, C> dummyStructure = new DummyInjectionStructure<>();
+  private final DummyInjectionStructure<H, C> structure = new DummyInjectionStructure<>();
 
   public DummyInjectionStructureFactory() {}
 
   @Override
-  public @NonNull InjectionStructure<H, C> create(final @NonNull Class<?> target,
-                                                  final InjectionMethod.@NonNull Factory<?, C> componentInjectionFactory,
-                                                  final InjectionMethod.@NonNull Factory<?, H> holderInjectionFactory) {
+  public <T> @NonNull InjectionStructure<H, C> create(final @NonNull Class<T> target,
+                                                      final InjectionMethod.@NonNull Factory<?, C> componentInjectionFactory,
+                                                      final InjectionMethod.@NonNull Factory<?, H> holderInjectionFactory) {
     requireNonNull(target, "target");
-    return this.dummyStructure;
+    return this.structure;
   }
 
   /* package */ static final class DummyInjectionStructure<H extends Holder<C>, C> implements InjectionStructure<H, C> {
     @Override
-    public @NonNull Map<Class<?>, Entry<ComponentDependency, ?, C>> components() {
+    public @NonNull Map<Class<? extends C>, Entry<ComponentDependency, ?, C>> components() {
       return Collections.emptyMap();
     }
 
     @Override
-    public @NonNull Map<Class<?>, Entry<HolderDependency, ?, H>> holders() {
+    public @NonNull Map<Class<? extends H>, Entry<HolderDependency, ?, H>> holders() {
       return Collections.emptyMap();
     }
   }

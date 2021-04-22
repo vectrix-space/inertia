@@ -34,9 +34,13 @@ import space.vectrix.inertia.holder.HolderResolver;
 import space.vectrix.inertia.holder.Holders;
 import space.vectrix.inertia.injector.InjectionMethod;
 import space.vectrix.inertia.injector.InjectionStructure;
+import space.vectrix.inertia.processor.Processing;
+import space.vectrix.inertia.processor.Processor;
+import space.vectrix.inertia.processor.Processors;
 
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 
 /**
  * The universe of {@code H} holders and {@code C} components.
@@ -53,6 +57,28 @@ public interface Universe<H extends Holder<C>, C> {
    * @since 0.1.0
    */
   @NonNull String id();
+
+  /**
+   * Ticks this universe by running the processors in order
+   * of the priority they provide and returns the tick count
+   * {@code int}.
+   *
+   * @return The tick count
+   * @since 0.1.0
+   */
+  int tick();
+
+  /**
+   * Creates a new processor using the specified {@link Class} type
+   * and {@link Function}.
+   *
+   * @param type The processor class
+   * @param processorFunction The processor function
+   * @param <T> The specific processor type
+   * @return A completable future containing the processor
+   * @since 0.1.0
+   */
+  <T extends Processor<H, C>> @NonNull CompletableFuture<T> createProcessor(final @NonNull Class<T> type, final @NonNull Function<Universe<H, C>, T> processorFunction);
 
   /**
    * Creates a new holder and returns an {@code int} index.
@@ -108,9 +134,19 @@ public interface Universe<H extends Holder<C>, C> {
   <T extends C> @NonNull CompletableFuture<T> createComponent(final @NonNull H holder, final @NonNull ComponentType componentType);
 
   /**
+   * Removes the processor with the specified {@link Class} type.
+   *
+   * @param processor The processor class
+   * @return True if the processor was removed, otherwise false
+   * @since 0.1.0
+   */
+  boolean removeProcessor(final @NonNull Class<? extends Processor<H, C>> processor);
+
+  /**
    * Removes the holder with the specified {@code int} index.
    *
    * @param index The holder index
+   * @return True if the holder was removed, otherwise false
    * @since 0.1.0
    */
   boolean removeHolder(final int index);
@@ -119,6 +155,7 @@ public interface Universe<H extends Holder<C>, C> {
    * Removes the specified {@code T} holder.
    *
    * @param holder The holder
+   * @return True if the holder was removed, otherwise false
    * @since 0.1.0
    */
   boolean removeHolder(final @NonNull H holder);
@@ -197,9 +234,17 @@ public interface Universe<H extends Holder<C>, C> {
   <T extends C> @NonNull Optional<T> getComponent(final @NonNull H holder, final @NonNull ComponentType componentType);
 
   /**
+   * Returns the {@link Processors}.
+   *
+   * @return The processor registry
+   * @since 0.1.0
+   */
+  @NonNull Processors<H, C> processors();
+
+  /**
    * Returns the {@link Holders}.
    *
-   * @return The holders registry
+   * @return The holder registry
    * @since 0.1.0
    */
   @NonNull Holders<H, C> holders();
@@ -207,7 +252,7 @@ public interface Universe<H extends Holder<C>, C> {
   /**
    * Returns the {@link Components}.
    *
-   * @return The components registry
+   * @return The component registry
    * @since 0.1.0
    */
   @NonNull Components<H, C> components();
@@ -218,7 +263,7 @@ public interface Universe<H extends Holder<C>, C> {
    * @return The component types registry
    * @since 0.1.0
    */
-  @NonNull ComponentTypes componentTypes();
+  @NonNull ComponentTypes types();
 
   /**
    * The universe builder.
@@ -236,6 +281,16 @@ public interface Universe<H extends Holder<C>, C> {
      * @since 0.1.0
      */
     @NonNull Builder<H, C> id(final @NonNull String id);
+
+    /**
+     * Returns this {@link Builder} with the specified {@link Processing.Factory}
+     * processing system.
+     *
+     * @param processing The processing system
+     * @return This builder
+     * @since 0.1.0
+     */
+    @NonNull Builder<H, C> processing(final Processing.@NonNull Factory processing);
 
     /**
      * Returns this {@link Builder} with the specified {@link HolderResolver.Factory}
@@ -256,6 +311,15 @@ public interface Universe<H extends Holder<C>, C> {
      * @since 0.1.0
      */
     @NonNull Builder<H, C> componentResolver(final ComponentResolver.@NonNull Factory resolver);
+
+    /**
+     * Returns this {@link Builder} with the specified {@link Processors} registry.
+     *
+     * @param registry The processor registry
+     * @return This builder
+     * @since 0.1.0
+     */
+    @NonNull Builder<H, C> processorRegistry(final @NonNull Processors<H, C> registry);
 
     /**
      * Returns this {@link Builder} with the specified {@link Holders} registry.

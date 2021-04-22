@@ -22,48 +22,43 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package space.vectrix.inertia.holder;
+package space.vectrix.inertia.processor;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-
-import java.util.Collection;
-import java.util.Optional;
+import space.vectrix.inertia.holder.Holder;
 
 /**
- * The holder registry.
+ * {@inheritDoc}
+ *
+ * Provides methods to use internally for storing and removing
+ * {@link Processor}s.
  *
  * @param <H> The holder type
  * @param <C> The component type
  * @since 0.1.0
  */
-public interface Holders<H extends Holder<C>, C> extends Iterable<H> {
-  /**
-   * Returns the {@code T} holder with the specified {@code int}
-   * index, if it exists.
-   *
-   * @param index The holder index
-   * @return The holder instance, if present
-   * @since 0.1.0
-   */
-  <T extends H> @NonNull Optional<T> get(final int index);
+public abstract class AbstractProcessors<H extends Holder<C>, C> implements Processors<H, C> {
+  protected final Object lock = new Object();
 
   /**
-   * Returns a {@link Collection} of {@code T} holders in this
-   * registry.
+   * Returns {@code true} if the specified {@code T} processor is stored
+   * successfully, otherwise returns {@code false}.
    *
-   * @param type The holder class
-   * @param <T> The specific holder type
-   * @return A collection of holder instances of that type
+   * @param type The processor class
+   * @param processor The processor instance
+   * @param <T> The specific processor type
+   * @return Whether the processor was stored
    * @since 0.1.0
    */
-  <T extends H> @NonNull Collection<T> all(final @NonNull Class<T> type);
+  public abstract <T extends Processor<H, C>> boolean put(final Class<T> type, final @NonNull T processor);
 
   /**
-   * Returns a {@link Collection} of {@code H} holders in this
+   * Removes the processor with the specified {@link Class} from the
    * registry.
    *
-   * @return A collection of holder instances
+   * @param type The processor class
+   * @return Whether the processor was removed
    * @since 0.1.0
    */
-  @NonNull Collection<? extends H> all();
+  public abstract boolean remove(final @NonNull Class<? extends Processor<H, C>> type);
 }

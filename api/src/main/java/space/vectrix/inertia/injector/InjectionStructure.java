@@ -47,7 +47,7 @@ public interface InjectionStructure<H extends Holder<C>, C> {
    * @return A map of component dependencies
    * @since 0.1.0
    */
-  @NonNull Map<Class<?>, Entry<ComponentDependency, ?, C>> components();
+  @NonNull Map<Class<? extends C>, Entry<ComponentDependency, ?, C>> components();
 
   /**
    * Returns a {@link Map} of {@link Class} types to {@link Entry}s
@@ -56,7 +56,7 @@ public interface InjectionStructure<H extends Holder<C>, C> {
    * @return A map of holder dependencies
    * @since 0.1.0
    */
-  @NonNull Map<Class<?>, Entry<HolderDependency, ?, H>> holders();
+  @NonNull Map<Class<? extends H>, Entry<HolderDependency, ?, H>> holders();
 
   /**
    * A dependency structure entry.
@@ -100,11 +100,12 @@ public interface InjectionStructure<H extends Holder<C>, C> {
      * @param target The structure target
      * @param componentInjectionFactory The component injection factory
      * @param holderInjectionFactory The holder injection factory
+     * @param <T> The specific target type
      * @return The new injection structure
      * @since 0.1.0
      */
-    @NonNull InjectionStructure<H, C> create(final @NonNull Class<?> target,
-                                             final InjectionMethod.@NonNull Factory<?, C> componentInjectionFactory,
-                                             final InjectionMethod.@NonNull Factory<?, H> holderInjectionFactory);
+    <T> @NonNull InjectionStructure<H, C> create(final @NonNull Class<T> target,
+                                                 final InjectionMethod.@NonNull Factory<?, C> componentInjectionFactory,
+                                                 final InjectionMethod.@NonNull Factory<?, H> holderInjectionFactory);
   }
 }

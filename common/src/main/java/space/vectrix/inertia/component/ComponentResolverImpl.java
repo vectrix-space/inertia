@@ -45,7 +45,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 @SuppressWarnings("UnstableApiUsage")
 public final class ComponentResolverImpl<H extends Holder<C>, C> implements ComponentResolver<H, C> {
   private final AtomicInteger index = new AtomicInteger();
-  private final MutableGraph<ComponentTypeImpl<H, C>> componentDependencies = GraphBuilder.undirected()
+  private final MutableGraph<ComponentTypeImpl<H, C>> dependencies = GraphBuilder.undirected()
     .allowsSelfLoops(false)
     .expectedNodeCount(1000)
     .build();
@@ -56,10 +56,10 @@ public final class ComponentResolverImpl<H extends Holder<C>, C> implements Comp
   }
 
   @Override
-  public @NonNull ComponentType resolve(final @NonNull Class<?> type,
-                                        final InjectionStructure.@NonNull Factory<H, C> componentStructureFactory,
-                                        final InjectionMethod.@NonNull Factory<?, C> componentInjector,
-                                        final InjectionMethod.@NonNull Factory<?, H> holderInjector) {
+  public <T extends C> @NonNull ComponentType resolve(final @NonNull Class<T> type,
+                                                      final InjectionStructure.@NonNull Factory<H, C> componentStructureFactory,
+                                                      final InjectionMethod.@NonNull Factory<?, C> componentInjector,
+                                                      final InjectionMethod.@NonNull Factory<?, H> holderInjector) {
     requireNonNull(type, "type");
     requireNonNull(componentStructureFactory, "componentStructureFactory");
     return this.resolve(
@@ -98,12 +98,12 @@ public final class ComponentResolverImpl<H extends Holder<C>, C> implements Comp
   }
 
   @SuppressWarnings("unchecked")
-  private ComponentType resolve(final @Nullable ComponentTypeImpl<H, C> parent,
-                                final @NonNull Class<?> type,
-                                final InjectionStructure.@NonNull Factory<H, C> componentStructureFactory,
-                                final InjectionMethod.Factory<?, C> componentInjector,
-                                final InjectionMethod.Factory<?, H> holderInjector) {
-    final ComponentTypeImpl<H, C> componentType = ((ComponentTypesImpl<H, C>) this.universe.componentTypes()).put(type, key -> {
+  private <T extends C> ComponentType resolve(final @Nullable ComponentTypeImpl<H, C> parent,
+                                              final @NonNull Class<T> type,
+                                              final InjectionStructure.@NonNull Factory<H, C> componentStructureFactory,
+                                              final InjectionMethod.Factory<?, C> componentInjector,
+                                              final InjectionMethod.Factory<?, H> holderInjector) {
+    final ComponentTypeImpl<H, C> componentType = ((ComponentTypesImpl<H, C>) this.universe.types()).put(type, key -> {
       final Component component = type.getAnnotation(Component.class);
       if(component == null) throw new IllegalArgumentException("Target type must have a component annotation!");
       return new ComponentTypeImpl<>(this.index.getAndIncrement(), component.id(), component.name(), type, componentStructureFactory.create(
@@ -113,12 +113,12 @@ public final class ComponentResolverImpl<H extends Holder<C>, C> implements Comp
       ));
     });
     if(parent != null) {
-      this.componentDependencies.putEdge(parent, componentType);
+      this.dependencies.putEdge(parent, componentType);
     } else {
-      this.componentDependencies.addNode(componentType);
+      this.dependencies.addNode(componentType);
     }
     final InjectionStructure<H, C> structure = componentType.structure();
-    for(final Map.Entry<Class<?>, InjectionStructure.Entry<ComponentDependency, ?, C>> entry : structure.components().entrySet()) {
+    for(final Map.Entry<Class<? extends C>, InjectionStructure.Entry<ComponentDependency, ?, C>> entry : structure.components().entrySet()) {
       componentType.dependency(new ComponentLinkImpl(
         this.resolve(componentType, entry.getKey(), componentStructureFactory, componentInjector, holderInjector),
         entry.getValue().annotation().optional()
@@ -141,7 +141,7 @@ public final class ComponentResolverImpl<H extends Holder<C>, C> implements Comp
         for(final InjectionStructure.Entry<HolderDependency, ?, H> holderEntry : structure.holders().values()) {
           this.injectMember(holderEntry.method(), componentInstance, holder);
         }
-        for(final ComponentTypeImpl<H, C> dependency : this.componentDependencies.adjacentNodes(componentType)) {
+        for(final ComponentTypeImpl<H, C> dependency : this.dependencies.adjacentNodes(componentType)) {
           if(parentType != null && dependency.index() == componentType.index()) continue;
           final InjectionStructure.Entry<ComponentDependency, ?, C> componentInjection = structure.components().get(dependency.type());
           final C dependencyInstance = holder.get(dependency).orElseGet(() -> {
