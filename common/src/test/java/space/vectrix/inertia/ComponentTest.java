@@ -38,7 +38,7 @@ import java.util.concurrent.CompletableFuture;
 class ComponentTest extends AbstractUniverseTest {
   @Test
   void testGet() {
-    final Universe<Holder<Object>, Object> universe = new UniverseImpl.Builder<>()
+    final Universe<TestHolders, Object> universe = new UniverseImpl.Builder<TestHolders, Object>()
       .id("holder_universe")
       .build();
     final CompletableFuture<TestHolder> holderFuture = universe.createHolder(TestHolder::new);

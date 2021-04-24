@@ -39,7 +39,7 @@ import java.util.concurrent.CompletableFuture;
 class HolderTest extends AbstractUniverseTest {
   @Test
   void testGet() {
-    final Universe<Holder<Object>, Object> universe = new UniverseImpl.Builder<>()
+    final Universe<TestHolders, Object> universe = new UniverseImpl.Builder<TestHolders, Object>()
       .id("holder_universe")
       .build();
     assertDoesNotThrow(() -> universe.createHolder(TestHolder::new).get());
@@ -52,7 +52,7 @@ class HolderTest extends AbstractUniverseTest {
 
   @Test
   void testHolderIndex() {
-    final Universe<Holder<Object>, Object> universe = new UniverseImpl.Builder<>()
+    final Universe<TestHolders, Object> universe = new UniverseImpl.Builder<TestHolders, Object>()
       .id("holder_universe")
       .build();
     final CompletableFuture<TestHolder> holderFuture = assertDoesNotThrow(() -> universe.createHolder(TestHolder::new));
@@ -62,7 +62,7 @@ class HolderTest extends AbstractUniverseTest {
 
   @Test
   void testHolderGet() {
-    final Universe<Holder<Object>, Object> universe = new UniverseImpl.Builder<>()
+    final Universe<TestHolders, Object> universe = new UniverseImpl.Builder<TestHolders, Object>()
       .id("holder_universe")
       .build();
     final TestHolder holder = assertDoesNotThrow(() -> universe.createHolder(TestHolder::new).get());
@@ -76,7 +76,7 @@ class HolderTest extends AbstractUniverseTest {
 
   @Test
   void testHolderRemove() {
-    final Universe<Holder<Object>, Object> universe = new UniverseImpl.Builder<>()
+    final Universe<TestHolders, Object> universe = new UniverseImpl.Builder<TestHolders, Object>()
       .id("holder_universe")
       .build();
     final TestHolder holder = assertDoesNotThrow(() -> universe.createHolder(TestHolder::new).get());
@@ -89,7 +89,7 @@ class HolderTest extends AbstractUniverseTest {
 
   @Test
   void testHolderClear() {
-    final Universe<Holder<Object>, Object> universe = new UniverseImpl.Builder<>()
+    final Universe<TestHolders, Object> universe = new UniverseImpl.Builder<TestHolders, Object>()
       .id("holder_universe")
       .build();
     final TestHolder holder = assertDoesNotThrow(() -> universe.createHolder(TestHolder::new).get());

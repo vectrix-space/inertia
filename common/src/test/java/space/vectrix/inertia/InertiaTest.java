@@ -33,7 +33,7 @@ import space.vectrix.inertia.holder.Holder;
 class InertiaTest extends AbstractUniverseTest {
   @Test
   void testGetAndSize() {
-    final Universe<Holder<Object>, Object> universe = Inertia.get("valid_universe");
+    final Universe<TestHolders, Object> universe = Inertia.get("valid_universe");
     assertNotNull(universe);
     assertThat(Inertia.getAll()).hasSize(1);
   }

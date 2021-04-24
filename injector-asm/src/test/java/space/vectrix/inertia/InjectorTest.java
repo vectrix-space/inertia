@@ -36,7 +36,7 @@ import space.vectrix.inertia.injector.LmbdaInjectionMethodFactory;
 import space.vectrix.inertia.injector.LmbdaInjectionStructureFactory;
 
 class InjectorTest {
-  final Universe.Builder<Holder<Object>, Object> builderDefaults(final Universe.Builder<Holder<Object>, Object> builder) {
+  final Universe.Builder<TestHolders, Object> builderDefaults(final Universe.Builder<TestHolders, Object> builder) {
     return builder
       .holderInjector(new LmbdaInjectionMethodFactory<>(), new LmbdaInjectionStructureFactory<>())
       .componentInjector(new LmbdaInjectionMethodFactory<>(), new LmbdaInjectionStructureFactory<>());
@@ -44,7 +44,7 @@ class InjectorTest {
 
   @Test
   void testInjection() {
-    final Universe<Holder<Object>, Object> universe = this.builderDefaults(new UniverseImpl.Builder<>())
+    final Universe<TestHolders, Object> universe = this.builderDefaults(new UniverseImpl.Builder<>())
       .id("holder_universe")
       .build();
     final TestHolder holder = assertDoesNotThrow(() -> universe.createHolder(TestHolder::new).get());
@@ -55,6 +55,8 @@ class InjectorTest {
     assertNotNull(orangeComponent.getHolder());
     assertTrue(holder.get(appleComponentType).isPresent());
   }
+
+  interface TestHolders extends Holder<Object> {}
 
   @Component(id = "apple", name = "Apple")
   public static final class AppleComponent {
@@ -79,16 +81,16 @@ class InjectorTest {
     }
   }
 
-  static final class TestHolder extends AbstractHolder<Object> {
-    private final Universe<Holder<Object>, Object> universe;
+  static final class TestHolder extends AbstractHolder<TestHolders, Object> implements TestHolders {
+    private final Universe<TestHolders, Object> universe;
 
-    protected TestHolder(final Universe<Holder<Object>, Object> universe, final int index) {
+    protected TestHolder(final Universe<TestHolders, Object> universe, final int index) {
       super(universe, index);
 
       this.universe = universe;
     }
 
-    public Universe<Holder<Object>, Object> universe() {
+    public Universe<TestHolders, Object> universe() {
       return this.universe;
     }
   }

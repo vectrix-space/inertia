@@ -39,7 +39,7 @@ import space.vectrix.inertia.processor.Processor;
 class ProcessorTest extends AbstractUniverseTest {
   @Test
   void testGet() {
-    final Universe<Holder<Object>, Object> universe = new UniverseImpl.Builder<>()
+    final Universe<TestHolders, Object> universe = new UniverseImpl.Builder<TestHolders, Object>()
       .id("processor_universe")
       .build();
     assertDoesNotThrow(() -> universe.createProcessor(TestProcessor.class, TestProcessor::new).get());
@@ -57,7 +57,7 @@ class ProcessorTest extends AbstractUniverseTest {
 
   @Test
   void testProcessing() {
-    final Universe<Holder<Object>, Object> universe = new UniverseImpl.Builder<>()
+    final Universe<TestHolders, Object> universe = new UniverseImpl.Builder<TestHolders, Object>()
       .id("processor_universe")
       .build();
     final TestHolder holder = assertDoesNotThrow(() -> universe.createHolder(TestHolder::new).get());
@@ -73,7 +73,7 @@ class ProcessorTest extends AbstractUniverseTest {
 
   @Test
   void testProcessorRemove() {
-    final Universe<Holder<Object>, Object> universe = new UniverseImpl.Builder<>()
+    final Universe<TestHolders, Object> universe = new UniverseImpl.Builder<TestHolders, Object>()
       .id("processor_universe")
       .build();
     assertDoesNotThrow(() -> universe.createProcessor(TestProcessor.class, TestProcessor::new).get());
@@ -82,10 +82,10 @@ class ProcessorTest extends AbstractUniverseTest {
     assertFalse(universe.processors().get(TestProcessor.class).isPresent());
   }
 
-  static final class TestProcessor implements Processor<Holder<Object>, Object> {
-    private final Universe<Holder<Object>, Object> universe;
+  static final class TestProcessor implements Processor<TestHolders, Object> {
+    private final Universe<TestHolders, Object> universe;
 
-    public TestProcessor(final Universe<Holder<Object>, Object> universe) {
+    public TestProcessor(final Universe<TestHolders, Object> universe) {
       this.universe = universe;
     }
 
@@ -98,10 +98,10 @@ class ProcessorTest extends AbstractUniverseTest {
     }
   }
 
-  static final class AnotherProcessor implements Processor<Holder<Object>, Object> {
-    private final Universe<Holder<Object>, Object> universe;
+  static final class AnotherProcessor implements Processor<TestHolders, Object> {
+    private final Universe<TestHolders, Object> universe;
 
-    public AnotherProcessor(final Universe<Holder<Object>, Object> universe) {
+    public AnotherProcessor(final Universe<TestHolders, Object> universe) {
       this.universe = universe;
     }
 

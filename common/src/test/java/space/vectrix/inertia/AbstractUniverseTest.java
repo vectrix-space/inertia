@@ -50,7 +50,7 @@ abstract class AbstractUniverseTest {
 
   @Test
   void testCreateHolder() {
-    final Universe<Holder<Object>, Object> universe = new UniverseImpl.Builder<>()
+    final Universe<TestHolders, Object> universe = new UniverseImpl.Builder<TestHolders, Object>()
       .id("holder_universe")
       .build();
     final CompletableFuture<TestHolder> holderFuture = assertDoesNotThrow(() -> universe.createHolder(TestHolder::new));
@@ -69,7 +69,7 @@ abstract class AbstractUniverseTest {
 
   @Test
   void testCreateComponent() {
-    final Universe<Holder<Object>, Object> universe = new UniverseImpl.Builder<>()
+    final Universe<TestHolders, Object> universe = new UniverseImpl.Builder<TestHolders, Object>()
       .id("component_universe")
       .build();
     final CompletableFuture<TestHolder> holderFuture = universe.createHolder(TestHolder::new);
@@ -95,27 +95,29 @@ abstract class AbstractUniverseTest {
     }
   }
 
+  interface TestHolders extends Holder<Object> {}
+
   @Component(id = "another", name = "Another")
   public static final class AnotherComponent {
     public AnotherComponent() {}
   }
 
-  static final class TestHolder extends AbstractHolder<Object> {
-    protected TestHolder(final Universe<Holder<Object>, Object> universe, final int index) {
+  static final class TestHolder extends AbstractHolder<TestHolders, Object> implements TestHolders {
+    protected TestHolder(final Universe<TestHolders, Object> universe, final int index) {
       super(universe, index);
     }
 
-    public Universe<Holder<Object>, Object> universe() {
+    public Universe<TestHolders, Object> universe() {
       return this.universe;
     }
   }
 
-  static final class AnotherHolder extends AbstractHolder<Object> {
-    protected AnotherHolder(final Universe<Holder<Object>, Object> universe, final int index) {
+  static final class AnotherHolder extends AbstractHolder<TestHolders, Object> implements TestHolders {
+    protected AnotherHolder(final Universe<TestHolders, Object> universe, final int index) {
       super(universe, index);
     }
 
-    public Universe<Holder<Object>, Object> universe() {
+    public Universe<TestHolders, Object> universe() {
       return this.universe;
     }
   }

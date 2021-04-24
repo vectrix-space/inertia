@@ -40,14 +40,16 @@ import java.util.Optional;
  * Provides a convenient implementation of the {@link Holder}
  * methods.
  *
+ * @param <H> The holder type
  * @param <C> The component type
  * @since 0.1.0
  */
-public abstract class AbstractHolder<C> implements Holder<C> {
-  protected final Universe<Holder<C>, C> universe;
+@SuppressWarnings("unchecked")
+public abstract class AbstractHolder<H extends Holder<C>, C> implements Holder<C> {
+  protected final Universe<H, C> universe;
   private final int index;
 
-  protected AbstractHolder(final @NonNull Universe<Holder<C>, C> universe, final int index) {
+  protected AbstractHolder(final @NonNull Universe<H, C> universe, final int index) {
     this.universe = universe;
     this.index = index;
   }
@@ -60,23 +62,23 @@ public abstract class AbstractHolder<C> implements Holder<C> {
   @Override
   public @NonNull <T extends C> Optional<T> get(final @NonNull ComponentType componentType) {
     requireNonNull(componentType, "componentType");
-    return this.universe.getComponent(this, componentType);
+    return this.universe.getComponent((H) this, componentType);
   }
 
   @Override
   public boolean remove(final @NonNull ComponentType componentType) {
     requireNonNull(componentType, "componentType");
-    return this.universe.removeComponent(this, componentType);
+    return this.universe.removeComponent((H) this, componentType);
   }
 
   @Override
   public @NonNull Collection<? extends C> all() {
-    return this.universe.components().all(this);
+    return this.universe.components().all((H) this);
   }
 
   @Override
   public void clear() {
-    this.universe.removeComponents(this);
+    this.universe.removeComponents((H) this);
   }
 
   @Override
@@ -88,7 +90,7 @@ public abstract class AbstractHolder<C> implements Holder<C> {
   public boolean equals(final @Nullable Object other) {
     if(other == this) return true;
     if(!(other instanceof AbstractHolder)) return false;
-    final AbstractHolder<?> that = (AbstractHolder<?>) other;
+    final AbstractHolder<?, ?> that = (AbstractHolder<?, ?>) other;
     return this.index == that.index();
   }
 
