@@ -26,6 +26,7 @@ package space.vectrix.inertia.processor;
 
 import net.kyori.coffee.math.range.i.IntRange;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import space.vectrix.flare.SyncMap;
 import space.vectrix.inertia.holder.Holder;
 
 import java.util.ArrayList;
@@ -38,16 +39,14 @@ import java.util.Map;
 import java.util.Optional;
 
 public final class ProcessorsImpl<H extends Holder<C>, C> extends AbstractProcessors<H, C> {
-  private final Map<Class<? extends Processor<H, C>>, Processor<H, C>> processors = new IdentityHashMap<>(10);
+  private final Map<Class<? extends Processor<H, C>>, Processor<H, C>> processors = SyncMap.of(IdentityHashMap::new, 10);
 
   public ProcessorsImpl() {}
 
   @Override
   @SuppressWarnings("unchecked")
   public @NonNull <T extends Processor<H, C>> Optional<T> get(final @NonNull Class<T> type) {
-    synchronized(this.lock) {
-      return Optional.ofNullable((T) this.processors.get(type));
-    }
+    return Optional.ofNullable((T) this.processors.get(type));
   }
 
   @Override

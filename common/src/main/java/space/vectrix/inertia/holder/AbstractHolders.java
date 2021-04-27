@@ -37,8 +37,6 @@ import org.checkerframework.checker.nullness.qual.NonNull;
  * @since 0.1.0
  */
 public abstract class AbstractHolders<H extends Holder<C>, C> implements Holders<H, C> {
-  protected final Object lock = new Object();
-
   /**
    * Returns {@code true} if the specified {@code int} holder is stored
    * successfully, otherwise returns {@code false}.

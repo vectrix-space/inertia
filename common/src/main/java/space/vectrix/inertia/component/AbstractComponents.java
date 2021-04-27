@@ -38,8 +38,6 @@ import space.vectrix.inertia.holder.Holder;
  * @since 0.1.0
  */
 public abstract class AbstractComponents<H extends Holder<C>, C> implements Components<H, C> {
-  protected final Object lock = new Object();
-
   /**
    * Returns {@code true} if the specified {@code T} component for the
    * {@link ComponentType} and {@code int} holder is stored successfully,

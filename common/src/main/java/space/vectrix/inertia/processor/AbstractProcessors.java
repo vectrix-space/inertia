@@ -38,8 +38,6 @@ import space.vectrix.inertia.holder.Holder;
  * @since 0.1.0
  */
 public abstract class AbstractProcessors<H extends Holder<C>, C> implements Processors<H, C> {
-  protected final Object lock = new Object();
-
   /**
    * Returns {@code true} if the specified {@code T} processor is stored
    * successfully, otherwise returns {@code false}.

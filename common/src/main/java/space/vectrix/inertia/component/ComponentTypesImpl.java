@@ -28,45 +28,39 @@ import static java.util.Objects.requireNonNull;
 
 import it.unimi.dsi.fastutil.Function;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import space.vectrix.flare.SyncMap;
 import space.vectrix.inertia.holder.Holder;
 
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.Optional;
 
 public final class ComponentTypesImpl<H extends Holder<C>, C> implements ComponentTypes {
-  private final Int2ObjectMap<ComponentTypeImpl<H, C>> components = new Int2ObjectOpenHashMap<>(100);
-  private final Map<Class<?>, ComponentTypeImpl<H, C>> typed = new IdentityHashMap<>(50);
-  private final Map<String, ComponentTypeImpl<H, C>> named = new HashMap<>(50);
-  private final Object lock = new Object();
+  private final Int2ObjectMap<ComponentTypeImpl<H, C>> components = Int2ObjectMaps.synchronize(new Int2ObjectOpenHashMap<>(100));
+  private final Map<Class<?>, ComponentTypeImpl<H, C>> typed = SyncMap.of(IdentityHashMap::new, 50);
+  private final Map<String, ComponentTypeImpl<H, C>> named = SyncMap.hashmap(50);
 
   public ComponentTypesImpl() {}
 
   @Override
   public @NonNull Optional<ComponentType> get(final int index) {
-    synchronized(this.lock) {
-      return Optional.ofNullable(this.components.get(index));
-    }
+    return Optional.ofNullable(this.components.get(index));
   }
 
   @Override
   public @NonNull Optional<ComponentType> get(final @NonNull Class<?> type) {
     requireNonNull(type, "type");
-    synchronized(this.lock) {
-      return Optional.ofNullable(this.typed.get(type));
-    }
+    return Optional.ofNullable(this.typed.get(type));
   }
 
   @Override
   public @NonNull Optional<ComponentType> get(final @NonNull String identifier) {
     requireNonNull(identifier, "identifier");
-    synchronized(this.lock) {
-      return Optional.ofNullable(this.named.get(identifier));
-    }
+    return Optional.ofNullable(this.named.get(identifier));
   }
 
   @Override
@@ -85,13 +79,11 @@ public final class ComponentTypesImpl<H extends Holder<C>, C> implements Compone
    * @since 0.1.0
    */
   public @NonNull ComponentTypeImpl<H, C> put(final @NonNull Class<?> type, final @NonNull Function<Class<?>, ComponentTypeImpl<H, C>> computation) {
-    synchronized(this.lock) {
-      return this.typed.computeIfAbsent(type, key -> {
-        final ComponentTypeImpl<H, C> componentType = computation.apply(key);
-        this.components.put(componentType.index(), componentType);
-        this.named.put(componentType.id(), componentType);
-        return componentType;
-      });
-    }
+    return this.typed.computeIfAbsent(type, key -> {
+      final ComponentTypeImpl<H, C> componentType = computation.apply(key);
+      this.components.put(componentType.index(), componentType);
+      this.named.put(componentType.id(), componentType);
+      return componentType;
+    });
   }
 }

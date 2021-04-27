@@ -40,10 +40,12 @@ import space.vectrix.inertia.injector.InjectionStructure;
 
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @SuppressWarnings("UnstableApiUsage")
 public final class ComponentResolverImpl<H extends Holder<C>, C> implements ComponentResolver<H, C> {
+  private final Object lock = new Object();
   private final AtomicInteger index = new AtomicInteger();
   private final MutableGraph<ComponentTypeImpl<H, C>> dependencies = GraphBuilder.undirected()
     .allowsSelfLoops(false)
@@ -112,10 +114,12 @@ public final class ComponentResolverImpl<H extends Holder<C>, C> implements Comp
         holderInjector
       ));
     });
-    if(parent != null) {
-      this.dependencies.putEdge(parent, componentType);
-    } else {
-      this.dependencies.addNode(componentType);
+    synchronized(this.lock) {
+      if (parent != null) {
+        this.dependencies.putEdge(parent, componentType);
+      } else {
+        this.dependencies.addNode(componentType);
+      }
     }
     final InjectionStructure<H, C> structure = componentType.structure();
     for(final Map.Entry<Class<? extends C>, InjectionStructure.Entry<ComponentDependency, ?, C>> entry : structure.components().entrySet()) {
@@ -141,7 +145,7 @@ public final class ComponentResolverImpl<H extends Holder<C>, C> implements Comp
         for(final InjectionStructure.Entry<HolderDependency, ?, H> holderEntry : structure.holders().values()) {
           this.injectMember(holderEntry.method(), componentInstance, holder);
         }
-        for(final ComponentTypeImpl<H, C> dependency : this.dependencies.adjacentNodes(componentType)) {
+        for(final ComponentTypeImpl<H, C> dependency : this.getAdjacent(componentType)) {
           if(parentType != null && dependency.index() == componentType.index()) continue;
           final InjectionStructure.Entry<ComponentDependency, ?, C> componentInjection = structure.components().get(dependency.type());
           final C dependencyInstance = holder.get(dependency).orElseGet(() -> {
@@ -157,6 +161,12 @@ public final class ComponentResolverImpl<H extends Holder<C>, C> implements Comp
       }
     }
     return componentInstance;
+  }
+
+  private Set<ComponentTypeImpl<H, C>> getAdjacent(final @NonNull ComponentTypeImpl<H, C> componentType) {
+    synchronized(this.lock) {
+      return this.dependencies.adjacentNodes(componentType);
+    }
   }
 
   @SuppressWarnings("unchecked")

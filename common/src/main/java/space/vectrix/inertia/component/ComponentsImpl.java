@@ -27,6 +27,7 @@ package space.vectrix.inertia.component;
 import static java.util.Objects.requireNonNull;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
@@ -41,8 +42,8 @@ import java.util.List;
 import java.util.Optional;
 
 public final class ComponentsImpl<H extends Holder<C>, C> extends AbstractComponents<H, C> {
-  private final Int2ObjectMap<C> components = new Int2ObjectOpenHashMap<>(100);
-  private final Int2ObjectMap<IntSet> holders = new Int2ObjectOpenHashMap<>(10);
+  private final Int2ObjectMap<C> components = Int2ObjectMaps.synchronize(new Int2ObjectOpenHashMap<>(100));
+  private final Int2ObjectMap<IntSet> holders = Int2ObjectMaps.synchronize(new Int2ObjectOpenHashMap<>(10));
 
   public ComponentsImpl() {}
 
@@ -50,9 +51,7 @@ public final class ComponentsImpl<H extends Holder<C>, C> extends AbstractCompon
   @SuppressWarnings("unchecked")
   public <T extends C> @NonNull Optional<T> get(final int holder, final @NonNull ComponentType componentType) {
     requireNonNull(componentType, "componentType");
-    synchronized(this.lock) {
-      return Optional.ofNullable((T) this.components.get(this.getCombinedIndex(holder, componentType.index())));
-    }
+    return Optional.ofNullable((T) this.components.get(this.getCombinedIndex(holder, componentType.index())));
   }
 
   @Override
@@ -63,15 +62,13 @@ public final class ComponentsImpl<H extends Holder<C>, C> extends AbstractCompon
 
   @Override
   public @NonNull Collection<? extends C> all(final int holder) {
-    synchronized(this.lock) {
-      final IntSet components = this.holders.get(holder);
-      if(components == null) return Collections.emptySet();
-      final List<C> instances = new ArrayList<>(components.size());
-      for(final int component : components) {
-        instances.add(this.components.get(this.getCombinedIndex(holder, component)));
-      }
-      return instances;
+    final IntSet components = this.holders.get(holder);
+    if(components == null) return Collections.emptySet();
+    final List<C> instances = new ArrayList<>(components.size());
+    for(final int component : components) {
+      instances.add(this.components.get(this.getCombinedIndex(holder, component)));
     }
+    return instances;
   }
 
   @Override
@@ -92,38 +89,32 @@ public final class ComponentsImpl<H extends Holder<C>, C> extends AbstractCompon
 
   @Override
   public <T extends C> boolean put(final int holder, final @NonNull ComponentType componentType, final @NonNull T component) {
-    synchronized(this.lock) {
-      final int index = this.getCombinedIndex(holder, componentType.index());
-      if (this.components.putIfAbsent(index, component) == null) {
-        this.holders.computeIfAbsent(holder, key -> new IntOpenHashSet()).add(componentType.index());
-        return true;
-      }
-      return false;
+    final int index = this.getCombinedIndex(holder, componentType.index());
+    if (this.components.putIfAbsent(index, component) == null) {
+      this.holders.computeIfAbsent(holder, key -> new IntOpenHashSet()).add(componentType.index());
+      return true;
     }
+    return false;
   }
 
   @Override
   public boolean remove(final int holder, final @NonNull ComponentType componentType) {
-    synchronized(this.lock) {
-      if (this.components.remove(this.getCombinedIndex(holder, componentType.index())) != null) {
-        final IntSet components = this.holders.get(holder);
-        if (components != null) {
-          components.remove(componentType.index());
-          return true;
-        }
+    if (this.components.remove(this.getCombinedIndex(holder, componentType.index())) != null) {
+      final IntSet components = this.holders.get(holder);
+      if (components != null) {
+        components.remove(componentType.index());
+        return true;
       }
-      return false;
     }
+    return false;
   }
 
   @Override
   public void remove(final int holder) {
-    synchronized(this.lock) {
-      final IntSet components = this.holders.remove(holder);
-      if (components != null) {
-        for (final int component : components) {
-          this.components.remove(this.getCombinedIndex(holder, component));
-        }
+    final IntSet components = this.holders.remove(holder);
+    if (components != null) {
+      for (final int component : components) {
+        this.components.remove(this.getCombinedIndex(holder, component));
       }
     }
   }

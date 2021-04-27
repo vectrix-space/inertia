@@ -32,7 +32,6 @@ import org.junit.jupiter.api.Test;
 import space.vectrix.inertia.component.ComponentType;
 import space.vectrix.inertia.holder.AbstractHolder;
 import space.vectrix.inertia.holder.Holder;
-import space.vectrix.inertia.processor.Processor;
 
 import java.util.concurrent.CompletableFuture;
 
