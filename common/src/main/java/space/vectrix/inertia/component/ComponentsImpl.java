@@ -31,6 +31,9 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import space.vectrix.inertia.holder.Holder;
 
@@ -42,7 +45,7 @@ import java.util.List;
 import java.util.Optional;
 
 public final class ComponentsImpl<H extends Holder<C>, C> extends AbstractComponents<H, C> {
-  private final Int2ObjectMap<C> components = Int2ObjectMaps.synchronize(new Int2ObjectOpenHashMap<>(100));
+  private final Long2ObjectMap<C> components = Long2ObjectMaps.synchronize(new Long2ObjectOpenHashMap<>(100));
   private final Int2ObjectMap<IntSet> holders = Int2ObjectMaps.synchronize(new Int2ObjectOpenHashMap<>(10));
 
   public ComponentsImpl() {}
@@ -89,7 +92,7 @@ public final class ComponentsImpl<H extends Holder<C>, C> extends AbstractCompon
 
   @Override
   public <T extends C> boolean put(final int holder, final @NonNull ComponentType componentType, final @NonNull T component) {
-    final int index = this.getCombinedIndex(holder, componentType.index());
+    final long index = this.getCombinedIndex(holder, componentType.index());
     if (this.components.putIfAbsent(index, component) == null) {
       this.holders.computeIfAbsent(holder, key -> new IntOpenHashSet()).add(componentType.index());
       return true;
@@ -119,7 +122,7 @@ public final class ComponentsImpl<H extends Holder<C>, C> extends AbstractCompon
     }
   }
 
-  private int getCombinedIndex(final int holder, final int component) {
-    return (component << 8) + holder;
+  private long getCombinedIndex(final int holder, final int component) {
+    return ((long) component << 32) + holder;
   }
 }
