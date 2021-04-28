@@ -31,6 +31,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
+import it.unimi.dsi.fastutil.ints.IntSets;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
@@ -94,7 +95,7 @@ public final class ComponentsImpl<H extends Holder<C>, C> extends AbstractCompon
   public <T extends C> boolean put(final int holder, final @NonNull ComponentType componentType, final @NonNull T component) {
     final long index = this.getCombinedIndex(holder, componentType.index());
     if (this.components.putIfAbsent(index, component) == null) {
-      this.holders.computeIfAbsent(holder, key -> new IntOpenHashSet()).add(componentType.index());
+      this.holders.computeIfAbsent(holder, key -> IntSets.synchronize(new IntOpenHashSet())).add(componentType.index());
       return true;
     }
     return false;

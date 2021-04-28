@@ -22,57 +22,41 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package space.vectrix.inertia.holder;
+package space.vectrix.inertia.component;
 
+import it.unimi.dsi.fastutil.Function;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import space.vectrix.inertia.holder.Holder;
 
 /**
  * {@inheritDoc}
  *
- * Provides methods to use internally for storing and removing {@code H}
- * holders.
+ * Provides methods to use internally for storing and removing {@code C}
+ * component types.
  *
  * @param <H> The holder type
  * @param <C> The component type
- * @since 0.1.0
  */
-public abstract class AbstractHolders<H extends Holder<C>, C> implements Holders<H, C> {
+public abstract class AbstractComponentTypes<H extends Holder<C>, C> implements ComponentTypes {
   /**
-   * Returns {@code true} if the specified {@code int} holder is stored
-   * successfully, otherwise returns {@code false}.
+   * Puts the specified {@link Class} type and {@link ComponentTypeImpl} into
+   * this registry if it doesn't already exist, otherwise returns the existing
+   * {@link ComponentTypeImpl}.
    *
-   * @param index The holder index
-   * @return Whether the holder was stored
+   * @param type The component class
+   * @param computation The function to create and store a new component type
+   * @return The component type
    * @since 0.1.0
    */
-  public abstract boolean put(final int index);
+  public abstract @NonNull ComponentTypeImpl<H, C> put(final @NonNull Class<?> type, final @NonNull Function<Class<?>, ComponentTypeImpl<H, C>> computation);
 
   /**
-   * Puts the specified {@code int} holder with the {@code T} holder instance.
+   * Returns {@code true} if the specified {@code int} component type index
+   * exists in this registry, otherwise returns {@code false}.
    *
-   * @param index The holder index
-   * @param holder The holder instance
-   * @param <T> The specific holder type
-   * @since 0.1.0
-   */
-  public abstract <T extends H> void put(final int index, final @NonNull T holder);
-
-  /**
-   * Returns {@code true} if the specified {@code int} index exists in this
-   * registry, otherwise returns {@code false}.
-   *
-   * @param index The holder index
+   * @param index The component type index
    * @return True if it exists, otherwise false
    * @since 0.1.0
    */
   public abstract boolean contains(final int index);
-
-  /**
-   * Removes the {@code int} holder from the registry.
-   *
-   * @param index The holder index
-   * @return Whether the holder was removed
-   * @since 0.1.0
-   */
-  public abstract boolean remove(final int index);
 }

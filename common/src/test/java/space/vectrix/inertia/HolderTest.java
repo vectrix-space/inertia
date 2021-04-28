@@ -74,6 +74,23 @@ class HolderTest extends AbstractUniverseTest {
   }
 
   @Test
+  void testHolderGetMultiple() {
+    final Universe<TestHolders, Object> universe = new UniverseImpl.Builder<TestHolders, Object>()
+      .id("holder_universe")
+      .build();
+    final TestHolder holder = assertDoesNotThrow(() -> universe.createHolder(TestHolder::new).get());
+    final ComponentType firstType = assertDoesNotThrow(() -> universe.resolveComponent(TestComponent.class).get());
+    final ComponentType secondType = assertDoesNotThrow(() -> universe.resolveComponent(AnotherComponent.class).get());
+    assertDoesNotThrow(() -> universe.<TestComponent>createComponent(holder, firstType).get());
+    assertDoesNotThrow(() -> universe.<AnotherComponent>createComponent(holder, secondType).get());
+    assertEquals(0, firstType.index());
+    assertEquals(1, secondType.index());
+    assertTrue(holder.get(firstType).isPresent());
+    assertTrue(holder.get(secondType).isPresent());
+    assertThat(holder.all()).hasSize(2);
+  }
+
+  @Test
   void testHolderRemove() {
     final Universe<TestHolders, Object> universe = new UniverseImpl.Builder<TestHolders, Object>()
       .id("holder_universe")

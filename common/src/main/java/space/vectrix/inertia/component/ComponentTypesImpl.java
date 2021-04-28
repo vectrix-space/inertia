@@ -39,7 +39,7 @@ import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.Optional;
 
-public final class ComponentTypesImpl<H extends Holder<C>, C> implements ComponentTypes {
+public final class ComponentTypesImpl<H extends Holder<C>, C> extends AbstractComponentTypes<H, C> {
   private final Int2ObjectMap<ComponentTypeImpl<H, C>> components = Int2ObjectMaps.synchronize(new Int2ObjectOpenHashMap<>(100));
   private final Map<Class<?>, ComponentTypeImpl<H, C>> typed = SyncMap.of(IdentityHashMap::new, 50);
   private final Map<String, ComponentTypeImpl<H, C>> named = SyncMap.hashmap(50);
@@ -68,16 +68,7 @@ public final class ComponentTypesImpl<H extends Holder<C>, C> implements Compone
     return this.components.values();
   }
 
-  /**
-   * Puts the specified {@link Class} type and {@link ComponentTypeImpl} into
-   * this registry if it doesn't already exist, otherwise returns the existing
-   * {@link ComponentTypeImpl}.
-   *
-   * @param type The component class
-   * @param computation The function to create and store a new component type
-   * @return The component type
-   * @since 0.1.0
-   */
+  @Override
   public @NonNull ComponentTypeImpl<H, C> put(final @NonNull Class<?> type, final @NonNull Function<Class<?>, ComponentTypeImpl<H, C>> computation) {
     return this.typed.computeIfAbsent(type, key -> {
       final ComponentTypeImpl<H, C> componentType = computation.apply(key);
@@ -85,5 +76,10 @@ public final class ComponentTypesImpl<H extends Holder<C>, C> implements Compone
       this.named.put(componentType.id(), componentType);
       return componentType;
     });
+  }
+
+  @Override
+  public boolean contains(final int index) {
+    return this.components.containsKey(index);
   }
 }

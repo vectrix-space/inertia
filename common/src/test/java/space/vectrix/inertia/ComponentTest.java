@@ -43,14 +43,20 @@ class ComponentTest extends AbstractUniverseTest {
     final CompletableFuture<TestHolder> holderFuture = universe.createHolder(TestHolder::new);
     final TestHolder holder = assertDoesNotThrow(() -> holderFuture.get());
     final CompletableFuture<ComponentType> typeFuture = universe.resolveComponent(TestComponent.class);
-    final ComponentType componentType = assertDoesNotThrow(() -> typeFuture.get());
-    assertDoesNotThrow(() -> universe.createComponent(holder, componentType).get());
+    final CompletableFuture<ComponentType> anotherFuture = universe.resolveComponent(AnotherComponent.class);
+    final ComponentType typeComponent = assertDoesNotThrow(() -> typeFuture.get());
+    final ComponentType anotherComponent = assertDoesNotThrow(() -> anotherFuture.get());
+    assertDoesNotThrow(() -> universe.createComponent(holder, typeComponent).get());
+    assertDoesNotThrow(() -> universe.createComponent(holder, anotherComponent).get());
     assertTrue(universe.types().get(0).isPresent());
-    assertFalse(universe.types().get(1).isPresent());
+    assertTrue(universe.types().get(1).isPresent());
+    assertFalse(universe.types().get(2).isPresent());
     assertTrue(universe.types().get(TestComponent.class).isPresent());
+    assertTrue(universe.types().get(AnotherComponent.class).isPresent());
     assertFalse(universe.types().get(Object.class).isPresent());
     assertTrue(universe.types().get("test").isPresent());
+    assertTrue(universe.types().get("another").isPresent());
     assertFalse(universe.types().get("fake").isPresent());
-    assertThat(universe.types().all()).hasSize(1);
+    assertThat(universe.types().all()).hasSize(2);
   }
 }

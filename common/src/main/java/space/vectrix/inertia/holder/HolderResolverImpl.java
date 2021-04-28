@@ -33,6 +33,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public final class HolderResolverImpl<H extends Holder<C>, C> implements HolderResolver<H, C> {
   private final AtomicInteger index = new AtomicInteger();
+  private final Object lock = new Object();
   private final Universe<H, C> universe;
 
   /* package */ HolderResolverImpl(final Universe<H, C> universe) {
@@ -61,11 +62,13 @@ public final class HolderResolverImpl<H extends Holder<C>, C> implements HolderR
     final AbstractHolders<H, C> holders = (AbstractHolders<H, C>) this.universe.holders();
     int laps = 0;
     for(; ; ) {
-      int index = this.index.getAndIncrement();
-      if(!holders.contains(index)) return index;
-      if(index == Integer.MAX_VALUE) { // Ensure we don't go infinitely through the indexes to find a free one.
-        if(laps > 0) throw new IndexOutOfBoundsException("Reached maximum amount of holder indexes!");
-        laps++;
+      synchronized(this.lock) {
+        int index = this.index.getAndIncrement();
+        if (!holders.contains(index)) return index;
+        if(index == Integer.MAX_VALUE) { // Ensure we don't go infinitely through the indexes to find a free one.
+          if(laps > 0) throw new IndexOutOfBoundsException("Reached maximum amount of holder indexes!");
+          laps++;
+        }
       }
     }
   }

@@ -45,12 +45,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 @SuppressWarnings("UnstableApiUsage")
 public final class ComponentResolverImpl<H extends Holder<C>, C> implements ComponentResolver<H, C> {
-  private final Object lock = new Object();
   private final AtomicInteger index = new AtomicInteger();
   private final MutableGraph<ComponentTypeImpl<H, C>> dependencies = GraphBuilder.undirected()
     .allowsSelfLoops(false)
     .expectedNodeCount(1000)
     .build();
+  private final Object dependencyLock = new Object();
+  private final Object indexLock = new Object();
   private final Universe<H, C> universe;
 
   /* package */ ComponentResolverImpl(final Universe<H, C> universe) {
@@ -108,13 +109,13 @@ public final class ComponentResolverImpl<H extends Holder<C>, C> implements Comp
     final ComponentTypeImpl<H, C> componentType = ((ComponentTypesImpl<H, C>) this.universe.types()).put(type, key -> {
       final Component component = type.getAnnotation(Component.class);
       if(component == null) throw new IllegalArgumentException("Target type must have a component annotation!");
-      return new ComponentTypeImpl<>(this.index.getAndIncrement(), component.id(), component.name(), type, componentStructureFactory.create(
+      return new ComponentTypeImpl<>(this.nextIndex(), component.id(), component.name(), type, componentStructureFactory.create(
         type,
         componentInjector,
         holderInjector
       ));
     });
-    synchronized(this.lock) {
+    synchronized(this.dependencyLock) {
       if (parent != null) {
         this.dependencies.putEdge(parent, componentType);
       } else {
@@ -164,7 +165,7 @@ public final class ComponentResolverImpl<H extends Holder<C>, C> implements Comp
   }
 
   private Set<ComponentTypeImpl<H, C>> getAdjacent(final @NonNull ComponentTypeImpl<H, C> componentType) {
-    synchronized(this.lock) {
+    synchronized(this.dependencyLock) {
       return this.dependencies.adjacentNodes(componentType);
     }
   }
@@ -183,6 +184,21 @@ public final class ComponentResolverImpl<H extends Holder<C>, C> implements Comp
       return componentClass.getDeclaredConstructor().newInstance();
     } catch(final Throwable exception) {
       throw new IllegalStateException("Unable to instantiate component.", exception);
+    }
+  }
+
+  private int nextIndex() {
+    final AbstractComponentTypes<H, C> types = (AbstractComponentTypes<H, C>) this.universe.types();
+    int laps = 0;
+    for(; ; ) {
+      synchronized(this.indexLock) {
+        int index = this.index.getAndIncrement();
+        if (!types.contains(index)) return index;
+        if(index == Integer.MAX_VALUE) { // Ensure we don't go infinitely through the indexes to find a free one.
+          if(laps > 0) throw new IndexOutOfBoundsException("Reached maximum amount of component type indexes!");
+          laps++;
+        }
+      }
     }
   }
 
