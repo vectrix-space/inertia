@@ -50,8 +50,7 @@ public final class ComponentResolverImpl<H extends Holder<C>, C> implements Comp
     .allowsSelfLoops(false)
     .expectedNodeCount(1000)
     .build();
-  private final Object dependencyLock = new Object();
-  private final Object indexLock = new Object();
+  private final Object lock = new Object();
   private final Universe<H, C> universe;
 
   /* package */ ComponentResolverImpl(final Universe<H, C> universe) {
@@ -106,17 +105,18 @@ public final class ComponentResolverImpl<H extends Holder<C>, C> implements Comp
                                               final InjectionStructure.@NonNull Factory<H, C> componentStructureFactory,
                                               final InjectionMethod.Factory<?, C> componentInjector,
                                               final InjectionMethod.Factory<?, H> holderInjector) {
-    final ComponentTypeImpl<H, C> componentType = ((ComponentTypesImpl<H, C>) this.universe.types()).put(type, key -> {
-      final Component component = type.getAnnotation(Component.class);
-      if(component == null) throw new IllegalArgumentException("Target type must have a component annotation!");
-      return new ComponentTypeImpl<>(this.nextIndex(), component.id(), component.name(), type, componentStructureFactory.create(
-        type,
-        componentInjector,
-        holderInjector
-      ));
-    });
-    synchronized(this.dependencyLock) {
-      if (parent != null) {
+    final ComponentTypeImpl<H, C> componentType;
+    synchronized(this.lock) {
+      componentType = ((ComponentTypesImpl<H, C>) this.universe.types()).put(type, key -> {
+        final Component component = type.getAnnotation(Component.class);
+        if(component == null) throw new IllegalArgumentException("Target type must have a component annotation!");
+        return new ComponentTypeImpl<>(this.nextIndex(), component.id(), component.name(), type, componentStructureFactory.create(
+          type,
+          componentInjector,
+          holderInjector
+        ));
+      });
+      if(parent != null) {
         this.dependencies.putEdge(parent, componentType);
       } else {
         this.dependencies.addNode(componentType);
@@ -165,7 +165,7 @@ public final class ComponentResolverImpl<H extends Holder<C>, C> implements Comp
   }
 
   private Set<ComponentTypeImpl<H, C>> getAdjacent(final @NonNull ComponentTypeImpl<H, C> componentType) {
-    synchronized(this.dependencyLock) {
+    synchronized(this.lock) {
       return this.dependencies.adjacentNodes(componentType);
     }
   }
@@ -187,17 +187,16 @@ public final class ComponentResolverImpl<H extends Holder<C>, C> implements Comp
     }
   }
 
+  @SuppressWarnings("unchecked")
   private int nextIndex() {
     final AbstractComponentTypes<H, C> types = (AbstractComponentTypes<H, C>) this.universe.types();
     int laps = 0;
     for(; ; ) {
-      synchronized(this.indexLock) {
-        int index = this.index.getAndIncrement();
-        if (!types.contains(index)) return index;
-        if(index == Integer.MAX_VALUE) { // Ensure we don't go infinitely through the indexes to find a free one.
-          if(laps > 0) throw new IndexOutOfBoundsException("Reached maximum amount of component type indexes!");
-          laps++;
-        }
+      int index = this.index.getAndIncrement();
+      if(!types.contains(index)) return index;
+      if(index == Integer.MAX_VALUE) { // Ensure we don't go infinitely through the indexes to find a free one.
+        if(laps > 0) throw new IndexOutOfBoundsException("Reached maximum amount of component type indexes!");
+        laps++;
       }
     }
   }

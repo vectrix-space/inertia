@@ -43,8 +43,11 @@ public final class HolderResolverImpl<H extends Holder<C>, C> implements HolderR
   @Override
   public int create() {
     final AbstractHolders<H, C> holders = (AbstractHolders<H, C>) this.universe.holders();
-    final int index = this.nextIndex();
-    holders.put(index);
+    final int index;
+    synchronized(this.lock) {
+      index = this.nextIndex();
+      holders.put(index);
+    }
     return index;
   }
 
@@ -52,9 +55,12 @@ public final class HolderResolverImpl<H extends Holder<C>, C> implements HolderR
   public <T extends H> @NonNull T create(final @NonNull HolderFunction<H, C, T> holderFunction) {
     requireNonNull(holderFunction, "holderFunction");
     final AbstractHolders<H, C> holders = (AbstractHolders<H, C>) this.universe.holders();
-    final int index = this.nextIndex();
-    final T holderInstance = holderFunction.apply(this.universe, index);
-    holders.put(index, holderInstance);
+    final T holderInstance;
+    synchronized(this.lock) {
+      final int index = this.nextIndex();
+      holderInstance = holderFunction.apply(this.universe, index);
+      holders.put(index, holderInstance);
+    }
     return holderInstance;
   }
 
@@ -62,13 +68,11 @@ public final class HolderResolverImpl<H extends Holder<C>, C> implements HolderR
     final AbstractHolders<H, C> holders = (AbstractHolders<H, C>) this.universe.holders();
     int laps = 0;
     for(; ; ) {
-      synchronized(this.lock) {
-        int index = this.index.getAndIncrement();
-        if (!holders.contains(index)) return index;
-        if(index == Integer.MAX_VALUE) { // Ensure we don't go infinitely through the indexes to find a free one.
-          if(laps > 0) throw new IndexOutOfBoundsException("Reached maximum amount of holder indexes!");
-          laps++;
-        }
+      int index = this.index.getAndIncrement();
+      if(!holders.contains(index)) return index;
+      if(index == Integer.MAX_VALUE) { // Ensure we don't go infinitely through the indexes to find a free one.
+        if(laps > 0) throw new IndexOutOfBoundsException("Reached maximum amount of holder indexes!");
+        laps++;
       }
     }
   }
