@@ -24,9 +24,10 @@
  */
 package space.vectrix.inertia.component;
 
-import it.unimi.dsi.fastutil.Function;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import space.vectrix.inertia.holder.Holder;
+
+import java.util.function.Function;
 
 /**
  * {@inheritDoc}

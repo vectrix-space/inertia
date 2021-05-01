@@ -29,13 +29,8 @@ import static java.util.Objects.requireNonNull;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
-import it.unimi.dsi.fastutil.ints.IntSet;
-import it.unimi.dsi.fastutil.ints.IntSets;
-import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import space.vectrix.flare.SyncMap;
 import space.vectrix.inertia.holder.Holder;
 
 import java.util.ArrayList;
@@ -44,10 +39,11 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 public final class ComponentsImpl<H extends Holder<C>, C> extends AbstractComponents<H, C> {
-  private final Long2ObjectMap<C> components = Long2ObjectMaps.synchronize(new Long2ObjectOpenHashMap<>(100));
-  private final Int2ObjectMap<IntSet> holders = Int2ObjectMaps.synchronize(new Int2ObjectOpenHashMap<>(10));
+  private final SyncMap<Long, C> components = SyncMap.hashmap(100);
+  private final Int2ObjectMap<Set<Integer>> holders = Int2ObjectMaps.synchronize(new Int2ObjectOpenHashMap<>(10));
 
   public ComponentsImpl() {}
 
@@ -66,7 +62,7 @@ public final class ComponentsImpl<H extends Holder<C>, C> extends AbstractCompon
 
   @Override
   public @NonNull Collection<? extends C> all(final int holder) {
-    final IntSet components = this.holders.get(holder);
+    final Set<Integer> components = this.holders.get(holder);
     if(components == null) return Collections.emptySet();
     final List<C> instances = new ArrayList<>(components.size());
     for(final int component : components) {
@@ -95,7 +91,7 @@ public final class ComponentsImpl<H extends Holder<C>, C> extends AbstractCompon
   public <T extends C> boolean put(final int holder, final @NonNull ComponentType componentType, final @NonNull T component) {
     final long index = this.getCombinedIndex(holder, componentType.index());
     if (this.components.putIfAbsent(index, component) == null) {
-      this.holders.computeIfAbsent(holder, key -> IntSets.synchronize(new IntOpenHashSet())).add(componentType.index());
+      this.holders.computeIfAbsent(holder, key -> SyncMap.hashset()).add(componentType.index());
       return true;
     }
     return false;
@@ -104,7 +100,7 @@ public final class ComponentsImpl<H extends Holder<C>, C> extends AbstractCompon
   @Override
   public boolean remove(final int holder, final @NonNull ComponentType componentType) {
     if (this.components.remove(this.getCombinedIndex(holder, componentType.index())) != null) {
-      final IntSet components = this.holders.get(holder);
+      final Set<Integer> components = this.holders.get(holder);
       if (components != null) {
         components.remove(componentType.index());
         return true;
@@ -115,7 +111,7 @@ public final class ComponentsImpl<H extends Holder<C>, C> extends AbstractCompon
 
   @Override
   public void remove(final int holder) {
-    final IntSet components = this.holders.remove(holder);
+    final Set<Integer> components = this.holders.remove(holder);
     if (components != null) {
       for (final int component : components) {
         this.components.remove(this.getCombinedIndex(holder, component));

@@ -26,10 +26,6 @@ package space.vectrix.inertia.component;
 
 import static java.util.Objects.requireNonNull;
 
-import it.unimi.dsi.fastutil.Function;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import space.vectrix.flare.SyncMap;
 import space.vectrix.inertia.holder.Holder;
@@ -38,9 +34,10 @@ import java.util.Collection;
 import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 
 public final class ComponentTypesImpl<H extends Holder<C>, C> extends AbstractComponentTypes<H, C> {
-  private final Int2ObjectMap<ComponentTypeImpl<H, C>> components = Int2ObjectMaps.synchronize(new Int2ObjectOpenHashMap<>(100));
+  private final SyncMap<Integer, ComponentTypeImpl<H, C>> components = SyncMap.hashmap(100);
   private final Map<Class<?>, ComponentTypeImpl<H, C>> typed = SyncMap.of(IdentityHashMap::new, 50);
   private final Map<String, ComponentTypeImpl<H, C>> named = SyncMap.hashmap(50);
 

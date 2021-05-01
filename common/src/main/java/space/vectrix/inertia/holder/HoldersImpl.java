@@ -29,13 +29,11 @@ import static java.util.Objects.requireNonNull;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.ints.IntSets;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import space.vectrix.flare.SyncMap;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -43,7 +41,7 @@ import java.util.Optional;
 
 public final class HoldersImpl<H extends Holder<C>, C> extends AbstractHolders<H, C> {
   private final IntSet holders = IntSets.synchronize(new IntOpenHashSet(100));
-  private final Int2ObjectMap<H> instances = Int2ObjectMaps.synchronize(new Int2ObjectOpenHashMap<>(100));
+  private final SyncMap<Integer, H> instances = SyncMap.hashmap(100);
   private final Multimap<Class<?>, H> typed = Multimaps.synchronizedMultimap(HashMultimap.create(10, 50));
 
   public HoldersImpl() {}
