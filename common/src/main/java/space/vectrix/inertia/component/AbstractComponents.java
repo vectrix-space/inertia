@@ -70,4 +70,11 @@ public abstract class AbstractComponents<H extends Holder<C>, C> implements Comp
    * @since 0.1.0
    */
   public abstract void remove(final int holder);
+
+  /**
+   * Clears the components from the registry.
+   *
+   * @since 0.1.0
+   */
+  public abstract void clear();
 }

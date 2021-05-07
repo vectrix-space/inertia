@@ -96,6 +96,13 @@ public final class HoldersImpl<H extends Holder<C>, C> extends AbstractHolders<H
     return false;
   }
 
+  @Override
+  public void clear() {
+    this.holders.clear();
+    this.instances.clear();
+    this.typed.clear();
+  }
+
   private void removeInstance(final int index) {
     final H holder = this.instances.remove(index);
     if(holder != null) {

@@ -119,6 +119,12 @@ public final class ComponentsImpl<H extends Holder<C>, C> extends AbstractCompon
     }
   }
 
+  @Override
+  public void clear() {
+    this.holders.clear();
+    this.components.clear();
+  }
+
   private long getCombinedIndex(final int holder, final int component) {
     return ((long) component << 32) + holder;
   }

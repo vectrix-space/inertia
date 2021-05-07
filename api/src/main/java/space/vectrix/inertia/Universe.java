@@ -234,6 +234,13 @@ public interface Universe<H extends Holder<C>, C> {
   <T extends C> @NonNull Optional<T> getComponent(final @NonNull H holder, final @NonNull ComponentType componentType);
 
   /**
+   * Clears all the holders and components from this universe.
+   *
+   * @since 0.1.0
+   */
+  void clear();
+
+  /**
    * Returns the {@link Processors}.
    *
    * @return The processor registry

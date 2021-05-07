@@ -75,4 +75,11 @@ public abstract class AbstractHolders<H extends Holder<C>, C> implements Holders
    * @since 0.1.0
    */
   public abstract boolean remove(final int index);
+
+  /**
+   * Clears the holders from the registry.
+   *
+   * @since 0.1.0
+   */
+  public abstract void clear();
 }

@@ -24,6 +24,7 @@
  */
 package space.vectrix.inertia;
 
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -77,6 +78,21 @@ abstract class AbstractUniverseTest {
     final ComponentType componentType = assertDoesNotThrow(() -> typeFuture.get());
     final CompletableFuture<TestComponent> componentFuture = universe.createComponent(holder, componentType);
     assertDoesNotThrow(() -> componentFuture.get());
+  }
+
+  @Test
+  void testClear() {
+    final Universe<TestHolders, Object> universe = new UniverseImpl.Builder<TestHolders, Object>()
+      .id("component_universe")
+      .build();
+    final CompletableFuture<TestHolder> holderFuture = universe.createHolder(TestHolder::new);
+    final TestHolder holder = assertDoesNotThrow(() -> holderFuture.get());
+    final CompletableFuture<ComponentType> typeFuture = universe.resolveComponent(TestComponent.class);
+    final ComponentType componentType = assertDoesNotThrow(() -> typeFuture.get());
+    final CompletableFuture<TestComponent> componentFuture = universe.createComponent(holder, componentType);
+    assertDoesNotThrow(() -> componentFuture.get());
+    assertDoesNotThrow(() -> universe.clear());
+    assertThat(universe.holders().all()).isEmpty();
   }
 
   @Component(id = "test", name = "Test")

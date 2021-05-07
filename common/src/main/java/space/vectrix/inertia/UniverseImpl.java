@@ -194,6 +194,12 @@ public final class UniverseImpl<H extends Holder<C>, C> implements Universe<H, C
   }
 
   @Override
+  public void clear() {
+    ((AbstractComponents<H, C>) this.components).clear();
+    ((AbstractHolders<H, C>) this.holders).clear();
+  }
+
+  @Override
   public @NonNull Processors<H, C> processors() {
     return this.processors;
   }
