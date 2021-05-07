@@ -44,6 +44,10 @@ import java.util.Collections;
     return (Universe<H, C>) Universes.UNIVERSES.get(identifier);
   }
 
+  /* package */ static <H extends Holder<C>, C> @Nullable Universe<H, C> remove(final @NonNull String identifier) {
+    return (Universe<H, C>) Universes.UNIVERSES.remove(identifier);
+  }
+
   /* package */ static @NonNull Collection<Universe<?, ?>> getAll() {
     return Collections.unmodifiableCollection(Universes.UNIVERSES.values());
   }

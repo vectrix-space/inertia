@@ -25,7 +25,9 @@
 package space.vectrix.inertia;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
@@ -34,6 +36,13 @@ class InertiaTest extends AbstractUniverseTest {
   void testGetAndSize() {
     final Universe<TestHolders, Object> universe = Inertia.get("valid_universe");
     assertNotNull(universe);
-    assertThat(Inertia.getAll()).hasSize(1);
+    assertThat(Inertia.all()).hasSize(1);
+  }
+
+  @Test
+  void testRemove() {
+    assertTrue(Inertia.destroy("valid_universe"));
+    assertFalse(Inertia.destroy("valid_universe"));
+    assertThat(Inertia.all()).isEmpty();
   }
 }

@@ -70,12 +70,31 @@ public final class Inertia {
   }
 
   /**
+   * Returns {@code true} if the {@link Universe} with the specified {@link String}
+   * identifier is removed, otherwise returns {@code false}.
+   *
+   * @param identifier The universe identifier
+   * @param <H> The holder type
+   * @param <C> The component type
+   * @return Whether the universe was removed
+   * @since 0.1.0
+   */
+  public static <H extends Holder<C>, C> boolean destroy(final @NonNull String identifier) {
+    final Universe<H, C> universe = Universes.remove(identifier);
+    if(universe != null) {
+      universe.clear();
+      return true;
+    }
+    return false;
+  }
+
+  /**
    * Returns a {@link Collection} of the created {@link Universe}s.
    *
    * @return A collection of universes
    * @since 0.1.0
    */
-  public static @NonNull Collection<Universe<?, ?>> getAll() {
+  public static @NonNull Collection<Universe<?, ?>> all() {
     return Universes.getAll();
   }
 
