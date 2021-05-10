@@ -26,8 +26,8 @@ package space.vectrix.inertia.component;
 
 import static java.util.Objects.requireNonNull;
 
+import it.unimi.dsi.fastutil.ints.IntSet;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import space.vectrix.flare.SyncMap;
 import space.vectrix.flare.fastutil.Int2ObjectSyncMap;
 import space.vectrix.flare.fastutil.Long2ObjectSyncMap;
 import space.vectrix.inertia.holder.Holder;
@@ -42,7 +42,7 @@ import java.util.Set;
 
 public final class ComponentsImpl<H extends Holder<C>, C> extends AbstractComponents<H, C> {
   private final Long2ObjectSyncMap<C> components = Long2ObjectSyncMap.hashmap(100);
-  private final Int2ObjectSyncMap<Set<Integer>> holders = Int2ObjectSyncMap.hashmap(10);
+  private final Int2ObjectSyncMap<IntSet> holders = Int2ObjectSyncMap.hashmap(10);
 
   public ComponentsImpl() {}
 
@@ -90,7 +90,7 @@ public final class ComponentsImpl<H extends Holder<C>, C> extends AbstractCompon
   public <T extends C> boolean put(final int holder, final @NonNull ComponentType componentType, final @NonNull T component) {
     final long index = this.getCombinedIndex(holder, componentType.index());
     if (this.components.putIfAbsent(index, component) == null) {
-      this.holders.computeIfAbsent(holder, key -> SyncMap.hashset()).add(componentType.index());
+      this.holders.computeIfAbsent(holder, key -> Int2ObjectSyncMap.hashset()).add(componentType.index());
       return true;
     }
     return false;
