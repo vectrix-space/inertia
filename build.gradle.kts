@@ -26,6 +26,9 @@ subprojects {
     maven {
       url = uri("https://oss.sonatype.org/content/groups/public/")
     }
+    maven {
+      url = uri("https://s01.oss.sonatype.org/content/groups/public/")
+    }
   }
 
   dependencies {
