@@ -44,7 +44,6 @@ import java.util.Optional;
  * @param <C> The component type
  * @since 0.1.0
  */
-@SuppressWarnings("unchecked")
 public abstract class AbstractHolder<H extends Holder<C>, C> implements Holder<C> {
   protected final Universe<H, C> universe;
   private final int index;
@@ -62,23 +61,23 @@ public abstract class AbstractHolder<H extends Holder<C>, C> implements Holder<C
   @Override
   public @NonNull <T extends C> Optional<T> get(final @NonNull ComponentType componentType) {
     requireNonNull(componentType, "componentType");
-    return this.universe.getComponent((H) this, componentType);
+    return this.universe.getComponent(this.index, componentType);
   }
 
   @Override
   public boolean remove(final @NonNull ComponentType componentType) {
     requireNonNull(componentType, "componentType");
-    return this.universe.removeComponent((H) this, componentType);
+    return this.universe.removeComponent(this.index, componentType);
   }
 
   @Override
   public @NonNull Collection<? extends C> all() {
-    return this.universe.components().all((H) this);
+    return this.universe.components().all(this.index);
   }
 
   @Override
   public void clear() {
-    this.universe.removeComponents((H) this);
+    this.universe.removeComponents(this.index);
   }
 
   @Override

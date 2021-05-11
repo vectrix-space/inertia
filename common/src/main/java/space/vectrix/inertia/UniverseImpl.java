@@ -190,7 +190,7 @@ public final class UniverseImpl<H extends Holder<C>, C> implements Universe<H, C
   public @NonNull <T extends C> Optional<T> getComponent(final @NonNull H holder, final @NonNull ComponentType componentType) {
     requireNonNull(holder, "holder");
     requireNonNull(componentType, "componentType");
-    return this.components.get(holder, componentType);
+    return this.components.get(holder.index(), componentType);
   }
 
   @Override
