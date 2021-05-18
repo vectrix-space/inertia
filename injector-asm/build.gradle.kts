@@ -1,5 +1,5 @@
 dependencies {
-  api(project(":inertia-common"))
+  api(project(":inertia-engine"))
 
-  implementation("org.lanternpowered:lmbda:1.0.0")
+  implementation("org.lanternpowered:lmbda:2.0.0")
 }
