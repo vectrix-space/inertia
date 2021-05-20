@@ -89,4 +89,15 @@ public interface HolderExplorer {
    * @since 0.2.0
    */
   <T> @NonNull T add(final @NonNull ComponentType componentType);
+
+  /**
+   * Returns the {@code T} component if it exists and removes the specified
+   * {@link ComponentType}.
+   *
+   * @param componentType the component type
+   * @param <T> the specific component type
+   * @return the removed component, if present
+   * @since 0.2.0
+   */
+  <T> @Nullable T remove(final @NonNull ComponentType componentType);
 }

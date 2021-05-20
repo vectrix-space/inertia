@@ -41,7 +41,6 @@ import java.util.function.IntFunction;
     this.indexes = indexes;
   }
 
-
   @Override
   public @NonNull AtomicInteger counter() {
     return this.counter;

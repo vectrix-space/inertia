@@ -24,6 +24,9 @@
  */
 package space.vectrix.inertia.util.version;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
+import space.vectrix.inertia.Universe;
+
 /**
  * Represents the version of an object within the universe.
  *
@@ -67,4 +70,29 @@ public interface Version {
    * @since 0.2.0
    */
   int universe();
+
+  /**
+   * Returns {@code true} if this version belongs to the specified
+   * {@link Universe}, otherwise {@code false}.
+   *
+   * @param universe the universe
+   * @return whether the version belongs in the universe
+   * @since 0.2.0
+   */
+  default boolean belongs(final @NonNull Universe universe) {
+    return this.universe() == universe.index();
+  }
+
+  /**
+   * Returns {@code true} if this version and another version belong to the
+   * specified {@link Universe}, otherwise {@code false}.
+   *
+   * @param universe the universe
+   * @param another another version to check
+   * @return whether the versions belong in the universe
+   * @since 0.2.0
+   */
+  default boolean belongs(final @NonNull Universe universe, final @NonNull Version another) {
+    return this.belongs(universe) && another.belongs(universe);
+  }
 }

@@ -24,23 +24,30 @@
  */
 package space.vectrix.inertia;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import space.vectrix.flare.fastutil.Int2ObjectSyncMap;
 import space.vectrix.inertia.util.counter.IndexCounter;
+
+import java.util.function.Consumer;
 
 /* package */ final class Universes {
   private static final Int2ObjectSyncMap<Universe> UNIVERSES = Int2ObjectSyncMap.hashmap(100);
   private static final IndexCounter UNIVERSES_INDEX = IndexCounter.counter("universe", Universes.UNIVERSES);
 
-  /* package */ static Universe create() {
-    // TODO: Do the creation mapping here.
-    return Universes.UNIVERSES_INDEX.next(index -> Universes.UNIVERSES.computeIfAbsent(index, null));
+  /* package */ static @NonNull Universe create(final @NonNull Consumer<Universe.Builder> builderConsumer) {
+    return Universes.UNIVERSES_INDEX.next(index -> Universes.UNIVERSES.computeIfAbsent(index, key -> {
+      final UniverseImpl.BuilderImpl builder = new UniverseImpl.BuilderImpl();
+      builderConsumer.accept(builder);
+      return builder.build(key);
+    }));
   }
 
-  /* package */ static Universe get(final int index) {
+  /* package */ static @Nullable Universe get(final int index) {
     return Universes.UNIVERSES.get(index);
   }
 
-  /* package */ static Universe remove(final int index) {
+  /* package */ static @Nullable Universe remove(final int index) {
     return Universes.UNIVERSES.remove(index);
   }
 }

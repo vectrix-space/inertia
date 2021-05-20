@@ -71,6 +71,7 @@ import java.util.Objects;
 
   @Override
   public String toString() {
-    return "Version{index=" + this.index + ", version=" + this.version + ", universe=" + this.universe + "}";
+    return "Version{index=" + this.index + ", version=" + this.version +
+      ", universe=" + this.universe + "}";
   }
 }
