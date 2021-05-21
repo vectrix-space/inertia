@@ -4,18 +4,20 @@ import static java.util.Objects.requireNonNull;
 
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
+import it.unimi.dsi.fastutil.ints.IntIterator;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import space.vectrix.flare.SyncMap;
 import space.vectrix.flare.fastutil.Int2ObjectSyncMap;
 import space.vectrix.inertia.Universe;
+import space.vectrix.inertia.processor.ProcessingSystem;
 import space.vectrix.inertia.util.counter.IndexCounter;
 import space.vectrix.inertia.util.version.Version;
 
 import java.util.Collection;
 import java.util.IdentityHashMap;
 
-public final class HolderContainerImpl implements HolderContainer {
+public final class HolderContainerImpl implements HolderContainer, ProcessingSystem {
   private final IntSet holderRemovals = Int2ObjectSyncMap.hashset(50);
   private final Int2ObjectSyncMap<Holder> holders = Int2ObjectSyncMap.hashmap(500);
   private final IndexCounter holderCounter = IndexCounter.counter("holders", this.holders);
@@ -49,5 +51,16 @@ public final class HolderContainerImpl implements HolderContainer {
     if(!holderVersion.belongs(this.universe)) return false;
     if(!this.holders.containsKey(holderVersion.index())) return false;
     return !this.holderRemovals.contains(holderVersion.index());
+  }
+
+  @Override
+  public void process() {
+    final IntIterator iterator = this.holderRemovals.intIterator();
+    while(iterator.hasNext()) {
+      final int index = iterator.nextInt();
+      final Holder holder = this.holders.remove(index);
+      this.holderGroup.remove(holder.getClass(), holder);
+      iterator.remove();
+    }
   }
 }

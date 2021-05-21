@@ -2,8 +2,12 @@ package space.vectrix.inertia.component;
 
 import static java.util.Objects.requireNonNull;
 
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.IntIterator;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.LongIterator;
+import it.unimi.dsi.fastutil.longs.LongSet;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import space.vectrix.flare.SyncMap;
@@ -15,6 +19,7 @@ import space.vectrix.inertia.annotation.Inject;
 import space.vectrix.inertia.holder.Holder;
 import space.vectrix.inertia.injection.InjectionMethod;
 import space.vectrix.inertia.injection.InjectionStructure;
+import space.vectrix.inertia.processor.ProcessingSystem;
 import space.vectrix.inertia.util.InvalidContextException;
 import space.vectrix.inertia.util.MapFunctions;
 import space.vectrix.inertia.util.counter.IndexCounter;
@@ -25,18 +30,18 @@ import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.Optional;
 
-public final class ComponentContainerImpl implements ComponentContainer {
+public final class ComponentContainerImpl implements ComponentContainer, ProcessingSystem {
   // Component Types
   private final Int2ObjectSyncMap<ComponentType> componentTypes = Int2ObjectSyncMap.hashmap(500);
   private final IndexCounter componentCounter = IndexCounter.counter("componentType", this.componentTypes);
   private final Map<Class<?>, ComponentType> componentTypesGroup = SyncMap.of(IdentityHashMap::new, 500);
   private final Map<String, ComponentType> componentTypesNamed = SyncMap.hashmap(500);
+  private final Int2ObjectSyncMap<InjectionStructure> componentStructures = Int2ObjectSyncMap.hashmap(500);
 
   // Components
-  private final IntSet componentRemovals = Int2ObjectSyncMap.hashset(50);
+  private final LongSet componentRemovals = Long2ObjectSyncMap.hashset(50);
   private final Long2ObjectMap<Object> components = Long2ObjectSyncMap.hashmap(1000);
   private final Int2ObjectSyncMap<Int2ObjectSyncMap<Object>> componentHolders = Int2ObjectSyncMap.hashmap(500);
-  private final Int2ObjectSyncMap<InjectionStructure> componentStructures = Int2ObjectSyncMap.hashmap(500);
 
   private final InjectionStructure.Factory injectionStructure;
   private final InjectionMethod.Factory injectionMethod;
@@ -116,8 +121,29 @@ public final class ComponentContainerImpl implements ComponentContainer {
   public <T> @Nullable T removeComponent(final @NonNull Holder holder, final @NonNull ComponentType componentType) {
     final Version holderVersion = requireNonNull(holder, "holder").version();
     final Version componentVersion = requireNonNull(componentType, "componentType").version();
-    if(!holderVersion.belongs(this.universe, componentVersion) && !this.componentRemovals.add(componentVersion.index())) return null;
-    return (T) this.components.get(this.getCombinedIndex(holderVersion.index(), componentVersion.index()));
+    final long version = this.getCombinedIndex(holderVersion.index(), componentVersion.index());
+    if(!holderVersion.belongs(this.universe, componentVersion) && !this.componentRemovals.add(version)) return null;
+    return (T) this.components.get(version);
+  }
+
+  @Override
+  public void process() throws Throwable {
+    final LongIterator iterator = this.componentRemovals.longIterator();
+    while(iterator.hasNext()) {
+      final long index = iterator.nextLong();
+      final int component = (int) (index >> 32);
+      final int holder = (int) (index & 0xFFFF);
+      this.components.remove(index);
+
+      final Int2ObjectSyncMap<Object> components = this.componentHolders.get(holder);
+      if(components.size() <= 1) {
+        this.componentHolders.remove(holder);
+      } else {
+        components.remove(component);
+      }
+
+      iterator.remove();
+    }
   }
 
   private @Nullable ComponentType resolve(final @NonNull Class<?> type) {

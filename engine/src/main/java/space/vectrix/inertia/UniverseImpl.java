@@ -24,6 +24,8 @@
  */
 package space.vectrix.inertia;
 
+import com.google.common.collect.Lists;
+import net.kyori.coffee.math.range.i.IntRange;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import space.vectrix.inertia.component.ComponentContainer;
@@ -37,28 +39,68 @@ import space.vectrix.inertia.injection.DummyInjectionMethodFactory;
 import space.vectrix.inertia.injection.DummyInjectionStructureFactory;
 import space.vectrix.inertia.injection.InjectionMethod;
 import space.vectrix.inertia.injection.InjectionStructure;
+import space.vectrix.inertia.processor.Processing;
+import space.vectrix.inertia.processor.ProcessingImpl;
+import space.vectrix.inertia.processor.ProcessingSystem;
+import space.vectrix.inertia.processor.Processor;
+import space.vectrix.inertia.processor.ProcessorContainer;
+import space.vectrix.inertia.processor.ProcessorContainerImpl;
 
 import java.util.Collection;
 import java.util.Optional;
 
 /* package */ final class UniverseImpl implements Universe {
-  private final InjectionStructure.Factory structureFactory;
-  private final InjectionMethod.Factory methodFactory;
+  private final ProcessorContainer processorContainer;
   private final ComponentContainer componentContainer;
   private final HolderContainer holderContainer;
+  private final Processing processing;
   private final int index;
 
   /* package */ UniverseImpl(final int index, final BuilderImpl builder) {
     this.index = index;
-    this.methodFactory = builder.methodFactory;
-    this.structureFactory = builder.structureFactory;
-    this.componentContainer = new ComponentContainerImpl(this, this.structureFactory, this.methodFactory);
+    this.processing = builder.processing.create(this);
+    this.processorContainer = new ProcessorContainerImpl();
+    this.componentContainer = new ComponentContainerImpl(this, builder.structureFactory, builder.methodFactory);
     this.holderContainer = new HolderContainerImpl(this);
   }
 
   @Override
   public int index() {
     return this.index;
+  }
+
+  @Override
+  public void tick() {
+    this.processing.process(Lists.newArrayList(
+      (ProcessingSystem) this.processorContainer,
+      (ProcessingSystem) this.componentContainer,
+      (ProcessingSystem) this.holderContainer
+    ));
+  }
+
+  @Override
+  public <T extends Processor> @Nullable T getProcessor(final @NonNull Class<T> type) {
+    return this.processorContainer.getProcessor(type);
+  }
+
+  @Override
+  public <T extends Processor> void addProcessor(final @NonNull T processor) {
+    this.processorContainer.addProcessor(processor);
+  }
+
+  @Override
+  public @NonNull Collection<? extends Processor> processors(final int priority) {
+    return this.processorContainer.processors(priority);
+  }
+
+  @Override
+  public @NonNull Collection<? extends Processor> processors(final @NonNull IntRange priorities) {
+    return this.processorContainer.processors(priorities);
+  }
+
+  @Override
+  public @NonNull Collection<? extends Processor> processors() {
+    return this.processorContainer.processors();
   }
 
   @Override
@@ -129,6 +171,7 @@ import java.util.Optional;
   public static class BuilderImpl implements Universe.Builder {
     private InjectionMethod.Factory methodFactory = new DummyInjectionMethodFactory();
     private InjectionStructure.Factory structureFactory = new DummyInjectionStructureFactory();
+    private Processing.Factory processing = new ProcessingImpl.Factory();
 
     @Override
     public @NonNull Builder injectionStructure(final InjectionStructure.@NonNull Factory factory) {
@@ -139,6 +182,12 @@ import java.util.Optional;
     @Override
     public @NonNull Builder injectionMethod(final InjectionMethod.@NonNull Factory factory) {
       this.methodFactory = factory;
+      return this;
+    }
+
+    @Override
+    public @NonNull Builder processing(final Processing.@NonNull Factory processing) {
+      this.processing = processing;
       return this;
     }
 

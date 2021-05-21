@@ -30,6 +30,9 @@ import space.vectrix.inertia.component.ComponentContainer;
 import space.vectrix.inertia.holder.HolderContainer;
 import space.vectrix.inertia.injection.InjectionMethod;
 import space.vectrix.inertia.injection.InjectionStructure;
+import space.vectrix.inertia.processor.Processing;
+import space.vectrix.inertia.processor.Processor;
+import space.vectrix.inertia.processor.ProcessorContainer;
 
 import java.util.function.Consumer;
 
@@ -38,7 +41,7 @@ import java.util.function.Consumer;
  *
  * @since 0.2.0
  */
-public interface Universe extends HolderContainer, ComponentContainer {
+public interface Universe extends ProcessorContainer, HolderContainer, ComponentContainer {
   /**
    * Creates a new {@link Universe} and returns it.
    *
@@ -81,6 +84,13 @@ public interface Universe extends HolderContainer, ComponentContainer {
   int index();
 
   /**
+   * Ticks the universe {@link Processor}s.
+   *
+   * @since 0.2.0
+   */
+  void tick();
+
+  /**
    * Destroys the universe.
    *
    * @since 0.2.0
@@ -114,5 +124,15 @@ public interface Universe extends HolderContainer, ComponentContainer {
      * @since 0.2.0
      */
     @NonNull Builder injectionMethod(final InjectionMethod.@NonNull Factory factory);
+
+    /**
+     * Returns this {@link Builder} with the specified
+     * {@link Processing}.
+     *
+     * @param processing the processing system
+     * @return this builder
+     * @since 0.2.0
+     */
+    @NonNull Builder processing(final Processing.@NonNull Factory processing);
   }
 }
