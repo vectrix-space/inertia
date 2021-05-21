@@ -1,4 +1,4 @@
-package space.vectrix.inertia.internal;
+package space.vectrix.inertia.holder;
 
 import static java.util.Objects.requireNonNull;
 
@@ -9,16 +9,13 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import space.vectrix.flare.SyncMap;
 import space.vectrix.flare.fastutil.Int2ObjectSyncMap;
 import space.vectrix.inertia.Universe;
-import space.vectrix.inertia.holder.Holder;
-import space.vectrix.inertia.holder.HolderContainer;
-import space.vectrix.inertia.holder.HolderFunction;
 import space.vectrix.inertia.util.counter.IndexCounter;
 import space.vectrix.inertia.util.version.Version;
 
 import java.util.Collection;
 import java.util.IdentityHashMap;
 
-public final class InternalHolderContainer implements HolderContainer {
+public final class HolderContainerImpl implements HolderContainer {
   private final IntSet holderRemovals = Int2ObjectSyncMap.hashset(50);
   private final Int2ObjectSyncMap<Holder> holders = Int2ObjectSyncMap.hashmap(500);
   private final IndexCounter holderCounter = IndexCounter.counter("holders", this.holders);
@@ -28,7 +25,7 @@ public final class InternalHolderContainer implements HolderContainer {
   );
   private final Universe universe;
 
-  public InternalHolderContainer(final @NonNull Universe universe) {
+  public HolderContainerImpl(final @NonNull Universe universe) {
     this.universe = universe;
   }
 

@@ -27,17 +27,18 @@ package space.vectrix.inertia;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import space.vectrix.inertia.component.ComponentContainer;
+import space.vectrix.inertia.component.ComponentContainerImpl;
 import space.vectrix.inertia.component.ComponentType;
 import space.vectrix.inertia.holder.Holder;
 import space.vectrix.inertia.holder.HolderContainer;
+import space.vectrix.inertia.holder.HolderContainerImpl;
 import space.vectrix.inertia.holder.HolderFunction;
 import space.vectrix.inertia.injection.DummyInjectionMethodFactory;
 import space.vectrix.inertia.injection.DummyInjectionStructureFactory;
 import space.vectrix.inertia.injection.InjectionMethod;
 import space.vectrix.inertia.injection.InjectionStructure;
-import space.vectrix.inertia.internal.InternalComponentContainer;
-import space.vectrix.inertia.internal.InternalHolderContainer;
 
+import java.util.Collection;
 import java.util.Optional;
 
 /* package */ final class UniverseImpl implements Universe {
@@ -51,8 +52,8 @@ import java.util.Optional;
     this.index = index;
     this.methodFactory = builder.methodFactory;
     this.structureFactory = builder.structureFactory;
-    this.componentContainer = new InternalComponentContainer(this, this.structureFactory, this.methodFactory);
-    this.holderContainer = new InternalHolderContainer(this);
+    this.componentContainer = new ComponentContainerImpl(this, this.structureFactory, this.methodFactory);
+    this.holderContainer = new HolderContainerImpl(this);
   }
 
   @Override
@@ -73,6 +74,31 @@ import java.util.Optional;
   @Override
   public boolean valid(final @NonNull Holder holder) {
     return this.holderContainer.valid(holder);
+  }
+
+  @Override
+  public @Nullable ComponentType getType(final int index) {
+    return this.componentContainer.getType(index);
+  }
+
+  @Override
+  public @Nullable ComponentType getType(final @NonNull Class<?> type) {
+    return this.componentContainer.getType(type);
+  }
+
+  @Override
+  public @Nullable ComponentType getType(final @NonNull String identifier) {
+    return this.componentContainer.getType(identifier);
+  }
+
+  @Override
+  public @Nullable ComponentType resolveType(final @NonNull Class<?> type) {
+    return this.componentContainer.resolveType(type);
+  }
+
+  @Override
+  public @NonNull Collection<ComponentType> types() {
+    return this.componentContainer.types();
   }
 
   @Override
