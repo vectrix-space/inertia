@@ -34,17 +34,16 @@ import space.vectrix.inertia.Universe;
  */
 public interface Version {
   /**
-   * Returns a new {@link Version} for the specified {@code index},
-   * {@code version}, {@code universe}.
+   * Returns a new {@link Version} for the specified {@code index} and
+   * {@code universe}.
    *
    * @param index the index
-   * @param version the version
    * @param universe the universe
    * @return the version
    * @since 0.2.0
    */
-  static Version version(final int index, final int version, final int universe) {
-    return new VersionImpl(index, version, universe);
+  static Version version(final int index, final int universe) {
+    return new VersionImpl(index, universe);
   }
 
   /**

@@ -22,4 +22,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package space.vectrix.inertia.injection;
+package space.vectrix.inertia.holder;
+
+import org.checkerframework.checker.nullness.qual.NonNull;
+import space.vectrix.inertia.Universe;
+
+/**
+ * The basic {@link Holder}.
+ *
+ * @since 0.2.0
+ */
+public final class HolderImpl extends AbstractHolder {
+  public HolderImpl(final @NonNull Universe universe, final int index) {
+    super(universe, index);
+  }
+}

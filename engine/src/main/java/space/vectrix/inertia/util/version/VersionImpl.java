@@ -27,16 +27,19 @@ package space.vectrix.inertia.util.version;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /* package */ final class VersionImpl implements Version {
+  private static final AtomicInteger VERSIONS = new AtomicInteger();
+
   private final int index;
   private final int version;
   private final int universe;
 
-  /* package */ VersionImpl(final int index, final int version, final int universe){
-    this.index = index;
-    this.version = version;
+  /* package */ VersionImpl(final int index, final int universe) {
+    this.version = VersionImpl.VERSIONS.getAndIncrement();
     this.universe = universe;
+    this.index = index;
   }
 
   @Override
@@ -71,7 +74,9 @@ import java.util.Objects;
 
   @Override
   public String toString() {
-    return "Version{index=" + this.index + ", version=" + this.version +
-      ", universe=" + this.universe + "}";
+    return "Version{index=" + this.index +
+      ", version=" + this.version +
+      ", universe=" + this.universe +
+      "}";
   }
 }

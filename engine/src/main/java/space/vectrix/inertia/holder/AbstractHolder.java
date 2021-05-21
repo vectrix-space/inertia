@@ -22,28 +22,33 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package space.vectrix.inertia.component;
+package space.vectrix.inertia.holder;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import space.vectrix.inertia.Universe;
+import space.vectrix.inertia.component.ComponentType;
 import space.vectrix.inertia.util.version.Version;
 
-import java.util.Objects;
+import java.util.Optional;
 
-/* package */ final class ComponentTypeImpl implements ComponentType {
+/**
+ * The abstract {@link Holder}.
+ *
+ * @since 0.2.0
+ */
+public abstract class AbstractHolder implements Holder {
+  private final Universe universe;
   private final Version version;
-  private final String id;
-  private final String name;
-  private final Class<?> type;
 
-  /* package */ ComponentTypeImpl(final @NonNull Version version,
-                                  final @NonNull String id,
-                                  final @NonNull String name,
-                                  final @NonNull Class<?> type) {
-    this.version = version;
-    this.id = id;
-    this.name = name;
-    this.type = type;
+  protected AbstractHolder(final @NonNull Universe universe, final int index) {
+    this.universe = universe;
+    this.version = Version.version(index, universe.index());
+  }
+
+  @Override
+  public @NonNull Universe universe() {
+    return this.universe;
   }
 
   @Override
@@ -52,40 +57,32 @@ import java.util.Objects;
   }
 
   @Override
-  public @NonNull String id() {
-    return this.id;
+  public boolean valid() {
+    return this.universe.valid(this);
   }
 
   @Override
-  public @NonNull String name() {
-    return this.name;
+  public boolean contains(final @NonNull ComponentType componentType) {
+    return this.universe.containsComponent(this, componentType);
   }
 
   @Override
-  public @NonNull Class<?> type() {
-    return this.type;
+  public <T> @Nullable T get(final @NonNull ComponentType componentType) {
+    return this.universe.getComponent(this, componentType);
   }
 
   @Override
-  public int hashCode() {
-    return Objects.hash(this.version(), this.id(), this.name(), this.type());
+  public @NonNull <T> Optional<T> getPresent(final @NonNull ComponentType componentType) {
+    return this.universe.getPresentComponent(this, componentType);
   }
 
   @Override
-  public boolean equals(final @Nullable Object other) {
-    if(other == this) return true;
-    if(!(other instanceof ComponentType)) return false;
-    final ComponentType that = (ComponentType) other;
-    return Objects.equals(this.version(), that.version())
-      && Objects.equals(this.id(), that.id())
-      && Objects.equals(this.name(), that.name())
-      && Objects.equals(this.type(), that.type());
+  public <T> @NonNull T add(final @NonNull ComponentType componentType) {
+    return this.universe.addComponent(this, componentType);
   }
 
   @Override
-  public String toString() {
-    return "ComponentType{version=" + this.version +
-      ", id=" + this.id + ", name=" + this.name +
-      ", type=" + this.type + "}";
+  public <T> @Nullable T remove(final @NonNull ComponentType componentType) {
+    return this.universe.removeComponent(this, componentType);
   }
 }

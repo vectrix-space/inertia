@@ -25,6 +25,7 @@
 package space.vectrix.inertia.holder;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import space.vectrix.inertia.Universe;
 import space.vectrix.inertia.util.version.Version;
 
 /**
@@ -33,6 +34,14 @@ import space.vectrix.inertia.util.version.Version;
  * @since 0.2.0
  */
 public interface Holder extends HolderExplorer {
+  /**
+   * Returns the {@link Universe}.
+   *
+   * @return the universe
+   * @since 0.2.0
+   */
+  @NonNull Universe universe();
+
   /**
    * Returns the {@link Version}.
    *

@@ -1,10 +1,31 @@
+/*
+ * This file is part of inertia, licensed under the MIT License (MIT).
+ *
+ * Copyright (c) vectrix.space <https://vectrix.space/>
+ * Copyright (c) contributors
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
 package space.vectrix.inertia.component;
 
 import static java.util.Objects.requireNonNull;
 
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.IntIterator;
-import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.LongIterator;
 import it.unimi.dsi.fastutil.longs.LongSet;
@@ -153,7 +174,7 @@ public final class ComponentContainerImpl implements ComponentContainer, Process
     return this.componentTypesGroup.computeIfAbsent(type, ignored0 -> this.componentTypesNamed.computeIfAbsent(annotation.id(), ignored1 ->
       this.componentCounter.next(index -> {
         final ComponentType componentType = this.componentTypes.computeIfAbsent(index, keyIndex -> new ComponentTypeImpl(
-          Version.version(keyIndex, this.universe.index(), this.hashCode()),
+          Version.version(keyIndex, this.universe.index()),
           annotation.id(),
           annotation.name(),
           type
