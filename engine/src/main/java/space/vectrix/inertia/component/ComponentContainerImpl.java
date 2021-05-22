@@ -108,6 +108,7 @@ public final class ComponentContainerImpl implements ComponentContainer, Process
   public boolean containsComponent(final @NonNull Holder holder, final @NonNull ComponentType componentType) {
     final Version holderVersion = requireNonNull(holder, "holder").version();
     final Version componentVersion = requireNonNull(componentType, "componentType").version();
+
     if(!holderVersion.belongs(this.universe, componentVersion)) return false;
     return this.components.containsKey(this.getCombinedIndex(holderVersion.index(), componentVersion.index()));
   }
@@ -117,6 +118,7 @@ public final class ComponentContainerImpl implements ComponentContainer, Process
   public <T> @Nullable T getComponent(final @NonNull Holder holder, final @NonNull ComponentType componentType) {
     final Version holderVersion = requireNonNull(holder, "holder").version();
     final Version componentVersion = requireNonNull(componentType, "componentType").version();
+
     if(!holderVersion.belongs(this.universe, componentVersion)) return null;
     return (T) this.components.get(this.getCombinedIndex(holderVersion.index(), componentVersion.index()));
   }
@@ -126,6 +128,7 @@ public final class ComponentContainerImpl implements ComponentContainer, Process
   public @NonNull <T> Optional<T> getPresentComponent(final @NonNull Holder holder, final @NonNull ComponentType componentType) {
     final Version holderVersion = requireNonNull(holder, "holder").version();
     final Version componentVersion = requireNonNull(componentType, "componentType").version();
+
     if(!holderVersion.belongs(this.universe, componentVersion)) return Optional.empty();
     return Optional.ofNullable((T) this.components.get(this.getCombinedIndex(holderVersion.index(), componentVersion.index())));
   }
@@ -143,8 +146,23 @@ public final class ComponentContainerImpl implements ComponentContainer, Process
     final Version holderVersion = requireNonNull(holder, "holder").version();
     final Version componentVersion = requireNonNull(componentType, "componentType").version();
     final long version = this.getCombinedIndex(holderVersion.index(), componentVersion.index());
+
     if(!holderVersion.belongs(this.universe, componentVersion) && !this.componentRemovals.add(version)) return null;
     return (T) this.components.get(version);
+  }
+
+  @Override
+  public void clearComponents(final @NonNull Holder holder) {
+    final Version holderVersion = requireNonNull(holder, "holder").version();
+    if(!holderVersion.belongs(this.universe)) return;
+
+    final Int2ObjectSyncMap<Object> components = this.componentHolders.get(holderVersion.index());
+    if(components == null) return;
+
+    for(final int componentIndex : components.keySet()) {
+      final long version = this.getCombinedIndex(holderVersion.index(), componentIndex);
+      this.componentRemovals.add(version);
+    }
   }
 
   @Override
@@ -192,7 +210,7 @@ public final class ComponentContainerImpl implements ComponentContainer, Process
                                 final @Nullable ComponentType parentType) {
     final Version holderVersion = holder.version();
     final Version componentVersion = componentType.version();
-    final Class<?> componentClass = componentType.getClass();
+    final Class<?> componentClass = componentType.type();
     if(!holderVersion.belongs(this.universe, componentVersion)) throw new InvalidContextException("universe", "Universe does not contain the specified holder or component type!");
 
     final Int2ObjectSyncMap<Object> components = this.componentHolders.computeIfAbsent(holderVersion.index(), ignored -> Int2ObjectSyncMap.hashmap(500));

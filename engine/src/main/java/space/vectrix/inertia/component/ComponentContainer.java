@@ -79,7 +79,7 @@ public interface ComponentContainer {
   @Nullable ComponentType resolveType(final @NonNull Class<?> type);
 
   /**
-   * The component types.
+   * Returns a {@link Collection} of {@link ComponentType}s.
    *
    * @return the component types
    * @since 0.2.0
@@ -144,4 +144,12 @@ public interface ComponentContainer {
    * @since 0.2.0
    */
   <T> @Nullable T removeComponent(final @NonNull Holder holder, final @NonNull ComponentType componentType);
+
+  /**
+   * Removes all the components associated with the specified {@link Holder}.
+   *
+   * @param holder the holder
+   * @since 0.2.0
+   */
+  void clearComponents(final @NonNull Holder holder);
 }

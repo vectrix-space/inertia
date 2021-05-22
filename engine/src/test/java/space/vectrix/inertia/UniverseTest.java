@@ -22,57 +22,13 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package space.vectrix.inertia.holder;
+package space.vectrix.inertia;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 
-import java.util.Collection;
-
-public interface HolderContainer {
-  /**
-   * Returns whether the specified {@link Holder} is a valid participant.
-   *
-   * @param holder the holder
-   * @return whether the holder is valid
-   * @since 0.2.0
-   */
-  boolean valid(final @NonNull Holder holder);
-
-  /**
-   * Returns a new {@link Holder}.
-   *
-   * @return the new holder
-   * @since 0.2.0
-   */
-  @NonNull Holder createHolder();
-
-  /**
-   * Returns a new {@link Holder} of type {@code T} using the specified
-   * {@link HolderFunction}.
-   *
-   * @param function the holder function
-   * @param <T> the specific holder type
-   * @return the new holder
-   * @since 0.2.0
-   */
-  <T extends Holder> @NonNull T createHolder(final @NonNull HolderFunction<T> function);
-
-  /**
-   * Removes the specified {@link Holder} from the universe
-   * and returns {@code true} if it successfully removed, otherwise
-   * {@code false}.
-   *
-   * @param holder the holder
-   * @return whether the holder was removed
-   * @since 0.2.0
-   */
-  boolean removeHolder(final @NonNull Holder holder);
-
-  /**
-   * Returns a {@link Collection} of {@link Holder}s.
-   *
-   * @return the holders
-   * @since 0.2.0
-   */
-  @NonNull Collection<Holder> holders();
+class UniverseTest extends AbstractUniverseTest {
+  @Override
+  protected @NonNull Universe createUniverse() {
+    return Universe.create();
+  }
 }

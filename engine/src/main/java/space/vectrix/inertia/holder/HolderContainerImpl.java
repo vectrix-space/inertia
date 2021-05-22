@@ -39,6 +39,7 @@ import space.vectrix.inertia.util.counter.IndexCounter;
 import space.vectrix.inertia.util.version.Version;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.IdentityHashMap;
 
 public final class HolderContainerImpl implements HolderContainer, ProcessingSystem {
@@ -56,6 +57,15 @@ public final class HolderContainerImpl implements HolderContainer, ProcessingSys
   }
 
   @Override
+  public boolean valid(final @NonNull Holder holder) {
+    final Version holderVersion = holder.version();
+    if(!holderVersion.belongs(this.universe)) return false;
+    if(!this.holders.containsKey(holderVersion.index())) return false;
+
+    return !this.holderRemovals.contains(holderVersion.index());
+  }
+
+  @Override
   public @NonNull Holder createHolder() {
     return this.createHolder(HolderImpl::new);
   }
@@ -70,11 +80,17 @@ public final class HolderContainerImpl implements HolderContainer, ProcessingSys
   }
 
   @Override
-  public boolean valid(final @NonNull Holder holder) {
+  public boolean removeHolder(final @NonNull Holder holder) {
+    requireNonNull(holder, "holder");
     final Version holderVersion = holder.version();
     if(!holderVersion.belongs(this.universe)) return false;
-    if(!this.holders.containsKey(holderVersion.index())) return false;
-    return !this.holderRemovals.contains(holderVersion.index());
+
+    return this.holderRemovals.add(holderVersion.index());
+  }
+
+  @Override
+  public @NonNull Collection<Holder> holders() {
+    return Collections.unmodifiableCollection(this.holders.values());
   }
 
   @Override

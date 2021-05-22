@@ -28,11 +28,9 @@ import com.google.common.collect.Lists;
 import net.kyori.coffee.math.range.i.IntRange;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import space.vectrix.inertia.component.ComponentContainer;
 import space.vectrix.inertia.component.ComponentContainerImpl;
 import space.vectrix.inertia.component.ComponentType;
 import space.vectrix.inertia.holder.Holder;
-import space.vectrix.inertia.holder.HolderContainer;
 import space.vectrix.inertia.holder.HolderContainerImpl;
 import space.vectrix.inertia.holder.HolderFunction;
 import space.vectrix.inertia.injection.DummyInjectionMethodFactory;
@@ -41,27 +39,25 @@ import space.vectrix.inertia.injection.InjectionMethod;
 import space.vectrix.inertia.injection.InjectionStructure;
 import space.vectrix.inertia.processor.Processing;
 import space.vectrix.inertia.processor.ProcessingImpl;
-import space.vectrix.inertia.processor.ProcessingSystem;
 import space.vectrix.inertia.processor.Processor;
-import space.vectrix.inertia.processor.ProcessorContainer;
 import space.vectrix.inertia.processor.ProcessorContainerImpl;
 
 import java.util.Collection;
 import java.util.Optional;
 
 /* package */ final class UniverseImpl implements Universe {
-  private final ProcessorContainer processorContainer;
-  private final ComponentContainer componentContainer;
-  private final HolderContainer holderContainer;
+  private final ProcessorContainerImpl processorContainer;
+  private final ComponentContainerImpl componentContainer;
+  private final HolderContainerImpl holderContainer;
   private final Processing processing;
   private final int index;
 
   /* package */ UniverseImpl(final int index, final BuilderImpl builder) {
-    this.index = index;
-    this.processing = builder.processing.create(this);
-    this.processorContainer = new ProcessorContainerImpl();
     this.componentContainer = new ComponentContainerImpl(this, builder.structureFactory, builder.methodFactory);
     this.holderContainer = new HolderContainerImpl(this);
+    this.processorContainer = new ProcessorContainerImpl();
+    this.processing = builder.processing.create(this);
+    this.index = index;
   }
 
   @Override
@@ -72,9 +68,9 @@ import java.util.Optional;
   @Override
   public void tick() {
     this.processing.process(Lists.newArrayList(
-      (ProcessingSystem) this.processorContainer,
-      (ProcessingSystem) this.componentContainer,
-      (ProcessingSystem) this.holderContainer
+      this.processorContainer,
+      this.componentContainer,
+      this.holderContainer
     ));
   }
 
@@ -104,6 +100,11 @@ import java.util.Optional;
   }
 
   @Override
+  public boolean valid(final @NonNull Holder holder) {
+    return this.holderContainer.valid(holder);
+  }
+
+  @Override
   public @NonNull Holder createHolder() {
     return this.holderContainer.createHolder();
   }
@@ -114,8 +115,13 @@ import java.util.Optional;
   }
 
   @Override
-  public boolean valid(final @NonNull Holder holder) {
-    return this.holderContainer.valid(holder);
+  public boolean removeHolder(final @NonNull Holder holder) {
+    return this.holderContainer.removeHolder(holder);
+  }
+
+  @Override
+  public @NonNull Collection<Holder> holders() {
+    return this.holderContainer.holders();
   }
 
   @Override
@@ -166,6 +172,11 @@ import java.util.Optional;
   @Override
   public <T> @Nullable T removeComponent(final @NonNull Holder holder, final @NonNull ComponentType componentType) {
     return this.componentContainer.removeComponent(holder, componentType);
+  }
+
+  @Override
+  public void clearComponents(final @NonNull Holder holder) {
+    this.componentContainer.clearComponents(holder);
   }
 
   public static class BuilderImpl implements Universe.Builder {

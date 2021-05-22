@@ -100,4 +100,11 @@ public interface HolderExplorer {
    * @since 0.2.0
    */
   <T> @Nullable T remove(final @NonNull ComponentType componentType);
+
+  /**
+   * Removes all the components associated with this holder.
+   *
+   * @since 0.2.0
+   */
+  void clear();
 }

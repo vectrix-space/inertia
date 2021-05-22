@@ -85,4 +85,9 @@ public abstract class AbstractHolder implements Holder {
   public <T> @Nullable T remove(final @NonNull ComponentType componentType) {
     return this.universe.removeComponent(this, componentType);
   }
+
+  @Override
+  public void clear() {
+    this.universe.clearComponents(this);
+  }
 }
