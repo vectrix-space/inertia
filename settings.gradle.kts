@@ -1,12 +1,10 @@
 rootProject.name = "inertia-parent"
 
-include("api")
-include("common")
+include("engine")
 include("injector-asm")
 
 listOf(
-  "api",
-  "common",
+  "engine",
   "injector-asm"
 ).forEach {
   findProject(":$it")?.name = "inertia-$it"
