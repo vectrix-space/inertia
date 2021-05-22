@@ -32,6 +32,8 @@ import org.checkerframework.checker.nullness.qual.NonNull;
  * @since 0.2.0
  */
 public class InvalidContextException extends IllegalStateException {
+  private static final long serialVersionUID = 1L;
+
   public InvalidContextException(final @NonNull String context, final @NonNull String details) {
     super(context + ": " + details);
   }

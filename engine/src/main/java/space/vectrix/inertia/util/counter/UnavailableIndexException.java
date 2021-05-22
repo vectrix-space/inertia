@@ -31,7 +31,9 @@ import org.checkerframework.checker.nullness.qual.NonNull;
  *
  * @since 0.2.0
  */
-public class UnavailableIndexException extends IndexOutOfBoundsException {
+public final class UnavailableIndexException extends IndexOutOfBoundsException {
+  private static final long serialVersionUID = 1L;
+
   /* package */ UnavailableIndexException(final @NonNull String message) {
     super(message);
   }
