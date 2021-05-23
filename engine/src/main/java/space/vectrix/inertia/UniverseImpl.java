@@ -179,6 +179,11 @@ import java.util.Optional;
     this.componentContainer.clearComponents(holder);
   }
 
+  @Override
+  public @NonNull Collection<Object> components(final @NonNull Holder holder) {
+    return this.componentContainer.components(holder);
+  }
+
   public static class BuilderImpl implements Universe.Builder {
     private InjectionMethod.Factory methodFactory = new DummyInjectionMethodFactory();
     private InjectionStructure.Factory structureFactory = new DummyInjectionStructureFactory();

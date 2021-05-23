@@ -47,6 +47,7 @@ import space.vectrix.inertia.util.counter.IndexCounter;
 import space.vectrix.inertia.util.version.Version;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -163,6 +164,17 @@ public final class ComponentContainerImpl implements ComponentContainer, Process
       final long version = this.getCombinedIndex(holderVersion.index(), componentIndex);
       this.componentRemovals.add(version);
     }
+  }
+
+  @Override
+  public @NonNull Collection<Object> components(final @NonNull Holder holder) {
+    final Version holderVersion = requireNonNull(holder, "holder").version();
+    if(!holderVersion.belongs(this.universe)) return Collections.emptyList();
+
+    final Int2ObjectSyncMap<Object> components = this.componentHolders.get(holderVersion.index());
+    if(components == null) return Collections.emptyList();
+
+    return components.values();
   }
 
   @Override

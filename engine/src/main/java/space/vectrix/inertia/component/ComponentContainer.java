@@ -152,4 +152,14 @@ public interface ComponentContainer {
    * @since 0.2.0
    */
   void clearComponents(final @NonNull Holder holder);
+
+  /**
+   * Returns the {@link Object} components associated with the specified
+   * {@link Holder}.
+   *
+   * @param holder the holder
+   * @return the collection of components
+   * @since 0.2.0
+   */
+  @NonNull Collection<Object> components(final @NonNull Holder holder);
 }

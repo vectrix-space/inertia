@@ -30,6 +30,7 @@ import space.vectrix.inertia.Universe;
 import space.vectrix.inertia.annotation.Component;
 import space.vectrix.inertia.component.ComponentType;
 
+import java.util.Collection;
 import java.util.Optional;
 
 /**
@@ -107,4 +108,12 @@ public interface HolderExplorer {
    * @since 0.2.0
    */
   void clear();
+
+  /**
+   * Returns a {@link Collection} of components.
+   *
+   * @return the components
+   * @since 0.2.0
+   */
+  @NonNull Collection<Object> components();
 }
