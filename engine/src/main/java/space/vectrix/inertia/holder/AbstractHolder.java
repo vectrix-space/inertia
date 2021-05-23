@@ -30,6 +30,7 @@ import space.vectrix.inertia.Universe;
 import space.vectrix.inertia.component.ComponentType;
 import space.vectrix.inertia.util.version.Version;
 
+import java.util.Collection;
 import java.util.Optional;
 
 /**
@@ -89,5 +90,10 @@ public abstract class AbstractHolder implements Holder {
   @Override
   public void clear() {
     this.universe.clearComponents(this);
+  }
+
+  @Override
+  public @NonNull Collection<Object> components() {
+    return this.universe.components(this);
   }
 }
