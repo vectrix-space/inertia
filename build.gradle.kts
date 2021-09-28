@@ -32,7 +32,7 @@ subprojects {
   }
 
   dependencies {
-    testImplementation("com.google.guava:guava-testlib:30.1.1-jre")
+    testImplementation("com.google.guava:guava-testlib:31.0.1-jre")
     testImplementation("com.google.truth:truth:1.1.3")
     testImplementation("com.google.truth.extensions:truth-java8-extension:1.1.3")
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.2")
