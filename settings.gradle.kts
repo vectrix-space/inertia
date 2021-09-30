@@ -1,11 +1,13 @@
+pluginManagement {
+  includeBuild("build-logic")
+}
+
 rootProject.name = "inertia-parent"
 
-include("engine")
-include("injector-asm")
-
-listOf(
+sequenceOf(
   "engine",
   "injector-asm"
 ).forEach {
-  findProject(":$it")?.name = "inertia-$it"
+  include("inertia-$it")
+  project(":inertia-$it").projectDir = file(it)
 }

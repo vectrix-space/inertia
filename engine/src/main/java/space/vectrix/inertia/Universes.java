@@ -24,30 +24,26 @@
  */
 package space.vectrix.inertia;
 
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import space.vectrix.flare.fastutil.Int2ObjectSyncMap;
-import space.vectrix.inertia.util.counter.IndexCounter;
-
-import java.util.function.Consumer;
+import space.vectrix.inertia.util.IndexCounter;
 
 /* package */ final class Universes {
-  private static final Int2ObjectSyncMap<Universe> UNIVERSES = Int2ObjectSyncMap.hashmap(100);
-  private static final IndexCounter UNIVERSES_INDEX = IndexCounter.counter("universe", Universes.UNIVERSES);
+  private static final Int2ObjectMap<Universe> UNIVERSES = Int2ObjectSyncMap.hashmap();
+  private static final IndexCounter UNIVERSE_COUNTER = IndexCounter.counter("universes", Universes.UNIVERSES);
 
-  /* package */ static @NonNull Universe create(final @NonNull Consumer<Universe.Builder> builderConsumer) {
-    return Universes.UNIVERSES_INDEX.next(index -> Universes.UNIVERSES.computeIfAbsent(index, key -> {
-      final UniverseImpl.BuilderImpl builder = new UniverseImpl.BuilderImpl();
-      builderConsumer.accept(builder);
-      return builder.build(key);
-    }));
+  /* package */ static @NonNull Universe create() {
+    return Universes.UNIVERSE_COUNTER.next(index -> Universes.UNIVERSES.computeIfAbsent(index, UniverseImpl::new));
   }
 
-  /* package */ static @Nullable Universe get(final int index) {
+  /* package */ static @Nullable Universe get(final @NonNegative int index) {
     return Universes.UNIVERSES.get(index);
   }
 
-  /* package */ static @Nullable Universe remove(final int index) {
+  /* package */ static @Nullable Universe remove(final @NonNegative int index) {
     return Universes.UNIVERSES.remove(index);
   }
 }

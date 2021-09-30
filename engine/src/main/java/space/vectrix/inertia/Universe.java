@@ -24,115 +24,300 @@
  */
 package space.vectrix.inertia;
 
+import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import space.vectrix.inertia.component.ComponentContainer;
-import space.vectrix.inertia.holder.HolderContainer;
-import space.vectrix.inertia.injection.InjectionMethod;
+import space.vectrix.inertia.component.ComponentType;
+import space.vectrix.inertia.entity.Entity;
+import space.vectrix.inertia.entity.EntityFunction;
 import space.vectrix.inertia.injection.InjectionStructure;
-import space.vectrix.inertia.processor.Processing;
-import space.vectrix.inertia.processor.Processor;
-import space.vectrix.inertia.processor.ProcessorContainer;
+import space.vectrix.inertia.system.System;
 
-import java.util.function.Consumer;
+import java.util.Collection;
 
 /**
- * Represents the universe of holders and components.
+ * Represents the universe of entities, components and processors.
  *
- * @since 0.2.0
+ * @since 0.3.0
  */
-public interface Universe extends ProcessorContainer, HolderContainer, ComponentContainer {
+public interface Universe {
   /**
-   * Creates a new {@link Universe} and returns it.
+   * Returns a new universe.
    *
    * @return the new universe
-   * @since 0.2.0
+   * @since 0.3.0
    */
   static @NonNull Universe create() {
-    return Universes.create(ignored -> {});
+    return Universes.create();
   }
 
   /**
-   * Creates a new {@link Universe} using the builder {@link Consumer} and
-   * returns it.
-   *
-   * @param builderConsumer the builder consumer
-   * @return the new universe
-   * @since 0.2.0
-   */
-  static @NonNull Universe create(final @NonNull Consumer<Universe.Builder> builderConsumer) {
-    return Universes.create(builderConsumer);
-  }
-
-  /**
-   * Returns the {@link Universe} with the specified {@code index}.
+   * Returns the universe with the specified {@code index}
+   * if it exists.
    *
    * @param index the universe index
    * @return the universe, if present
-   * @since 0.2.0
+   * @since 0.3.0
    */
-  static @Nullable Universe get(final int index) {
+  static @Nullable Universe get(final @NonNegative int index) {
     return Universes.get(index);
   }
 
   /**
-   * Returns the index for this universe.
+   * Returns the unique {@code int} index for this universe.
    *
    * @return the universe index
-   * @since 0.2.0
+   * @since 0.3.0
    */
-  int index();
+  @NonNegative int index();
 
   /**
-   * Ticks the universe {@link Processor}s.
+   * Ticks the {@link System}s in this universe.
    *
-   * @since 0.2.0
+   * @return the tick result
+   * @since 0.3.0
    */
-  void tick();
+  @NonNull Tick tick();
+
+  /**
+   * Sets the {@link InjectionStructure} for system dependency injection.
+   *
+   * @param factory the structure factory
+   * @since 0.3.0
+   */
+  void injector(final InjectionStructure.@Nullable Factory factory);
+
+  /**
+   * Returns the {@code T} system for the specified {@link Class} if
+   * it exists, otherwise {@code null}.
+   *
+   * @param target the target class
+   * @param <T> the target instance type
+   * @return the system, if present
+   * @since 0.3.0
+   */
+  <T extends System> @Nullable T getSystem(final @NonNull Class<?> target);
+
+  /**
+   * Returns the {@link ComponentType} with the specified {@code int}
+   * index if it exists, otherwise {@code null}.
+   *
+   * @param type the type index
+   * @return the component type, if present
+   * @since 0.3.0
+   */
+  @Nullable ComponentType getType(final @NonNegative int type);
+
+  /**
+   * Returns the {@link ComponentType} for the specified {@link Class}
+   * if it exists, otherwise {@code null}.
+   *
+   * @param target the target class
+   * @return the component type, if present
+   * @since 0.3.0
+   */
+  @Nullable ComponentType getType(final @NonNull Class<?> target);
+
+  /**
+   * Returns the {@link Entity} with the specified {@code int}
+   * entity index if it exists, otherwise {@code null}.
+   *
+   * @param entity the entity index
+   * @return the entity, if present
+   * @since 0.3.0
+   */
+  @Nullable Entity getEntity(final @NonNegative int entity);
+
+  /**
+   * Returns the {@link Entity} with the specified {@code int}
+   * component index if it exists, otherwise {@code null}.
+   *
+   * @param component the component index
+   * @return the entity, if present
+   * @since 0.3.0
+   */
+  @Nullable Entity getEntityFromComponent(final @NonNegative int component);
+
+  /**
+   * Returns {@code true} if the specified {@link Entity} contains the
+   * {@link ComponentType} if it exists, otherwise {@code false}.
+   *
+   * @param entity the entity
+   * @param type the component type
+   * @return true if the component exists, otherwise false
+   */
+  boolean hasComponent(final @NonNull Entity entity, final @NonNull ComponentType type);
+
+  /**
+   * Returns the component instance with the specified {@code int}
+   * component index if it exists, otherwise {@code null}.
+   *
+   * @param component the component index
+   * @return the component, if present
+   * @since 0.3.0
+   */
+  @Nullable Object getComponent(final @NonNegative int component);
+
+  /**
+   * Returns the {@code T} component instance for the specified {@link Entity}
+   * index and {@link ComponentType} if it exists, otherwise {@code null}.
+   *
+   * @param entity the entity index
+   * @param type the component type
+   * @param <T> the component instance type
+   * @return the component, if present
+   * @since 0.3.0
+   */
+  <T> @Nullable T getComponent(final @NonNull Entity entity, final @NonNull ComponentType type);
+
+  /**
+   * Adds the {@code T} system to this universe.
+   *
+   * @param system the system
+   * @param <T> the system type
+   * @since 0.3.0
+   */
+  <T extends System> void addSystem(final @NonNull T system);
+
+  /**
+   * Returns a new {@link Entity}.
+   *
+   * @return the new entity
+   * @since 0.3.0
+   */
+  @NonNull Entity createEntity();
+
+  /**
+   * Returns a new {@code T} entity instance for the specified
+   * {@link EntityFunction}.
+   *
+   * @param function the entity function
+   * @param <T> the entity type
+   * @return the new entity
+   * @since 0.3.0
+   */
+  <T extends Entity> @NonNull T createEntity(final @NonNull EntityFunction<T> function);
+
+  /**
+   * Returns a new {@code T} component instance for the specified {@link Entity}
+   * index and {@link ComponentType} if it exists, otherwise {@code null}.
+   *
+   * @param entity the entity
+   * @param type the component type
+   * @param <T> the component instance type
+   * @return the new component
+   * @since 0.3.0
+   */
+  <T> @NonNull T addComponent(final @NonNull Entity entity, final @NonNull ComponentType type);
+
+  /**
+   * Marks the specified {@code int} entity for removal.
+   *
+   * @param entity the entity index
+   * @since 0.3.0
+   */
+  void removeEntity(final @NonNegative int entity);
+
+  /**
+   * Marks the specified {@link Entity} for removal.
+   *
+   * @param entity the entity
+   * @since 0.3.0
+   */
+  void removeEntity(final @NonNull Entity entity);
+
+  /**
+   * Marks the specified {@link ComponentType} for the {@link Entity}
+   * to be removed.
+   *
+   * @param entity the entity
+   * @param type the component type
+   * @since 0.3.0
+   */
+  void removeComponent(final @NonNull Entity entity, final @NonNull ComponentType type);
+
+  /**
+   * Marks all the components on the specified {@link Entity} to be
+   * removed.
+   *
+   * @param entity the entity
+   * @since 0.3.0
+   */
+  void clearComponents(final @NonNull Entity entity);
+
+  /**
+   * Returns a {@link Collection} of {@link System}s in this universe.
+   *
+   * @return a collection of systems
+   * @since 0.3.0
+   */
+  @NonNull Collection<System> systems();
+
+  /**
+   * Returns a {@link Collection} of {@link Entity}s in this universe.
+   *
+   * @return a collection of entities
+   * @since 0.3.0
+   */
+  @NonNull Collection<Entity> entities();
+
+  /**
+   * Returns a {@link Collection} of {@code T} component instances for
+   * the specified {@link ComponentType}.
+   *
+   * @param type the component type
+   * @param <T> the component instance type
+   * @return a collection of components
+   * @since 0.3.0
+   */
+  <T> @NonNull Collection<T> components(final @NonNull ComponentType type);
+
+  /**
+   * Returns a {@link Collection} of component instances for the specified
+   * {@link Entity}.
+   *
+   * @param entity the entity
+   * @return a collection of components
+   * @since 0.3.0
+   */
+  @NonNull Collection<Object> components(final @NonNull Entity entity);
+
+  /**
+   * Returns a {@link Collection} of component instances in this universe.
+   *
+   * @return a collection of components
+   * @since 0.3.0
+   */
+  @NonNull Collection<Object> components();
 
   /**
    * Destroys the universe.
-   *
-   * @since 0.2.0
    */
   default void destroy() {
     Universes.remove(this.index());
   }
 
   /**
-   * Represents a builder used to create a universe.
+   * The result of a tick.
    *
-   * @since 0.2.0
+   * @since 0.3.0
    */
-  interface Builder {
+  interface Tick {
     /**
-     * Returns this {@link Builder} with the specified
-     * {@link InjectionStructure.Factory}.
+     * Returns the {@code int} time this tick ran on.
      *
-     * @param factory the injection structure factory
-     * @return this builder
-     * @since 0.2.0
+     * @return the time
+     * @since 0.3.0
      */
-    @NonNull Builder injectionStructure(final InjectionStructure.@NonNull Factory factory);
+    @NonNegative int time();
 
     /**
-     * Returns this {@link Builder} with the specified
-     * {@link InjectionMethod.Factory}.
+     * Returns a {@link Collection} of {@link Throwable}s encountered on
+     * this tick.
      *
-     * @param factory the injection method factory
-     * @return this builder
-     * @since 0.2.0
+     * @return a collection of throwables
+     * @since 0.3.0
      */
-    @NonNull Builder injectionMethod(final InjectionMethod.@NonNull Factory factory);
-
-    /**
-     * Returns this {@link Builder} with the specified
-     * {@link Processing}.
-     *
-     * @param processing the processing system
-     * @return this builder
-     * @since 0.2.0
-     */
-    @NonNull Builder processing(final Processing.@NonNull Factory processing);
+    @NonNull Collection<Throwable> errors();
   }
 }

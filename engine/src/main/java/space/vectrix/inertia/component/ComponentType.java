@@ -24,44 +24,64 @@
  */
 package space.vectrix.inertia.component;
 
+import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import space.vectrix.inertia.util.version.Version;
+import space.vectrix.inertia.Universe;
+
+import static java.util.Objects.requireNonNull;
 
 /**
  * Represents a component type.
  *
- * @since 0.2.0
+ * @since 0.3.0
  */
 public interface ComponentType {
   /**
-   * Returns the {@link Version}.
+   * Returns the existing {@link ComponentType} for the specified {@link Class}
+   * target and {@link Universe}, otherwise creates a new one.
    *
-   * @return the version
-   * @since 0.2.0
+   * @param universe the universe
+   * @param target the target component
+   * @return the component type
+   * @since 0.3.0
    */
-  @NonNull Version version();
+  static @NonNull ComponentType create(final @NonNull Universe universe, final @NonNull Class<?> target) {
+    requireNonNull(universe, "universe");
+    requireNonNull(target, "target");
+    return ComponentTypes.resolve(universe, target);
+  }
 
   /**
-   * Returns the {@link String} identifier.
+   * Returns the unique {@code int} index for this component
+   * type.
    *
-   * @return the identifier
-   * @since 0.2.0
+   * @return the component type index
+   * @since 0.3.0
+   */
+  @NonNegative int index();
+
+  /**
+   * Returns the {@link String} identifier for this component
+   * type.
+   *
+   * @return the component type identifier
+   * @since 0.3.0
    */
   @NonNull String id();
 
   /**
-   * Returns the {@link String} name.
+   * Returns the {@link String} name for this component type.
    *
-   * @return the name
-   * @since 0.2.0
+   * @return the component type name
+   * @since 0.3.0
    */
   @NonNull String name();
 
   /**
-   * Returns the {@link Class} type.
+   * Returns the {@link Class} type for this component type.
    *
-   * @return the type
-   * @since 0.2.0
+   * @return the component type class
+   * @since 0.3.0
    */
   @NonNull Class<?> type();
 }

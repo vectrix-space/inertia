@@ -22,19 +22,24 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package space.vectrix.inertia.util;
+package space.vectrix.inertia.component;
 
+import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import space.vectrix.inertia.Universe;
+import space.vectrix.inertia.UniverseImpl;
 
-/**
- * Thrown when an object is being used in the wrong context.
- *
- * @since 0.2.0
- */
-public class InvalidContextException extends IllegalStateException {
-  private static final long serialVersionUID = 1L;
+import static java.util.Objects.requireNonNull;
 
-  public InvalidContextException(final @NonNull String context, final @NonNull String details) {
-    super(context + ": " + details);
+/* package */ final class ComponentTypes {
+  /* package */ static @NonNull ComponentType resolve(final @NonNull Universe universe, final @NonNull Class<?> target) {
+    final UniverseImpl internal = (UniverseImpl) universe;
+    return internal.resolveComponent(target, index -> ComponentTypes.create(index, target));
+  }
+
+  /* package */ static @NonNull ComponentType create(final @NonNegative int index, final @NonNull Class<?> target) {
+    final Component annotation = target.getAnnotation(Component.class);
+    if(annotation == null) throw new IllegalArgumentException("Target class '" + target.getSimpleName() + "' must have an @Component annotation!");
+    return new ComponentTypeImpl(index, requireNonNull(annotation.id(), "id"), requireNonNull(annotation.name(), "name"), target);
   }
 }

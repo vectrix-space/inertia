@@ -22,19 +22,39 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package space.vectrix.inertia.processor;
+package space.vectrix.inertia.system;
+
+import space.vectrix.inertia.component.ComponentType;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * Represents a system that can be processed.
+ * Represents a {@link ComponentType} dependency to be injected for
+ * a {@link System}.
  *
- * @since 0.2.0
+ * @since 0.3.0
  */
-public interface ProcessingSystem {
+@Target(ElementType.FIELD)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface Dependency {
   /**
-   * Runs the systems processing functionality.
+   * Returns the component {@link Class} to inject a {@link ComponentType}
+   * for.
    *
-   * @throws Throwable when there is an issue processing the system
-   * @since 0.2.0
+   * @return the component class
+   * @since 0.3.0
    */
-  default void process() throws Throwable {}
+  Class<?> value();
+
+  /**
+   * Returns {@code true} if this dependency should only be injected if it
+   * already exists, otherwise {@code false}.
+   *
+   * @return whether the injection is optional
+   * @since 0.3.0
+   */
+  boolean optional() default false;
 }

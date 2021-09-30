@@ -24,31 +24,31 @@
  */
 package space.vectrix.inertia.component;
 
+import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import space.vectrix.inertia.util.version.Version;
 
 import java.util.Objects;
 
 /* package */ final class ComponentTypeImpl implements ComponentType {
-  private final Version version;
+  private final int index;
   private final String id;
   private final String name;
   private final Class<?> type;
 
-  /* package */ ComponentTypeImpl(final @NonNull Version version,
+  /* package */ ComponentTypeImpl(final @NonNegative int index,
                                   final @NonNull String id,
                                   final @NonNull String name,
                                   final @NonNull Class<?> type) {
-    this.version = version;
+    this.index = index;
     this.id = id;
     this.name = name;
     this.type = type;
   }
 
   @Override
-  public @NonNull Version version() {
-    return this.version;
+  public @NonNegative int index() {
+    return this.index;
   }
 
   @Override
@@ -68,7 +68,7 @@ import java.util.Objects;
 
   @Override
   public int hashCode() {
-    return Objects.hash(this.version(), this.id(), this.name(), this.type());
+    return Objects.hash(this.index(), this.id(), this.name(), this.type());
   }
 
   @Override
@@ -76,15 +76,15 @@ import java.util.Objects;
     if(other == this) return true;
     if(!(other instanceof ComponentType)) return false;
     final ComponentType that = (ComponentType) other;
-    return Objects.equals(this.version(), that.version())
+    return Objects.equals(this.index(), that.index())
       && Objects.equals(this.id(), that.id())
       && Objects.equals(this.name(), that.name())
       && Objects.equals(this.type(), that.type());
   }
 
   @Override
-  public String toString() {
-    return "ComponentType{version=" + this.version +
+  public @NonNull String toString() {
+    return "ComponentType{index=" + this.index +
       ", id=" + this.id + ", name=" + this.name +
       ", type=" + this.type + "}";
   }

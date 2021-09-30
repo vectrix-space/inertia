@@ -24,44 +24,42 @@
  */
 package space.vectrix.inertia.injection;
 
-import static java.util.Objects.requireNonNull;
-
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.lanternpowered.lmbda.LambdaFactory;
+import space.vectrix.flare.SyncMap;
 
 import java.lang.invoke.MethodHandle;
+import java.util.Map;
 import java.util.function.BiConsumer;
 
-public final class LmbdaInjectionMethodFactory implements InjectionMethod.Factory {
-  private final LoadingCache<MethodHandle, LmbdaMemberInjector> cache;
+import static java.util.Objects.requireNonNull;
 
-  public LmbdaInjectionMethodFactory() {
-    this.cache = CacheBuilder.newBuilder()
-      .initialCapacity(16)
-      .weakValues()
-      .build(CacheLoader.from(methodHandle -> {
-        requireNonNull(methodHandle, "methodHandle");
-        return new LmbdaMemberInjector(LambdaFactory.createBiConsumer(methodHandle));
-      }));
+public final class LmbdaInjectionTargetFactory implements InjectionTarget.Factory {
+  public static @NonNull LmbdaInjectionTargetFactory factory() {
+    return new LmbdaInjectionTargetFactory();
   }
+
+  private final Map<MethodHandle, LmbdaInjectionTarget> targets = SyncMap.hashmap(100);
+
+  /* package */ LmbdaInjectionTargetFactory() {}
 
   @Override
-  public @NonNull InjectionMethod create(final @NonNull Object input) throws Throwable {
-    return this.cache.getUnchecked((MethodHandle) input);
+  public @NonNull InjectionTarget create(final @NonNull Object input) throws Throwable {
+    requireNonNull(input, "input");
+    return this.targets.computeIfAbsent((MethodHandle) input, key -> new LmbdaInjectionTarget(LambdaFactory.createBiConsumer(key)));
   }
 
-  /* package */ static final class LmbdaMemberInjector implements InjectionMethod {
+  /* package */ static final class LmbdaInjectionTarget implements InjectionTarget {
     private final BiConsumer<Object, Object> injector;
 
-    /* package */ LmbdaMemberInjector(final BiConsumer<Object, Object> injector) {
+    /* package */ LmbdaInjectionTarget(final @NonNull BiConsumer<Object, Object> injector) {
       this.injector = injector;
     }
 
     @Override
-    public void member(final @NonNull Object target, final @NonNull Object member) throws Throwable {
+    public void inject(final @NonNull Object target, final @NonNull Object member) throws Throwable {
+      requireNonNull(target, "target");
+      requireNonNull(member, "member");
       this.injector.accept(target, member);
     }
   }

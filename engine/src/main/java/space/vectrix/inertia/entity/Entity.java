@@ -22,98 +22,123 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package space.vectrix.inertia.holder;
+package space.vectrix.inertia.entity;
 
+import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import space.vectrix.inertia.Universe;
-import space.vectrix.inertia.annotation.Component;
+import space.vectrix.inertia.component.Component;
 import space.vectrix.inertia.component.ComponentType;
 
 import java.util.Collection;
 import java.util.Optional;
 
 /**
- * Represents a way to explore a holders associated components.
+ * Represents a container of components.
  *
- * @since 0.2.0
+ * @since 0.3.0
  */
-public interface HolderExplorer {
+public interface Entity {
   /**
-   * Returns whether the holder is a valid participant in a
-   * {@link Universe}.
+   * Returns an {@link EntityFunction} to create a simple entity
+   * implementation that components can be attached to.
    *
-   * @return whether the holder is valid
-   * @since 0.2.0
+   * @return the simple entity function
+   * @since 0.3.0
    */
-  boolean valid();
+  static @NonNull EntityFunction<Entity> simple() {
+    return EntityImpl::new;
+  }
 
   /**
-   * Returns {@code true} if the holder has a {@link Component} instance for
+   * Returns the {@link Universe}.
+   *
+   * @return the universe
+   * @since 0.3.0
+   */
+  @NonNull Universe universe();
+
+  /**
+   * Returns the {@code int} index.
+   *
+   * @return the index
+   * @since 0.3.0
+   */
+  @NonNegative int index();
+
+  /**
+   * Returns {@code true} if the entity has a {@link Component} instance for
    * the specified {@link ComponentType}.
    *
-   * @param componentType the component type
-   * @return whether the component exists in this holder
-   * @since 0.2.0
+   * @param type the component type
+   * @return whether the component exists in this entity
+   * @since 0.3.0
    */
-  boolean contains(final @NonNull ComponentType componentType);
+  boolean contains(final @NonNull ComponentType type);
 
   /**
    * Returns the {@code T} component with the specified {@link ComponentType},
    * if it exists.
    *
-   * @param componentType the component type
+   * @param type the component type
    * @param <T> the specific component type
    * @return the component, if present
-   * @since 0.2.0
+   * @since 0.3.0
    */
-  <T> @Nullable T get(final @NonNull ComponentType componentType);
+  <T> @Nullable T get(final @NonNull ComponentType type);
 
   /**
    * Returns the {@code T} component with the specified {@link ComponentType},
    * if it exists.
    *
-   * @param componentType the component type
+   * @param type the component type
    * @param <T> the specific component type
    * @return the component, if present
-   * @since 0.2.0
+   * @since 0.3.0
    */
-  <T> @NonNull Optional<T> getPresent(final @NonNull ComponentType componentType);
+  default <T> @NonNull Optional<T> getPresent(final @NonNull ComponentType type) {
+    return Optional.ofNullable(this.get(type));
+  }
 
   /**
    * Returns the existing {@code T} or creates a new {@code T} for the
    * specified {@link ComponentType}.
    *
-   * @param componentType the component type
+   * @param type the component type
    * @param <T> the specific component type
    * @return the present component, or a new component
-   * @since 0.2.0
+   * @since 0.3.0
    */
-  <T> @NonNull T add(final @NonNull ComponentType componentType);
+  <T> @NonNull T add(final @NonNull ComponentType type);
 
   /**
-   * Returns the {@code T} component if it exists and removes the specified
-   * {@link ComponentType}.
+   * Removes the specified {@link ComponentType} if it exists.
    *
-   * @param componentType the component type
-   * @param <T> the specific component type
-   * @return the removed component, if present
-   * @since 0.2.0
+   * @param type the component type
+   * @since 0.3.0
    */
-  <T> @Nullable T remove(final @NonNull ComponentType componentType);
+  void remove(final @NonNull ComponentType type);
 
   /**
-   * Removes all the components associated with this holder.
+   * Removes all the components associated with this entity.
    *
-   * @since 0.2.0
+   * @since 0.3.0
    */
   void clear();
+
+  /**
+   * Marks this entity for removal from the universe.
+   *
+   * @since 0.3.0
+   */
+  void destroy();
 
   /**
    * Returns a {@link Collection} of components.
    *
    * @return the components
-   * @since 0.2.0
+   * @since 0.3.0
    */
   @NonNull Collection<Object> components();
 }

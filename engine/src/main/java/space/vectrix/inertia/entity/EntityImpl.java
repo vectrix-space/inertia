@@ -22,19 +22,19 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package space.vectrix.inertia.util.counter;
+package space.vectrix.inertia.entity;
 
+import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import space.vectrix.inertia.Universe;
 
 /**
- * Thrown when an available index is not able to be retrieved.
+ * The basic {@link Entity}.
  *
- * @since 0.2.0
+ * @since 0.3.0
  */
-public final class UnavailableIndexException extends IndexOutOfBoundsException {
-  private static final long serialVersionUID = 1L;
-
-  /* package */ UnavailableIndexException(final @NonNull String message) {
-    super(message);
+/* package */ final class EntityImpl extends AbstractEntity {
+  /* package */ EntityImpl(final @NonNull Universe universe, final @NonNegative int index) {
+    super(universe, index);
   }
 }

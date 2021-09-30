@@ -22,27 +22,43 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package space.vectrix.inertia.holder;
+package space.vectrix.inertia.injection;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import space.vectrix.inertia.Universe;
 
 /**
- * Represents a function used to create a new {@link Holder}.
+ * Functional interface that can inject members on a defined field on a target
+ * object when needed.
  *
- * @param <T> the holder type
- * @since 0.2.0
+ * @since 0.3.0
  */
 @FunctionalInterface
-public interface HolderFunction<T extends Holder> {
+public interface InjectionTarget {
   /**
-   * Creates a new {@link Holder} for the specified {@link Universe} with the
-   * specified {@code index}.
+   * Injects the instance at the appropriate field on the given target.
    *
-   * @param universe the universe
-   * @param index the index
-   * @return the holder
-   * @since 0.2.0
+   * @param target the target to inject into
+   * @param instance the instance to inject
+   * @throws Throwable if a problem occurred attempting to inject
+   * @since 0.3.0
    */
-  T apply(final @NonNull Universe universe, final int index);
+  void inject(final @NonNull Object target, final @NonNull Object instance) throws Throwable;
+
+  /**
+   * The factory for creating an {@link InjectionTarget}.
+   *
+   * @since 0.3.0
+   */
+  @FunctionalInterface
+  interface Factory {
+    /**
+     * Creates a new {@link InjectionTarget} for the specified input.
+     *
+     * @param input the target input
+     * @return the injection method
+     * @throws Throwable if a problem occurred attempting to inject
+     * @since 0.3.0
+     */
+    @NonNull InjectionTarget create(final @NonNull Object input) throws Throwable;
+  }
 }
