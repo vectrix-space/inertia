@@ -24,191 +24,482 @@
  */
 package space.vectrix.inertia;
 
-import com.google.common.collect.Lists;
-import net.kyori.coffee.math.range.i.IntRange;
+import it.unimi.dsi.fastutil.PriorityQueue;
+import it.unimi.dsi.fastutil.PriorityQueues;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.IntArrayFIFOQueue;
+import it.unimi.dsi.fastutil.ints.IntIntPair;
+import it.unimi.dsi.fastutil.ints.IntPriorityQueue;
+import it.unimi.dsi.fastutil.ints.IntPriorityQueues;
+import it.unimi.dsi.fastutil.objects.ObjectArrayFIFOQueue;
+import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import space.vectrix.inertia.component.ComponentContainerImpl;
+import space.vectrix.flare.SyncMap;
+import space.vectrix.flare.fastutil.Int2ObjectSyncMap;
+import space.vectrix.inertia.component.Component;
 import space.vectrix.inertia.component.ComponentType;
-import space.vectrix.inertia.holder.Holder;
-import space.vectrix.inertia.holder.HolderContainerImpl;
-import space.vectrix.inertia.holder.HolderFunction;
-import space.vectrix.inertia.injection.DummyInjectionMethodFactory;
-import space.vectrix.inertia.injection.DummyInjectionStructureFactory;
-import space.vectrix.inertia.injection.InjectionMethod;
+import space.vectrix.inertia.entity.Entity;
+import space.vectrix.inertia.entity.EntityFunction;
 import space.vectrix.inertia.injection.InjectionStructure;
-import space.vectrix.inertia.processor.Processing;
-import space.vectrix.inertia.processor.ProcessingImpl;
-import space.vectrix.inertia.processor.Processor;
-import space.vectrix.inertia.processor.ProcessorContainerImpl;
+import space.vectrix.inertia.system.Dependency;
+import space.vectrix.inertia.system.System;
+import space.vectrix.inertia.util.IndexCounter;
 
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Optional;
+import java.util.Collections;
+import java.util.IdentityHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.IntFunction;
 
-/* package */ final class UniverseImpl implements Universe {
-  private final ProcessorContainerImpl processorContainer;
-  private final ComponentContainerImpl componentContainer;
-  private final HolderContainerImpl holderContainer;
-  private final Processing processing;
+import static java.util.Objects.requireNonNull;
+
+public final class UniverseImpl implements Universe {
+  /**
+   * Stores the processors by class type.
+   */
+  private final Map<Class<?>, System> systems = SyncMap.of(IdentityHashMap::new, 20);
+  private final Map<Class<?>, InjectionStructure> systemStructure = SyncMap.of(IdentityHashMap::new, 20);
+
+  /**
+   * Stored by unique {@code int} component type index and {@link Class} component
+   * type, with a counter.
+   */
+  private final Int2ObjectMap<ComponentType> types = Int2ObjectSyncMap.hashmap(50);
+  private final Map<Class<?>, ComponentType> typeClasses = SyncMap.of(IdentityHashMap::new, 50);
+  private final IndexCounter typeCounter = IndexCounter.counter("types", this.types);
+
+  /**
+   * Stored by the unique {@code int} entity identifier and unique {@code int}
+   * component type identifier.
+   */
+  private final Int2ObjectMap<Int2ObjectMap<ComponentEntry>> entityComponents = Int2ObjectSyncMap.hashmap(100);
+
+  /**
+   * Stored by unique {@code int} component index.
+   */
+  private final Int2ObjectMap<ComponentEntry> components = Int2ObjectSyncMap.hashmap(100);
+  private final IndexCounter componentCounter = IndexCounter.counter("components", this.components);
+
+  /**
+   * Stored by unique {@code int} entity index.
+   */
+  private final Int2ObjectMap<Entity> entities = Int2ObjectSyncMap.hashmap(100);
+  private final IndexCounter entityCounter = IndexCounter.counter("entities", this.entities);
+
+  /**
+   * Remove queues, for destroying components and entities on sanitization.
+   */
+  private final IntPriorityQueue entityRemovals = IntPriorityQueues.synchronize(new IntArrayFIFOQueue());
+  private final PriorityQueue<IntIntPair> entityComponentRemovals = PriorityQueues.synchronize(new ObjectArrayFIFOQueue<>());
+
+  private final AtomicInteger time = new AtomicInteger();
+  private final Object lock = new Object();
   private final int index;
 
-  /* package */ UniverseImpl(final int index, final BuilderImpl builder) {
-    this.componentContainer = new ComponentContainerImpl(this, builder.structureFactory, builder.methodFactory);
-    this.holderContainer = new HolderContainerImpl(this);
-    this.processorContainer = new ProcessorContainerImpl();
-    this.processing = builder.processing.create(this);
+  private InjectionStructure.@Nullable Factory factory;
+
+  /* package */ UniverseImpl(final @NonNegative int index) {
     this.index = index;
   }
 
   @Override
-  public int index() {
+  public @NonNegative int index() {
     return this.index;
   }
 
   @Override
-  public void tick() {
-    this.processing.process(Lists.newArrayList(
-      this.processorContainer,
-      this.componentContainer,
-      this.holderContainer
-    ));
+  public @NonNull Tick tick() {
+    return this.update();
   }
 
   @Override
-  public <T extends Processor> @Nullable T getProcessor(final @NonNull Class<T> type) {
-    return this.processorContainer.getProcessor(type);
+  public void injector(final InjectionStructure.@Nullable Factory factory) {
+    this.factory = factory;
   }
 
   @Override
-  public <T extends Processor> void addProcessor(final @NonNull T processor) {
-    this.processorContainer.addProcessor(processor);
+  @SuppressWarnings("unchecked")
+  public <T extends System> @Nullable T getSystem(final @NonNull Class<?> target) {
+    requireNonNull(target, "target");
+    return (T) this.systems.get(target);
   }
 
   @Override
-  public @NonNull Collection<? extends Processor> processors(final int priority) {
-    return this.processorContainer.processors(priority);
+  public @Nullable ComponentType getType(final @NonNegative int type) {
+    return this.types.get(type);
   }
 
   @Override
-  public @NonNull Collection<? extends Processor> processors(final @NonNull IntRange priorities) {
-    return this.processorContainer.processors(priorities);
+  public @Nullable ComponentType getType(final @NonNull Class<?> target) {
+    requireNonNull(target, "target");
+    return this.typeClasses.get(target);
   }
 
   @Override
-  public @NonNull Collection<? extends Processor> processors() {
-    return this.processorContainer.processors();
+  public @Nullable Entity getEntity(final @NonNegative int entity) {
+    return this.entities.get(entity);
   }
 
   @Override
-  public boolean valid(final @NonNull Holder holder) {
-    return this.holderContainer.valid(holder);
+  public @Nullable Entity getEntityFromComponent(final @NonNegative int component) {
+    final ComponentEntry entry = this.components.get(component);
+    if(entry != null) return entry.entity();
+    return null;
   }
 
   @Override
-  public @NonNull Holder createHolder() {
-    return this.holderContainer.createHolder();
+  public boolean hasComponent(final @NonNull Entity entity, final @NonNull ComponentType type) {
+    requireNonNull(entity, "entity");
+    requireNonNull(type, "type");
+    final Int2ObjectMap<ComponentEntry> components = this.entityComponents.get(entity.index());
+    if(components != null) {
+      final ComponentEntry entry = components.get(type.index());
+      return entry != null;
+    }
+    return false;
   }
 
   @Override
-  public <T extends Holder> @NonNull T createHolder(final @NonNull HolderFunction<T> function) {
-    return this.holderContainer.createHolder(function);
+  public @Nullable Object getComponent(final @NonNegative int component) {
+    final ComponentEntry entry = this.components.get(component);
+    if(entry != null) return entry.component();
+    return null;
   }
 
   @Override
-  public boolean removeHolder(final @NonNull Holder holder) {
-    return this.holderContainer.removeHolder(holder);
+  public @Nullable <T> T getComponent(final @NonNull Entity entity, final @NonNull ComponentType type) {
+    requireNonNull(entity, "entity");
+    requireNonNull(type, "type");
+    final Int2ObjectMap<ComponentEntry> components = this.entityComponents.get(entity.index());
+    if(components != null) {
+      final ComponentEntry entry = components.get(type.index());
+      return entry != null ? entry.component() : null;
+    }
+    return null;
   }
 
   @Override
-  public @NonNull Collection<Holder> holders() {
-    return this.holderContainer.holders();
+  public <T extends System> void addSystem(final @NonNull T system) {
+    requireNonNull(system, "system");
+    this.systems.put(system.getClass(), system);
+    if(this.factory != null) {
+      final InjectionStructure structure = this.systemStructure.computeIfAbsent(system.getClass(), key -> this.factory.create(key));
+      this.injectSystem(system, structure);
+    }
   }
 
   @Override
-  public @Nullable ComponentType getType(final int index) {
-    return this.componentContainer.getType(index);
+  public @NonNull Entity createEntity() {
+    return this.createEntity(Entity.simple());
   }
 
   @Override
-  public @Nullable ComponentType getType(final @NonNull Class<?> type) {
-    return this.componentContainer.getType(type);
+  public <T extends Entity> @NonNull T createEntity(final @NonNull EntityFunction<T> function) {
+    requireNonNull(function, "function");
+    return this.entityCounter.next(index -> {
+      final T entity = function.apply(this, index);
+      this.entities.put(index, entity);
+      return entity;
+    });
   }
 
   @Override
-  public @Nullable ComponentType getType(final @NonNull String identifier) {
-    return this.componentContainer.getType(identifier);
+  @SuppressWarnings("unchecked")
+  public <T> @NonNull T addComponent(final @NonNull Entity entity, final @NonNull ComponentType type) {
+    requireNonNull(entity, "entity");
+    requireNonNull(type, "type");
+    return this.componentCounter.next(index -> {
+      Int2ObjectMap<ComponentEntry> components = this.entityComponents.get(entity.index());
+      ComponentEntry entry;
+      if(components != null) {
+        if((entry = components.get(type.index())) != null) {
+          return entry.component();
+        }
+      } else {
+        components = Int2ObjectSyncMap.hashmap(100);
+      }
+      final T componentReference = (T) this.createInstance(type.type());
+      entry = new ComponentEntry(type, index, componentReference, entity);
+      components.put(type.index(), entry);
+      this.components.put(index, entry);
+      return componentReference;
+    });
   }
 
   @Override
-  public @Nullable ComponentType resolveType(final @NonNull Class<?> type) {
-    return this.componentContainer.resolveType(type);
+  public void removeEntity(final @NonNegative int entity) {
+    this.entityRemovals.enqueue(entity);
   }
 
   @Override
-  public @NonNull Collection<ComponentType> types() {
-    return this.componentContainer.types();
+  public void removeEntity(final @NonNull Entity entity) {
+    requireNonNull(entity, "entity");
+    this.entityRemovals.enqueue(entity.index());
   }
 
   @Override
-  public boolean containsComponent(final @NonNull Holder holder, final @NonNull ComponentType componentType) {
-    return this.componentContainer.containsComponent(holder, componentType);
+  public void removeComponent(final @NonNull Entity entity, final @NonNull ComponentType type) {
+    requireNonNull(entity, "entity");
+    requireNonNull(type, "type");
+    this.entityComponentRemovals.enqueue(IntIntPair.of(entity.index(), type.index()));
   }
 
   @Override
-  public <T> @Nullable T getComponent(final @NonNull Holder holder, final @NonNull ComponentType componentType) {
-    return this.componentContainer.getComponent(holder, componentType);
+  public void clearComponents(final @NonNull Entity entity) {
+    requireNonNull(entity, "entity");
+    final int index = entity.index();
+    final Int2ObjectMap<ComponentEntry> components = this.entityComponents.get(entity.index());
+    if(components != null) {
+      components.values().forEach(entry -> this.entityComponentRemovals.enqueue(IntIntPair.of(index, entry.type().index())));
+    }
   }
 
   @Override
-  public @NonNull <T> Optional<T> getPresentComponent(final @NonNull Holder holder, final @NonNull ComponentType componentType) {
-    return this.componentContainer.getPresentComponent(holder, componentType);
+  public @NonNull Collection<System> systems() {
+    return Collections.unmodifiableCollection(this.systems.values());
   }
 
   @Override
-  public <T> @NonNull T addComponent(final @NonNull Holder holder, final @NonNull ComponentType componentType) {
-    return this.componentContainer.addComponent(holder, componentType);
+  public @NonNull Collection<Entity> entities() {
+    return Collections.unmodifiableCollection(this.entities.values());
   }
 
   @Override
-  public <T> @Nullable T removeComponent(final @NonNull Holder holder, final @NonNull ComponentType componentType) {
-    return this.componentContainer.removeComponent(holder, componentType);
+  public <T> @NonNull Collection<T> components(final @NonNull ComponentType type) {
+    requireNonNull(type, "type");
+    final List<T> collection = new ArrayList<>();
+    this.components.values().forEach(entry -> {
+      if(entry.type().index() == type.index()) {
+        collection.add(entry.component());
+      }
+    });
+    return collection;
   }
 
   @Override
-  public void clearComponents(final @NonNull Holder holder) {
-    this.componentContainer.clearComponents(holder);
+  public @NonNull Collection<Object> components(final @NonNull Entity entity) {
+    requireNonNull(entity, "entity");
+    final List<Object> collection = new ArrayList<>();
+    final Int2ObjectMap<ComponentEntry> components = this.entityComponents.get(entity.index());
+    if(components != null) {
+      components.values().forEach(entry -> collection.add(entry.component()));
+    }
+    return collection;
   }
 
   @Override
-  public @NonNull Collection<Object> components(final @NonNull Holder holder) {
-    return this.componentContainer.components(holder);
+  public @NonNull Collection<Object> components() {
+    final List<Object> collection = new ArrayList<>();
+    this.components.values().forEach(entry -> collection.add(entry.component()));
+    return collection;
   }
 
-  public static class BuilderImpl implements Universe.Builder {
-    private InjectionMethod.Factory methodFactory = new DummyInjectionMethodFactory();
-    private InjectionStructure.Factory structureFactory = new DummyInjectionStructureFactory();
-    private Processing.Factory processing = new ProcessingImpl.Factory();
+  @Override
+  public void destroy() {
+    synchronized(this.lock) {
+      this.clear();
+      Universe.super.destroy();
+    }
+  }
 
-    @Override
-    public @NonNull Builder injectionStructure(final InjectionStructure.@NonNull Factory factory) {
-      this.structureFactory = factory;
-      return this;
+  // Internal
+
+  public @NonNull ComponentType resolveComponent(final @NonNull Class<?> target, final @NonNull IntFunction<ComponentType> function) {
+    requireNonNull(target, "target");
+    requireNonNull(function, "function");
+    return this.typeClasses.computeIfAbsent(target, ignored -> this.typeCounter.next(index -> {
+      final ComponentType componentType = function.apply(index);
+      this.types.put(index, componentType);
+      if(this.factory != null) this.injectSystems(componentType);
+      return componentType;
+    }));
+  }
+
+  public void injectSystems(final @NonNull ComponentType type) {
+    requireNonNull(type, "type");
+    for(final Map.Entry<Class<?>, InjectionStructure> systemEntry : this.systemStructure.entrySet()) {
+      final System system = this.systems.get(systemEntry.getKey());
+      final InjectionStructure.Entry entry = systemEntry.getValue().injectors().get(type.type());
+      if(system == null || entry == null) continue;
+      final Dependency dependency = entry.annotation();
+      if(!dependency.optional()) continue;
+      try {
+        entry.target().inject(system, type);
+      } catch(final Throwable throwable) {
+        throw new IllegalStateException(
+          "Unable to inject component type '"
+          + type.type().getSimpleName() + "' into system '"
+          + system.getClass().getSimpleName() + "'."
+        );
+      }
+    }
+  }
+
+  public <T extends System> void injectSystem(final @NonNull T system, final @NonNull InjectionStructure structure) {
+    requireNonNull(system, "system");
+    requireNonNull(structure, "structure");
+    for(final Map.Entry<Class<?>, InjectionStructure.Entry> entry : structure.injectors().entrySet()) {
+      final Class<?> target = entry.getKey();
+      final InjectionStructure.Entry injectionEntry = entry.getValue();
+      if(!target.isAnnotationPresent(Component.class)) continue;
+      final Dependency dependency = injectionEntry.annotation();
+      ComponentType componentType = this.getType(target);
+      if(componentType == null && !dependency.optional()) componentType = ComponentType.create(this, target);
+      if(componentType != null) {
+        try {
+          injectionEntry.target().inject(system, componentType);
+        } catch(final Throwable throwable) {
+          throw new IllegalStateException(
+            "Unable to inject component type '"
+            + target.getSimpleName() + "' into system '"
+            + system.getClass().getSimpleName() + "'."
+          );
+        }
+      }
+    }
+  }
+
+  public boolean destroyEntity(final @NonNegative int entity) {
+    final Int2ObjectMap<ComponentEntry> components = this.entityComponents.remove(entity);
+    if(components != null) {
+      components.values().forEach(entry -> this.components.remove(entry.index()));
+      return this.entities.remove(entity) != null;
+    }
+    return false;
+  }
+
+  public boolean destroyComponent(final @NonNegative int entity, final @NonNegative int type) {
+    final Int2ObjectMap<ComponentEntry> components = this.entityComponents.get(entity);
+    if(components != null) {
+      final ComponentEntry entry = components.remove(type);
+      if(components.isEmpty()) this.entityComponents.remove(entity);
+      return entry != null && this.components.remove(entry.index()) != null;
+    }
+    return false;
+  }
+
+  public void clear() {
+    this.entityComponents.clear();
+    this.components.clear();
+    this.entities.clear();
+    this.systems.clear();
+  }
+
+  // Utility
+
+  private Tick update() {
+    synchronized(this.lock) {
+      final List<System> systems = new ArrayList<>(this.systems.values());
+      final List<Throwable> errors = new ArrayList<>();
+      final int time = this.time.getAndIncrement();
+      Collections.sort(systems);
+      for(final System system : systems) {
+        boolean run = true;
+        try {
+          if (!system.initialized()) system.initialize();
+        } catch (final Throwable throwable) {
+          errors.add(throwable);
+          run = false;
+        }
+        if(system.initialized()) {
+          try {
+            if(run) system.prepare();
+          } catch (final Throwable throwable) {
+            errors.add(throwable);
+            run = false;
+          }
+          try {
+            if(run) system.execute();
+          } catch (final Throwable throwable) {
+            errors.add(throwable);
+            run = false;
+          }
+          try {
+            if(run) system.sanitize();
+          } catch (final Throwable throwable) {
+            errors.add(throwable);
+          }
+        }
+      }
+      this.sanitize();
+      return new TickImpl(time, errors);
+    }
+  }
+
+  private void sanitize() {
+    while(!this.entityRemovals.isEmpty()) {
+      this.destroyEntity(this.entityRemovals.dequeueInt());
+    }
+    while(!this.entityComponentRemovals.isEmpty()) {
+      final IntIntPair pair = this.entityComponentRemovals.dequeue();
+      this.destroyComponent(pair.firstInt(), pair.secondInt());
+    }
+  }
+
+  private @NonNull Object createInstance(final @NonNull Class<?> componentClass) {
+    try {
+      return componentClass.getDeclaredConstructor().newInstance();
+    } catch(final Throwable exception) {
+      throw new IllegalStateException("Unable to instantiate component.", exception);
+    }
+  }
+
+  /* package */ static final class TickImpl implements Tick {
+    private final int time;
+    private final Collection<Throwable> errors;
+
+    /* package */ TickImpl(final @NonNegative int time, final @NonNull Collection<Throwable> errors) {
+      this.time = time;
+      this.errors = errors;
     }
 
     @Override
-    public @NonNull Builder injectionMethod(final InjectionMethod.@NonNull Factory factory) {
-      this.methodFactory = factory;
-      return this;
+    public @NonNegative int time() {
+      return this.time;
     }
 
     @Override
-    public @NonNull Builder processing(final Processing.@NonNull Factory processing) {
-      this.processing = processing;
-      return this;
+    public @NonNull Collection<Throwable> errors() {
+      return this.errors;
+    }
+  }
+
+  /* package */ static final class ComponentEntry {
+    private final ComponentType componentType;
+    private final int componentIndex;
+    private final Object componentReference;
+    private final Entity entityReference;
+
+    /* package */ ComponentEntry(final @NonNull ComponentType componentType,
+                                 final @NonNegative int componentIndex,
+                                 final @NonNull Object componentReference,
+                                 final @NonNull Entity entityReference) {
+      this.componentType = componentType;
+      this.componentIndex = componentIndex;
+      this.componentReference = componentReference;
+      this.entityReference = entityReference;
     }
 
-    protected Universe build(final int index) {
-      return new UniverseImpl(index, this);
+    public @NonNull ComponentType type() {
+      return this.componentType;
+    }
+
+    public @NonNegative int index() {
+      return this.componentIndex;
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T> @NonNull T component() {
+      final Class<?> clazz = this.componentType.type();
+      return (T) clazz.cast(this.componentReference);
+    }
+
+    public @NonNull Entity entity() {
+      return this.entityReference;
     }
   }
 }

@@ -22,76 +22,85 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package space.vectrix.inertia.processor;
-
-import static java.util.Objects.requireNonNull;
+package space.vectrix.inertia.system;
 
 import net.kyori.coffee.Ordered;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
+import static java.util.Objects.requireNonNull;
+
 /**
- * Represents a processor of holders.
+ * Represents a system that acts upon entities and components.
  *
- * @since 0.2.0
+ * @since 0.3.0
  */
 @FunctionalInterface
-public interface Processor extends Ordered<Processor> {
+public interface System extends Ordered<System> {
   /**
-   * Returns an {@code int} for this processors priority.
+   * Returns an {@code int} for this system's priority.
    *
-   * @return The processor priority
-   * @since 0.2.0
+   * @return the system priority
+   * @since 0.3.0
    */
   default int priority() {
     return 0;
   }
 
   /**
-   * Returns {@code true} if this processor has been initialized, otherwise
+   * Returns {@code true} if this system has been initialized, otherwise
    * returns {@code false}.
    *
-   * <p>In the case you need a custom implementation of {@link Processor#initialize()},
+   * <p>In the case you need a custom implementation of {@link System#initialize()},
    * this should return {@code false} by default, then be set {@code true} after
-   * {@link Processor#initialize()} has been called.</p>
+   * {@link System#initialize()} has been called.</p>
    *
-   * @return Whether this processor has been initialized
-   * @since 0.2.0
+   * @return whether this system has been initialized
+   * @since 0.3.0
    */
   default boolean initialized() {
     return true;
   }
 
   /**
-   * Called when the processor is initialized.
+   * Called when the system is initialized.
    *
-   * <p>Requires {@link Processor#initialized()} to return {@code false}
+   * <p>Requires {@link System#initialized()} to return {@code false}
    * to be run in the processing loop.</p>
    *
    * @throws Throwable when there is an issue processing
-   * @since 0.2.0
+   * @since 0.3.0
    */
   default void initialize() throws Throwable {}
 
   /**
-   * Called when the processor is in the preparation stage at the
+   * Called when the system is in the preparation stage at the
    * beginning of each game tick.
    *
    * @throws Throwable when there is an issue processing
-   * @since 0.2.0
+   * @since 0.3.0
    */
   default void prepare() throws Throwable {}
 
   /**
-   * Called when the processor is in the execution stage in the
+   * Called when the system is in the execution stage in the
    * middle of each game tick.
    *
    * @throws Throwable when there is an issue processing
-   * @since 0.2.0
+   * @since 0.3.0
    */
   void execute() throws Throwable;
 
+  /**
+   * Called when the system is in the sanitization stage at
+   * the end of each game tick.
+   *
+   * @throws Throwable when there is an issue processing
+   * @since 0.3.0
+   */
+  default void sanitize() throws Throwable {}
+
   @Override
-  default int compareTo(final @NonNull Processor other) {
+  default int compareTo(final @NonNull System other) {
     requireNonNull(other, "other");
     return Integer.compare(this.priority(), other.priority());
   }

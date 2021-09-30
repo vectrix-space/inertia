@@ -22,21 +22,22 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package space.vectrix.inertia.util.counter;
-
-import static java.util.Objects.requireNonNull;
+package space.vectrix.inertia.util;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.IntSet;
+import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.IntFunction;
 
+import static java.util.Objects.requireNonNull;
+
 /**
  * A way to acquire new indexes from a collection of used indexes.
  *
- * @since 0.2.0
+ * @since 0.3.0
  */
 public interface IndexCounter {
   /**
@@ -45,9 +46,9 @@ public interface IndexCounter {
    * @param identifier the counter identifier
    * @param set the set
    * @return the counter
-   * @since 0.2.0
+   * @since 0.3.0
    */
-  static @NonNull IndexCounter counter(final @NonNull String identifier, final IntSet set) {
+  static @NonNull IndexCounter counter(final @NonNull String identifier, final @NonNull IntSet set) {
     requireNonNull(identifier, "identifier");
     requireNonNull(set, "set");
     return new IndexCounterImpl(identifier, set);
@@ -60,9 +61,9 @@ public interface IndexCounter {
    * @param identifier the counter identifier
    * @param map the map
    * @return the counter
-   * @since 0.2.0
+   * @since 0.3.0
    */
-  static @NonNull IndexCounter counter(final @NonNull String identifier, final Int2ObjectMap<?> map) {
+  static @NonNull IndexCounter counter(final @NonNull String identifier, final @NonNull Int2ObjectMap<?> map) {
     requireNonNull(identifier, "identifier");
     requireNonNull(map, "map");
     return new IndexCounterImpl(identifier, map.keySet());
@@ -72,7 +73,7 @@ public interface IndexCounter {
    * Returns the internal index for this counter as an {@link AtomicInteger}.
    *
    * @return the counter
-   * @since 0.2.0
+   * @since 0.3.0
    */
   @NonNull AtomicInteger counter();
 
@@ -82,8 +83,9 @@ public interface IndexCounter {
    *
    * @return the next available index
    * @throws UnavailableIndexException when there is no available index
+   * @since 0.3.0
    */
-  int next() throws UnavailableIndexException;
+  @NonNegative int next() throws UnavailableIndexException;
 
   /**
    * Retrieves the next index for this counter if it is available and passes
@@ -97,6 +99,7 @@ public interface IndexCounter {
    * @param <T> the return type
    * @return an object
    * @throws UnavailableIndexException when there is no available index
+   * @since 0.3.0
    */
-  <T> T next(final @NonNull IntFunction<T> consumer) throws UnavailableIndexException;
+  <T> @NonNull T next(final @NonNull IntFunction<T> consumer) throws UnavailableIndexException;
 }

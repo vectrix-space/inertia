@@ -22,13 +22,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package space.vectrix.inertia.util.counter;
+package space.vectrix.inertia.util;
 
 import it.unimi.dsi.fastutil.ints.IntSet;
+import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.IntFunction;
+
+import static java.util.Objects.requireNonNull;
 
 /* package */ final class IndexCounterImpl implements IndexCounter {
   private final AtomicInteger counter = new AtomicInteger();
@@ -47,7 +50,7 @@ import java.util.function.IntFunction;
   }
 
   @Override
-  public int next() throws UnavailableIndexException {
+  public @NonNegative int next() throws UnavailableIndexException {
     synchronized(this.lock) {
       int lap = 0;
       for(; ; ) {
@@ -61,7 +64,8 @@ import java.util.function.IntFunction;
   }
 
   @Override
-  public <T> T next(final @NonNull IntFunction<T> consumer) throws UnavailableIndexException {
+  public <T> @NonNull T next(final @NonNull IntFunction<T> consumer) throws UnavailableIndexException {
+    requireNonNull(consumer, "consumer");
     synchronized(this.lock) {
       int lap = 0;
       for(; ; ) {

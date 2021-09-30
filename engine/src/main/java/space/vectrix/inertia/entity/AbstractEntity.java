@@ -22,61 +22,72 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package space.vectrix.inertia.util.version;
+package space.vectrix.inertia.entity;
 
+import org.checkerframework.checker.index.qual.NonNegative;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import space.vectrix.inertia.Universe;
+import space.vectrix.inertia.component.ComponentType;
 
-import java.util.Objects;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.Collection;
 
-/* package */ final class VersionImpl implements Version {
-  private static final AtomicInteger VERSIONS = new AtomicInteger();
-
+/**
+ * The abstract {@link Entity}.
+ *
+ * @since 0.3.0
+ */
+public abstract class AbstractEntity implements Entity {
+  private final Universe universe;
   private final int index;
-  private final int version;
-  private final int universe;
 
-  /* package */ VersionImpl(final int index, final int universe) {
-    this.version = VersionImpl.VERSIONS.getAndIncrement();
+  protected AbstractEntity(final @NonNull Universe universe, final @NonNegative int index) {
     this.universe = universe;
     this.index = index;
   }
 
   @Override
-  public int index() {
-    return this.index;
-  }
-
-  @Override
-  public int version() {
-    return this.version;
-  }
-
-  @Override
-  public int universe() {
+  public @NonNull Universe universe() {
     return this.universe;
   }
 
   @Override
-  public int hashCode() {
-    return Objects.hash(this.index, this.version, this.universe);
+  public @NonNegative int index() {
+    return this.index;
   }
 
   @Override
-  public boolean equals(final @Nullable Object other) {
-    if(this == other) return true;
-    if(!(other instanceof Version)) return false;
-    final Version that = (Version) other;
-    return Objects.equals(this.index(), that.index())
-      && Objects.equals(this.version(), that.version())
-      && Objects.equals(this.universe(), that.universe());
+  public boolean contains(final @NonNull ComponentType type) {
+    return this.universe.hasComponent(this, type);
   }
 
   @Override
-  public String toString() {
-    return "Version{index=" + this.index +
-      ", version=" + this.version +
-      ", universe=" + this.universe +
-      "}";
+  public <T> @Nullable T get(final @NonNull ComponentType type) {
+    return this.universe.getComponent(this, type);
+  }
+
+  @Override
+  public <T> @NonNull T add(final @NonNull ComponentType type) {
+    return this.universe.addComponent(this, type);
+  }
+
+  @Override
+  public void remove(final @NonNull ComponentType type) {
+    this.universe.removeComponent(this, type);
+  }
+
+  @Override
+  public void clear() {
+    this.universe.clearComponents(this);
+  }
+
+  @Override
+  public void destroy() {
+    this.universe.removeEntity(this.index);
+  }
+
+  @Override
+  public @NonNull Collection<Object> components() {
+    return this.universe.components(this);
   }
 }

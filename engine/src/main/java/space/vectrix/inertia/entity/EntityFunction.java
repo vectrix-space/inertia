@@ -22,57 +22,28 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package space.vectrix.inertia.holder;
+package space.vectrix.inertia.entity;
 
+import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import space.vectrix.inertia.Universe;
 
-import java.util.Collection;
-
-public interface HolderContainer {
+/**
+ * Represents a function used to create a new {@link Entity}.
+ *
+ * @param <T> the entity type
+ * @since 0.3.0
+ */
+@FunctionalInterface
+public interface EntityFunction<T extends Entity> {
   /**
-   * Returns whether the specified {@link Holder} is a valid participant.
+   * Creates a new {@link Entity} for the specified {@link Universe} with the
+   * specified entity {@code index}.
    *
-   * @param holder the holder
-   * @return whether the holder is valid
-   * @since 0.2.0
+   * @param universe the universe
+   * @param index the index
+   * @return the holder
+   * @since 0.3.0
    */
-  boolean valid(final @NonNull Holder holder);
-
-  /**
-   * Returns a new {@link Holder}.
-   *
-   * @return the new holder
-   * @since 0.2.0
-   */
-  @NonNull Holder createHolder();
-
-  /**
-   * Returns a new {@link Holder} of type {@code T} using the specified
-   * {@link HolderFunction}.
-   *
-   * @param function the holder function
-   * @param <T> the specific holder type
-   * @return the new holder
-   * @since 0.2.0
-   */
-  <T extends Holder> @NonNull T createHolder(final @NonNull HolderFunction<T> function);
-
-  /**
-   * Removes the specified {@link Holder} from the universe
-   * and returns {@code true} if it successfully removed, otherwise
-   * {@code false}.
-   *
-   * @param holder the holder
-   * @return whether the holder was removed
-   * @since 0.2.0
-   */
-  boolean removeHolder(final @NonNull Holder holder);
-
-  /**
-   * Returns a {@link Collection} of {@link Holder}s.
-   *
-   * @return the holders
-   * @since 0.2.0
-   */
-  @NonNull Collection<Holder> holders();
+  T apply(final @NonNull Universe universe, final @NonNegative int index);
 }

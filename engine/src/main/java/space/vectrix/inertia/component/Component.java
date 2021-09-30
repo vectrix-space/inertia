@@ -22,18 +22,36 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package space.vectrix.inertia.holder;
+package space.vectrix.inertia.component;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import space.vectrix.inertia.Universe;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * The basic {@link Holder}.
+ * Represents a component.
  *
- * @since 0.2.0
+ * @since 0.3.0
  */
-public final class HolderImpl extends AbstractHolder {
-  public HolderImpl(final @NonNull Universe universe, final int index) {
-    super(universe, index);
-  }
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface Component {
+  /**
+   * The component identifier.
+   *
+   * @return the component identifier
+   * @since 0.3.0
+   */
+  @NonNull String id();
+
+  /**
+   * The component name.
+   *
+   * @return the component name
+   * @since 0.3.0
+   */
+  @NonNull String name();
 }

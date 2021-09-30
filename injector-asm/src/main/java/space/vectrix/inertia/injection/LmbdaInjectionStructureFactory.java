@@ -26,7 +26,7 @@ package space.vectrix.inertia.injection;
 
 import net.kyori.coffee.reflection.Types;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import space.vectrix.inertia.annotation.Inject;
+import space.vectrix.inertia.system.Dependency;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -35,35 +35,38 @@ import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 
+import static java.util.Objects.requireNonNull;
+
 public final class LmbdaInjectionStructureFactory implements InjectionStructure.Factory {
+  private final InjectionTarget.Factory factory;
   private final MethodHandles.Lookup lookup;
 
   public LmbdaInjectionStructureFactory() {
-    this(MethodHandles.lookup());
+    this(LmbdaInjectionTargetFactory.factory(), MethodHandles.lookup());
   }
 
-  public LmbdaInjectionStructureFactory(final MethodHandles.@NonNull Lookup lookup) {
+  public LmbdaInjectionStructureFactory(final InjectionTarget.@NonNull Factory factory, final MethodHandles.@NonNull Lookup lookup) {
+    this.factory = factory;
     this.lookup = lookup;
   }
 
   @Override
   @SuppressWarnings("unchecked")
-  public @NonNull InjectionStructure create(final @NonNull Class<?> target, final InjectionMethod.@NonNull Factory injectionFactory) {
+  public @NonNull InjectionStructure create(final @NonNull Class<?> target) {
+    requireNonNull(target, "target");
     final Map<Class<?>, InjectionStructure.Entry> dependencies = new IdentityHashMap<>();
     final List<Class<?>> ancestors = (List<Class<?>>) Types.ancestors(target);
     for(final Class<?> ancestor : ancestors) {
       if(ancestor.isInterface()) continue;
       for(final Field field : ancestor.getDeclaredFields()) {
-        final Inject injectAnnotation = field.getAnnotation(Inject.class);
+        final Dependency dependencyAnnotation = field.getAnnotation(Dependency.class);
         try {
-          if(injectAnnotation != null) {
-            final Class<?> type = field.getType();
+          if(dependencyAnnotation != null) {
             field.setAccessible(true);
-
             final MethodHandle handle = this.lookup.unreflectSetter(field);
-            dependencies.put(type, new LmbdaInjectionStructureEntry(
-              injectAnnotation,
-              injectionFactory.create(handle)
+            dependencies.put(dependencyAnnotation.value(), new LmbdaInjectionStructureEntry(
+              dependencyAnnotation,
+              this.factory.create(handle)
             ));
           }
         } catch(final Throwable throwable) {
@@ -77,7 +80,7 @@ public final class LmbdaInjectionStructureFactory implements InjectionStructure.
   /* package */ static final class LmbdaInjectionStructure implements InjectionStructure {
     private final Map<Class<?>, Entry> injectors;
 
-    /* package */ LmbdaInjectionStructure(final Map<Class<?>, Entry> injectors) {
+    /* package */ LmbdaInjectionStructure(final @NonNull Map<Class<?>, Entry> injectors) {
       this.injectors = injectors;
     }
 
@@ -88,22 +91,22 @@ public final class LmbdaInjectionStructureFactory implements InjectionStructure.
   }
 
   /* package */ static final class LmbdaInjectionStructureEntry implements InjectionStructure.Entry {
-    private final Inject annotation;
-    private final InjectionMethod method;
+    private final Dependency annotation;
+    private final InjectionTarget target;
 
-    /* package */ LmbdaInjectionStructureEntry(final Inject annotation, final InjectionMethod method) {
+    /* package */ LmbdaInjectionStructureEntry(final @NonNull Dependency annotation, final @NonNull InjectionTarget target) {
       this.annotation = annotation;
-      this.method = method;
+      this.target = target;
     }
 
     @Override
-    public @NonNull Inject annotation() {
+    public @NonNull Dependency annotation() {
       return this.annotation;
     }
 
     @Override
-    public @NonNull InjectionMethod method() {
-      return this.method;
+    public @NonNull InjectionTarget target() {
+      return this.target;
     }
   }
 }
