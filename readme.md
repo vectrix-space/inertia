@@ -2,8 +2,8 @@ Inertia [![Discord](https://img.shields.io/discord/819522977586348052?style=for-
 =======
 ![GitHub Workflow Status (branch)](https://img.shields.io/github/workflow/status/vectrix-space/inertia/build/master) 
 [![MIT License](https://img.shields.io/badge/license-MIT-blue)](license.txt) 
-[![Maven Central](https://img.shields.io/maven-central/v/space.vectrix.inertia/inertia-api?label=stable)](https://search.maven.org/search?q=g:space.vectrix.inertia%20AND%20a:inertia*)
-![Sonatype Nexus (Snapshots)](https://img.shields.io/nexus/s/space.vectrix.inertia/inertia-api?label=dev&server=https%3A%2F%2Fs01.oss.sonatype.org)
+[![Maven Central](https://img.shields.io/maven-central/v/space.vectrix.inertia/inertia-engine?label=stable)](https://search.maven.org/search?q=g:space.vectrix.inertia%20AND%20a:inertia*)
+![Sonatype Nexus (Snapshots)](https://img.shields.io/nexus/s/space.vectrix.inertia/inertia-engine?label=dev&server=https%3A%2F%2Fs01.oss.sonatype.org)
 
 A simple, fast, entity component framework. 
 
