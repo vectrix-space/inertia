@@ -55,7 +55,7 @@ import static java.util.Objects.requireNonNull;
       int lap = 0;
       for(; ; ) {
         int index = this.counter().getAndIncrement();
-        if(!indexes.contains(index)) return index;
+        if(!this.indexes.contains(index)) return index;
         if(index == Integer.MAX_VALUE) {
           if(lap++ > 0) throw new UnavailableIndexException("Reached maximum index space for counter '" + this.identifier + "'!");
         }
@@ -70,7 +70,7 @@ import static java.util.Objects.requireNonNull;
       int lap = 0;
       for(; ; ) {
         int index = this.counter().getAndIncrement();
-        if(!indexes.contains(index)) {
+        if(!this.indexes.contains(index)) {
           return consumer.apply(index);
         }
         if(index == Integer.MAX_VALUE) {

@@ -101,9 +101,15 @@ public final class UniverseImpl implements Universe {
   private final int index;
 
   private InjectionStructure.@Nullable Factory factory;
+  private boolean active = true;
 
   /* package */ UniverseImpl(final @NonNegative int index) {
     this.index = index;
+  }
+
+  @Override
+  public boolean active() {
+    return this.active;
   }
 
   @Override
@@ -113,6 +119,7 @@ public final class UniverseImpl implements Universe {
 
   @Override
   public @NonNull Tick tick() {
+    Universe.checkActive(this);
     return this.update();
   }
 
@@ -184,6 +191,7 @@ public final class UniverseImpl implements Universe {
 
   @Override
   public <T extends System> void addSystem(final @NonNull T system) {
+    Universe.checkActive(this);
     requireNonNull(system, "system");
     this.systems.put(system.getClass(), system);
     if(this.factory != null) {
@@ -194,11 +202,13 @@ public final class UniverseImpl implements Universe {
 
   @Override
   public @NonNull Entity createEntity() {
+    Universe.checkActive(this);
     return this.createEntity(Entity.simple());
   }
 
   @Override
   public <T extends Entity> @NonNull T createEntity(final @NonNull EntityFunction<T> function) {
+    Universe.checkActive(this);
     requireNonNull(function, "function");
     return this.entityCounter.next(index -> {
       final T entity = function.apply(this, index);
@@ -210,6 +220,7 @@ public final class UniverseImpl implements Universe {
   @Override
   @SuppressWarnings("unchecked")
   public <T> @NonNull T addComponent(final @NonNull Entity entity, final @NonNull ComponentType type) {
+    Universe.checkActive(this);
     requireNonNull(entity, "entity");
     requireNonNull(type, "type");
     return this.componentCounter.next(index -> {
@@ -232,17 +243,20 @@ public final class UniverseImpl implements Universe {
 
   @Override
   public void removeEntity(final @NonNegative int entity) {
+    Universe.checkActive(this);
     this.entityRemovals.enqueue(entity);
   }
 
   @Override
   public void removeEntity(final @NonNull Entity entity) {
+    Universe.checkActive(this);
     requireNonNull(entity, "entity");
     this.entityRemovals.enqueue(entity.index());
   }
 
   @Override
   public void removeComponent(final @NonNull Entity entity, final @NonNull ComponentType type) {
+    Universe.checkActive(this);
     requireNonNull(entity, "entity");
     requireNonNull(type, "type");
     this.entityComponentRemovals.enqueue(IntIntPair.of(entity.index(), type.index()));
@@ -250,6 +264,7 @@ public final class UniverseImpl implements Universe {
 
   @Override
   public void clearComponents(final @NonNull Entity entity) {
+    Universe.checkActive(this);
     requireNonNull(entity, "entity");
     final int index = entity.index();
     final Int2ObjectMap<ComponentEntry> components = this.entityComponents.get(entity.index());
@@ -300,15 +315,26 @@ public final class UniverseImpl implements Universe {
 
   @Override
   public void destroy() {
+    Universe.checkActive(this);
     synchronized(this.lock) {
+      this.active = false;
       this.clear();
-      Universe.super.destroy();
+      Universes.remove(this.index());
+    }
+  }
+
+  /* package */ void deactivate() {
+    Universe.checkActive(this);
+    synchronized(this.lock) {
+      this.active = false;
+      this.clear();
     }
   }
 
   // Internal
 
   public @NonNull ComponentType resolveComponent(final @NonNull Class<?> target, final @NonNull IntFunction<ComponentType> function) {
+    Universe.checkActive(this);
     requireNonNull(target, "target");
     requireNonNull(function, "function");
     return this.typeClasses.computeIfAbsent(target, ignored -> this.typeCounter.next(index -> {
@@ -319,7 +345,7 @@ public final class UniverseImpl implements Universe {
     }));
   }
 
-  public void injectSystems(final @NonNull ComponentType type) {
+  private void injectSystems(final @NonNull ComponentType type) {
     requireNonNull(type, "type");
     for(final Map.Entry<Class<?>, InjectionStructure> systemEntry : this.systemStructure.entrySet()) {
       final System system = this.systems.get(systemEntry.getKey());
@@ -339,7 +365,7 @@ public final class UniverseImpl implements Universe {
     }
   }
 
-  public <T extends System> void injectSystem(final @NonNull T system, final @NonNull InjectionStructure structure) {
+  private <T extends System> void injectSystem(final @NonNull T system, final @NonNull InjectionStructure structure) {
     requireNonNull(system, "system");
     requireNonNull(structure, "structure");
     for(final Map.Entry<Class<?>, InjectionStructure.Entry> entry : structure.injectors().entrySet()) {
@@ -363,7 +389,7 @@ public final class UniverseImpl implements Universe {
     }
   }
 
-  public boolean destroyEntity(final @NonNegative int entity) {
+  private boolean destroyEntity(final @NonNegative int entity) {
     final Int2ObjectMap<ComponentEntry> components = this.entityComponents.remove(entity);
     if(components != null) {
       components.values().forEach(entry -> this.components.remove(entry.index()));
@@ -372,7 +398,7 @@ public final class UniverseImpl implements Universe {
     return false;
   }
 
-  public boolean destroyComponent(final @NonNegative int entity, final @NonNegative int type) {
+  private boolean destroyComponent(final @NonNegative int entity, final @NonNegative int type) {
     final Int2ObjectMap<ComponentEntry> components = this.entityComponents.get(entity);
     if(components != null) {
       final ComponentEntry entry = components.remove(type);
@@ -382,7 +408,7 @@ public final class UniverseImpl implements Universe {
     return false;
   }
 
-  public void clear() {
+  private void clear() {
     this.entityComponents.clear();
     this.components.clear();
     this.entities.clear();

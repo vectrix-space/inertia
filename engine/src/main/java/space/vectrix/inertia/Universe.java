@@ -34,6 +34,7 @@ import space.vectrix.inertia.injection.InjectionStructure;
 import space.vectrix.inertia.system.System;
 
 import java.util.Collection;
+import java.util.Iterator;
 
 /**
  * Represents the universe of entities, components and processors.
@@ -41,6 +42,17 @@ import java.util.Collection;
  * @since 0.3.0
  */
 public interface Universe {
+  /**
+   * Ensures the specified {@link Universe} is active, otherwise
+   * throws an {@link IllegalStateException}.
+   *
+   * @param universe the universe to check
+   * @since 0.3.0
+   */
+  static void checkActive(final @NonNull Universe universe) {
+    if(!universe.active()) throw new IllegalStateException("Universe is not active!");
+  }
+
   /**
    * Returns a new universe.
    *
@@ -62,6 +74,24 @@ public interface Universe {
   static @Nullable Universe get(final @NonNegative int index) {
     return Universes.get(index);
   }
+
+  /**
+   * Returns an {@link Iterator} of all the universes.
+   *
+   * @return an iterator of universes
+   * @since 0.3.0
+   */
+  static @NonNull Iterator<Universe> universes() {
+    return Universes.universes();
+  }
+
+  /**
+   * Returns {@code true} if the universe has not been destroyed.
+   *
+   * @return true if the universe is active, otherwise false
+   * @since 0.3.0
+   */
+  boolean active();
 
   /**
    * Returns the unique {@code int} index for this universe.
@@ -293,9 +323,7 @@ public interface Universe {
   /**
    * Destroys the universe.
    */
-  default void destroy() {
-    Universes.remove(this.index());
-  }
+  void destroy();
 
   /**
    * The result of a tick.

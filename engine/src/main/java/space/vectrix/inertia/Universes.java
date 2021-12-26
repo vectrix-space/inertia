@@ -31,8 +31,11 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import space.vectrix.flare.fastutil.Int2ObjectSyncMap;
 import space.vectrix.inertia.util.IndexCounter;
 
+import java.util.Iterator;
+import java.util.NoSuchElementException;
+
 /* package */ final class Universes {
-  private static final Int2ObjectMap<Universe> UNIVERSES = Int2ObjectSyncMap.hashmap();
+  private static final Int2ObjectMap<UniverseImpl> UNIVERSES = Int2ObjectSyncMap.hashmap();
   private static final IndexCounter UNIVERSE_COUNTER = IndexCounter.counter("universes", Universes.UNIVERSES);
 
   /* package */ static @NonNull Universe create() {
@@ -45,5 +48,35 @@ import space.vectrix.inertia.util.IndexCounter;
 
   /* package */ static @Nullable Universe remove(final @NonNegative int index) {
     return Universes.UNIVERSES.remove(index);
+  }
+
+  /* package */ static @NonNull Iterator<Universe> universes() {
+    return new UniverseIterator(Universes.UNIVERSES.values().iterator());
+  }
+
+  /* package */ static class UniverseIterator implements Iterator<Universe> {
+    private final Iterator<UniverseImpl> iterator;
+    private UniverseImpl value;
+
+    /* package */ UniverseIterator(final @NonNull Iterator<UniverseImpl> iterator) {
+      this.iterator = iterator;
+    }
+
+    @Override
+    public boolean hasNext() {
+      return this.iterator.hasNext();
+    }
+
+    @Override
+    public Universe next() {
+      return this.value = this.iterator.next();
+    }
+
+    @Override
+    public void remove() {
+      if(this.value == null) throw new NoSuchElementException("remove() called before next()");
+      this.value.deactivate();
+      this.iterator.remove();
+    }
   }
 }

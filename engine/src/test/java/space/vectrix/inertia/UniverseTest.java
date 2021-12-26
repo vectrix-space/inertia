@@ -26,8 +26,15 @@ package space.vectrix.inertia;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.Iterator;
+
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class UniverseTest {
   @Test
@@ -36,5 +43,31 @@ class UniverseTest {
     assertNotNull(universe, "Universe should be created.");
     assertEquals(0, universe.index(), "Universe index should be 0.");
     assertEquals(universe, Universe.get(0), "Universe#get should equal the new universe.");
+  }
+
+  @Test
+  public void testUniverseDelete() {
+    final Universe universe = Universe.get(0);
+    assertNotNull(universe, "Universe should exist.");
+    assertEquals(0, universe.index(), "Universe index should be 0.");
+    assertTrue(universe.active(), "Universe should be active.");
+    universe.destroy();
+    assertFalse(universe.active(), "Universe should be inactive.");
+    assertThrows(IllegalStateException.class, universe::createEntity, "Universe#createEntity should throw an exception.");
+    assertNull(Universe.get(0), "Universe should be null.");
+  }
+
+  @Test
+  public void testUniverseIterator() {
+    final Universe secondUniverse = Universe.create();
+    assertNotNull(secondUniverse, "Universe should be created.");
+    assertEquals(1, secondUniverse.index(), "Universe index should be 1.");
+    assertEquals(secondUniverse, Universe.get(1), "Universe#get should equal the new universe.");
+    final Iterator<Universe> iterator = Universe.universes();
+    assertNotNull(iterator, "Universe iterator should not be null.");
+    assertTrue(iterator.hasNext(), "Universe iterator should have a next universe.");
+    assertEquals(1, iterator.next().index(), "Universe iterator should have the universe.");
+    assertFalse(iterator.hasNext(), "Universe iterator shouldn't have another universe.");
+    assertDoesNotThrow(iterator::remove, "Universe iterator should not throw an exception.");
   }
 }
