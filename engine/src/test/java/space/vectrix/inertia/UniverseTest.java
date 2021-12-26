@@ -25,6 +25,7 @@
 package space.vectrix.inertia;
 
 import org.junit.jupiter.api.Test;
+import space.vectrix.inertia.system.System;
 
 import java.util.Iterator;
 
@@ -35,39 +36,102 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 class UniverseTest {
   @Test
-  public void testUniverseCreate() {
+  public void testCreateUniverse() {
     final Universe universe = Universe.create();
+    final int index = universe.index();
+
     assertNotNull(universe, "Universe should be created.");
-    assertEquals(0, universe.index(), "Universe index should be 0.");
-    assertEquals(universe, Universe.get(0), "Universe#get should equal the new universe.");
+    assertTrue(universe.active(), "Universe should be active.");
+    assertEquals(universe, Universe.get(index), "Universe#get should equal the new universe.");
   }
 
   @Test
-  public void testUniverseDelete() {
-    final Universe universe = Universe.get(0);
-    assertNotNull(universe, "Universe should exist.");
-    assertEquals(0, universe.index(), "Universe index should be 0.");
+  public void testRemoveUniverse() {
+    final Universe universe = Universe.create();
+    final int index = universe.index();
+
     assertTrue(universe.active(), "Universe should be active.");
+    assertEquals(universe, Universe.get(index), "Universe#get should equal the new universe.");
     universe.destroy();
     assertFalse(universe.active(), "Universe should be inactive.");
     assertThrows(IllegalStateException.class, universe::createEntity, "Universe#createEntity should throw an exception.");
-    assertNull(Universe.get(0), "Universe should be null.");
+    assertNull(Universe.get(index), "Universe should be null.");
   }
 
   @Test
-  public void testUniverseIterator() {
-    final Universe secondUniverse = Universe.create();
-    assertNotNull(secondUniverse, "Universe should be created.");
-    assertEquals(1, secondUniverse.index(), "Universe index should be 1.");
-    assertEquals(secondUniverse, Universe.get(1), "Universe#get should equal the new universe.");
+  public void testIterateUniverses() {
+    final Universe universe = Universe.create();
+    final int index = universe.index();
+
     final Iterator<Universe> iterator = Universe.universes();
     assertNotNull(iterator, "Universe iterator should not be null.");
     assertTrue(iterator.hasNext(), "Universe iterator should have a next universe.");
-    assertEquals(1, iterator.next().index(), "Universe iterator should have the universe.");
-    assertFalse(iterator.hasNext(), "Universe iterator shouldn't have another universe.");
-    assertDoesNotThrow(iterator::remove, "Universe iterator should not throw an exception.");
+    while(iterator.hasNext()) {
+      final Universe element = iterator.next();
+      final int elementIndex = element.index();
+
+      if(elementIndex == index) {
+        assertDoesNotThrow(iterator::remove, "Universe iterator should not throw an exception.");
+        assertNull(Universe.get(index), "Universe should be null.");
+        return;
+      }
+    }
+
+    fail("Could not locate the created universe in the iterator.");
+  }
+
+  @Test
+  public void testAddSystem() {
+    final Universe universe = Universe.create();
+    final System system = new SystemExample();
+
+    assertDoesNotThrow(() -> universe.addSystem(system), "System addition should not throw an exception.");
+    assertNotNull(universe.getSystem(SystemExample.class), "System should exist in the universe.");
+    assertNull(universe.getSystem(System.class), "System should not exist in the universe.");
+  }
+
+  @Test
+  public void testRemoveSystem() {
+    final Universe universe = Universe.create();
+    final System system = new SystemExample();
+
+    universe.addSystem(system);
+
+    assertNotNull(universe.getSystem(SystemExample.class), "System should exist in the universe.");
+    assertDoesNotThrow(() -> universe.removeSystem(SystemExample.class), "System removal should not throw an exception.");
+    assertNull(universe.getSystem(SystemExample.class), "System should not exist in the universe.");
+  }
+
+  @Test
+  public void testIterateSystems() {
+    final Universe universe = Universe.create();
+    final System system = new SystemExample();
+
+    universe.addSystem(system);
+
+    final Iterator<System> iterator = universe.systems();
+    assertNotNull(iterator, "System iterator should not be null.");
+    assertTrue(iterator.hasNext(), "System iterator should have a next system.");
+    while(iterator.hasNext()) {
+      final System element = iterator.next();
+      final Class<? extends System> elementClass = element.getClass();
+
+      if(elementClass == SystemExample.class) {
+        assertDoesNotThrow(iterator::remove, "System iterator should not throw an exception.");
+        assertNull(universe.getSystem(SystemExample.class), "System should not exist in the universe.");
+        return;
+      }
+    }
+
+    fail("Could not locate the created system in the iterator.");
+  }
+
+  static final class SystemExample implements System {
+    @Override
+    public void execute() throws Throwable {}
   }
 }

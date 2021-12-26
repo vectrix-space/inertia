@@ -126,7 +126,7 @@ public interface Universe {
    * @return the system, if present
    * @since 0.3.0
    */
-  <T extends System> @Nullable T getSystem(final @NonNull Class<?> target);
+  <T extends System> @Nullable T getSystem(final @NonNull Class<T> target);
 
   /**
    * Returns the {@link ComponentType} with the specified {@code int}
@@ -284,9 +284,9 @@ public interface Universe {
   void clearComponents(final @NonNull Entity entity);
 
   /**
-   * Returns a {@link Collection} of {@link System}s in this universe.
+   * Returns a {@link Iterator} of {@link System}s in this universe.
    *
-   * @return a collection of systems
+   * @return an iterator of systems
    * @since 0.3.0
    */
   @NonNull Iterator<System> systems();

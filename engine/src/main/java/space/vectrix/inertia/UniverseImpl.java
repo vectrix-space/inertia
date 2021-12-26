@@ -132,7 +132,7 @@ public final class UniverseImpl implements Universe {
 
   @Override
   @SuppressWarnings("unchecked")
-  public <T extends System> @Nullable T getSystem(final @NonNull Class<?> target) {
+  public <T extends System> @Nullable T getSystem(final @NonNull Class<T> target) {
     requireNonNull(target, "target");
     final Pair<System, InjectionStructure> systemEntry = this.systems.get(target);
     return systemEntry != null ? (T) systemEntry.left() : null;
