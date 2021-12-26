@@ -56,7 +56,7 @@ import java.util.NoSuchElementException;
 
   /* package */ static class UniverseIterator implements Iterator<Universe> {
     private final Iterator<UniverseImpl> iterator;
-    private UniverseImpl value;
+    private UniverseImpl next;
 
     /* package */ UniverseIterator(final @NonNull Iterator<UniverseImpl> iterator) {
       this.iterator = iterator;
@@ -68,14 +68,14 @@ import java.util.NoSuchElementException;
     }
 
     @Override
-    public Universe next() {
-      return this.value = this.iterator.next();
+    public @NonNull Universe next() {
+      return this.next = this.iterator.next();
     }
 
     @Override
     public void remove() {
-      if(this.value == null) throw new NoSuchElementException("remove() called before next()");
-      this.value.deactivate();
+      if(this.next == null) throw new NoSuchElementException("remove() called before next()");
+      this.next.deactivate();
       this.iterator.remove();
     }
   }

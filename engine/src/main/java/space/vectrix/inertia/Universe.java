@@ -241,6 +241,14 @@ public interface Universe {
   <T> @NonNull T addComponent(final @NonNull Entity entity, final @NonNull ComponentType type);
 
   /**
+   * Removes the specified {@link System} from this universe.
+   *
+   * @param system the system
+   * @since 0.3.0
+   */
+  void removeSystem(final @NonNull Class<? extends System> system);
+
+  /**
    * Marks the specified {@code int} entity for removal.
    *
    * @param entity the entity index
@@ -281,7 +289,7 @@ public interface Universe {
    * @return a collection of systems
    * @since 0.3.0
    */
-  @NonNull Collection<System> systems();
+  @NonNull Iterator<System> systems();
 
   /**
    * Returns a {@link Collection} of {@link Entity}s in this universe.

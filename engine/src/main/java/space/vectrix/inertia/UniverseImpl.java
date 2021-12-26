@@ -24,6 +24,7 @@
  */
 package space.vectrix.inertia;
 
+import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.PriorityQueue;
 import it.unimi.dsi.fastutil.PriorityQueues;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -32,6 +33,7 @@ import it.unimi.dsi.fastutil.ints.IntIntPair;
 import it.unimi.dsi.fastutil.ints.IntPriorityQueue;
 import it.unimi.dsi.fastutil.ints.IntPriorityQueues;
 import it.unimi.dsi.fastutil.objects.ObjectArrayFIFOQueue;
+import it.unimi.dsi.fastutil.objects.ObjectObjectMutablePair;
 import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -50,6 +52,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.IdentityHashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -61,8 +64,7 @@ public final class UniverseImpl implements Universe {
   /**
    * Stores the processors by class type.
    */
-  private final Map<Class<?>, System> systems = SyncMap.of(IdentityHashMap::new, 20);
-  private final Map<Class<?>, InjectionStructure> systemStructure = SyncMap.of(IdentityHashMap::new, 20);
+  private final Map<Class<? extends System>, SystemEntry> systems = SyncMap.of(IdentityHashMap::new, 20);
 
   /**
    * Stored by unique {@code int} component type index and {@link Class} component
@@ -132,7 +134,8 @@ public final class UniverseImpl implements Universe {
   @SuppressWarnings("unchecked")
   public <T extends System> @Nullable T getSystem(final @NonNull Class<?> target) {
     requireNonNull(target, "target");
-    return (T) this.systems.get(target);
+    final Pair<System, InjectionStructure> systemEntry = this.systems.get(target);
+    return systemEntry != null ? (T) systemEntry.left() : null;
   }
 
   @Override
@@ -193,11 +196,15 @@ public final class UniverseImpl implements Universe {
   public <T extends System> void addSystem(final @NonNull T system) {
     Universe.checkActive(this);
     requireNonNull(system, "system");
-    this.systems.put(system.getClass(), system);
-    if(this.factory != null) {
-      final InjectionStructure structure = this.systemStructure.computeIfAbsent(system.getClass(), key -> this.factory.create(key));
-      this.injectSystem(system, structure);
-    }
+    this.systems.computeIfAbsent(system.getClass(), key -> {
+      final SystemEntry systemEntry = new SystemEntry(system, null);
+      if(this.factory != null) {
+        final InjectionStructure structure = this.factory.create(key);
+        this.injectSystem(system, structure);
+        systemEntry.right(structure);
+      }
+      return systemEntry;
+    });
   }
 
   @Override
@@ -242,6 +249,12 @@ public final class UniverseImpl implements Universe {
   }
 
   @Override
+  public void removeSystem(final @NonNull Class<? extends System> system) {
+    Universe.checkActive(this);
+    this.systems.remove(system);
+  }
+
+  @Override
   public void removeEntity(final @NonNegative int entity) {
     Universe.checkActive(this);
     this.entityRemovals.enqueue(entity);
@@ -274,8 +287,8 @@ public final class UniverseImpl implements Universe {
   }
 
   @Override
-  public @NonNull Collection<System> systems() {
-    return Collections.unmodifiableCollection(this.systems.values());
+  public @NonNull Iterator<System> systems() {
+    return new SystemIterator(this.systems.values().iterator());
   }
 
   @Override
@@ -347,20 +360,24 @@ public final class UniverseImpl implements Universe {
 
   private void injectSystems(final @NonNull ComponentType type) {
     requireNonNull(type, "type");
-    for(final Map.Entry<Class<?>, InjectionStructure> systemEntry : this.systemStructure.entrySet()) {
-      final System system = this.systems.get(systemEntry.getKey());
-      final InjectionStructure.Entry entry = systemEntry.getValue().injectors().get(type.type());
-      if(system == null || entry == null) continue;
-      final Dependency dependency = entry.annotation();
-      if(!dependency.optional()) continue;
-      try {
-        entry.target().inject(system, type);
-      } catch(final Throwable throwable) {
-        throw new IllegalStateException(
-          "Unable to inject component type '"
-          + type.type().getSimpleName() + "' into system '"
-          + system.getClass().getSimpleName() + "'."
-        );
+    for(final Map.Entry<Class<? extends System>, SystemEntry> entry : this.systems.entrySet()) {
+      final SystemEntry systemEntry = entry.getValue();
+      final System system = systemEntry.left();
+      final InjectionStructure structure = systemEntry.right();
+      if(structure != null) {
+        final InjectionStructure.Entry injectionEntry = structure.injectors().get(type.type());
+        if (system == null || injectionEntry == null) continue;
+        final Dependency dependency = injectionEntry.annotation();
+        if (!dependency.optional()) continue;
+        try {
+          injectionEntry.target().inject(system, type);
+        } catch (final Throwable throwable) {
+          throw new IllegalStateException(
+            "Unable to inject component type '"
+              + type.type().getSimpleName() + "' into system '"
+              + system.getClass().getSimpleName() + "'."
+          );
+        }
       }
     }
   }
@@ -419,11 +436,12 @@ public final class UniverseImpl implements Universe {
 
   private Tick update() {
     synchronized(this.lock) {
-      final List<System> systems = new ArrayList<>(this.systems.values());
+      final List<SystemEntry> systems = new ArrayList<>(this.systems.values());
       final List<Throwable> errors = new ArrayList<>();
       final int time = this.time.getAndIncrement();
       Collections.sort(systems);
-      for(final System system : systems) {
+      for(final SystemEntry systemEntry : systems) {
+        final System system = systemEntry.left();
         boolean run = true;
         try {
           if (!system.initialized()) system.initialize();
@@ -526,6 +544,42 @@ public final class UniverseImpl implements Universe {
 
     public @NonNull Entity entity() {
       return this.entityReference;
+    }
+  }
+
+  /* package */ static class SystemEntry extends ObjectObjectMutablePair<System, InjectionStructure> implements Comparable<SystemEntry> {
+    public SystemEntry(final @NonNull System left, final @Nullable InjectionStructure right) {
+      super(left, right);
+    }
+
+    @Override
+    public int compareTo(final @NonNull SystemEntry other) {
+      return this.left.compareTo(other.left());
+    }
+  }
+
+  /* package */ static class SystemIterator implements Iterator<System> {
+    private final Iterator<SystemEntry> iterator;
+    private SystemEntry next;
+
+    /* package */ SystemIterator(final @NonNull Iterator<SystemEntry> iterator) {
+      this.iterator = iterator;
+    }
+
+    @Override
+    public boolean hasNext() {
+      return this.iterator.hasNext();
+    }
+
+    @Override
+    public @NonNull System next() {
+      return (this.next = this.iterator.next()).left();
+    }
+
+    @Override
+    public void remove() {
+      if(this.next == null) throw new IllegalStateException("remove() called before next()");
+      this.iterator.remove();
     }
   }
 }
