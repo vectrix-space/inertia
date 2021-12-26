@@ -3,11 +3,10 @@ plugins {
 }
 
 dependencies {
-  compileOnlyApi("org.checkerframework:checker-qual:3.18.0")
-  api("net.kyori:coffee:1.0.0-SNAPSHOT")
+  compileOnlyApi("org.checkerframework:checker-qual:3.21.0")
   api("it.unimi.dsi:fastutil:8.5.6")
-  api("space.vectrix.flare:flare:1.0.0")
-  api("space.vectrix.flare:flare-fastutil:1.0.0")
+  api("space.vectrix.flare:flare:2.0.0")
+  api("space.vectrix.flare:flare-fastutil:2.0.0")
 }
 
 applyJarMetadata("space.vectrix.inertia")

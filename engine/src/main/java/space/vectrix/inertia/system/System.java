@@ -24,7 +24,6 @@
  */
 package space.vectrix.inertia.system;
 
-import net.kyori.coffee.Ordered;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
 import static java.util.Objects.requireNonNull;
@@ -35,7 +34,7 @@ import static java.util.Objects.requireNonNull;
  * @since 0.3.0
  */
 @FunctionalInterface
-public interface System extends Ordered<System> {
+public interface System extends Comparable<System> {
   /**
    * Returns an {@code int} for this system's priority.
    *

@@ -24,13 +24,13 @@
  */
 package space.vectrix.inertia.injection;
 
-import net.kyori.coffee.reflection.Types;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import space.vectrix.inertia.system.Dependency;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
@@ -55,9 +55,8 @@ public final class LmbdaInjectionStructureFactory implements InjectionStructure.
   public @NonNull InjectionStructure create(final @NonNull Class<?> target) {
     requireNonNull(target, "target");
     final Map<Class<?>, InjectionStructure.Entry> dependencies = new IdentityHashMap<>();
-    final List<Class<?>> ancestors = (List<Class<?>>) Types.ancestors(target);
+    final List<Class<?>> ancestors = (List<Class<?>>) this.ancestors(target);
     for(final Class<?> ancestor : ancestors) {
-      if(ancestor.isInterface()) continue;
       for(final Field field : ancestor.getDeclaredFields()) {
         final Dependency dependencyAnnotation = field.getAnnotation(Dependency.class);
         try {
@@ -75,6 +74,18 @@ public final class LmbdaInjectionStructureFactory implements InjectionStructure.
       }
     }
     return new LmbdaInjectionStructure(dependencies);
+  }
+
+  @SuppressWarnings("unchecked")
+  private <T> @NonNull List<Class<? super T>> ancestors(final @NonNull Class<T> target) {
+    final List<Class<? super T>> types = new ArrayList<>();
+    types.add(target);
+    for(int i = 0; i < types.size(); i++) {
+      final Class<?> type = types.get(i);
+      final Class<?> parent = type.getSuperclass();
+      if(parent != null) types.add((Class<? super T>) parent);
+    }
+    return types;
   }
 
   /* package */ static final class LmbdaInjectionStructure implements InjectionStructure {
