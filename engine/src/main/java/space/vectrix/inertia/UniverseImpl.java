@@ -47,22 +47,35 @@ import space.vectrix.inertia.entity.EntityFunction;
 import space.vectrix.inertia.injection.InjectionStructure;
 import space.vectrix.inertia.system.Dependency;
 import space.vectrix.inertia.system.System;
+import space.vectrix.inertia.util.CustomIterator;
+import space.vectrix.inertia.util.CustomIteratorImpl;
 import space.vectrix.inertia.util.IndexCounter;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.IdentityHashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 import java.util.function.IntFunction;
 
 import static java.util.Objects.requireNonNull;
 
 public final class UniverseImpl implements Universe {
+  private static final Function<SystemEntry, System> SYSTEM_FUNCTION = SystemEntry::left;
+  private static final Function<EntityEntry, Entity> ENTITY_FUNCTION = EntityEntry::entity;
+
+  private static Function<ComponentEntry, Object> componentFunction() {
+    return ComponentEntry::component;
+  }
+
+  private static <E> Function<ComponentEntry, E> componentFunction(final @NonNull ComponentType type) {
+    return entry -> entry.type().index() == type.index() ? entry.component() : null;
+  }
+
   /**
    * Stores the processors by class type.
    */
@@ -277,34 +290,37 @@ public final class UniverseImpl implements Universe {
   }
 
   @Override
-  public @NonNull Iterator<System> systems() {
-    return new SystemIterator(this.systems.values().iterator());
+  public @NonNull CustomIterator<System> systems() {
+    return new CustomIteratorImpl<>(this.systems.values().iterator(), UniverseImpl.SYSTEM_FUNCTION, system -> this.removeSystem(system.getClass()));
   }
 
   @Override
-  public @NonNull Iterator<Entity> entities() {
-    return new EntityIterator(this.entities.values().iterator());
+  public @NonNull CustomIterator<ComponentType> types() {
+    return new CustomIteratorImpl<>(this.types.values().iterator());
   }
 
   @Override
-  public <T> @NonNull Iterator<T> components(final @NonNull ComponentType type) {
+  public @NonNull CustomIterator<Entity> entities() {
+    return new CustomIteratorImpl<>(this.entities.values().iterator(), UniverseImpl.ENTITY_FUNCTION);
+  }
+
+  @Override
+  public <T> @NonNull CustomIterator<T> components(final @NonNull ComponentType type) {
     requireNonNull(type, "type");
-    return new ComponentIterator<T>(this.components.values().stream()
-      .filter(entry -> entry.type().index() == type.index())
-      .iterator());
+    return new CustomIteratorImpl<>(this.components.values().iterator(), UniverseImpl.componentFunction(type));
   }
 
   @Override
-  public @NonNull Iterator<Object> components(final @NonNull Entity entity) {
+  public @NonNull CustomIterator<Object> components(final @NonNull Entity entity) {
     requireNonNull(entity, "entity");
     final EntityEntry entityEntry = this.entities.get(entity.index());
     if(entityEntry == null) throw new IllegalArgumentException("Entity does not exist!");
-    return new ComponentIterator<>(entityEntry.entries().iterator());
+    return new CustomIteratorImpl<>(entityEntry.entries().iterator(), UniverseImpl.componentFunction());
   }
 
   @Override
-  public @NonNull Iterator<Object> components() {
-    return new ComponentIterator<>(this.components.values().iterator());
+  public @NonNull CustomIterator<Object> components() {
+    return new CustomIteratorImpl<>(this.components.values().iterator(), UniverseImpl.componentFunction());
   }
 
   @Override
@@ -584,69 +600,6 @@ public final class UniverseImpl implements Universe {
 
     public @NonNull Entity entity() {
       return this.entityReference;
-    }
-  }
-
-  /* package */ static class SystemIterator implements Iterator<System> {
-    private final Iterator<SystemEntry> iterator;
-    private SystemEntry next;
-
-    /* package */ SystemIterator(final @NonNull Iterator<SystemEntry> iterator) {
-      this.iterator = iterator;
-    }
-
-    @Override
-    public boolean hasNext() {
-      return this.iterator.hasNext();
-    }
-
-    @Override
-    public @NonNull System next() {
-      return (this.next = this.iterator.next()).left();
-    }
-
-    @Override
-    public void remove() {
-      if(this.next == null) throw new IllegalStateException("remove() called before next()");
-      this.iterator.remove();
-    }
-  }
-
-  /* package */ static class EntityIterator implements Iterator<Entity> {
-    private final Iterator<EntityEntry> iterator;
-    private EntityEntry next;
-
-    /* package */ EntityIterator(final @NonNull Iterator<EntityEntry> iterator) {
-      this.iterator = iterator;
-    }
-
-    @Override
-    public boolean hasNext() {
-      return this.iterator.hasNext();
-    }
-
-    @Override
-    public @NonNull Entity next() {
-      return (this.next = this.iterator.next()).entity();
-    }
-  }
-
-  /* package */ static class ComponentIterator<T> implements Iterator<T> {
-    private final Iterator<ComponentEntry> iterator;
-    private ComponentEntry next;
-
-    /* package */ ComponentIterator(final @NonNull Iterator<ComponentEntry> iterator) {
-      this.iterator = iterator;
-    }
-
-    @Override
-    public boolean hasNext() {
-      return this.iterator.hasNext();
-    }
-
-    @Override
-    public @NonNull T next() {
-      return (this.next = this.iterator.next()).component();
     }
   }
 }

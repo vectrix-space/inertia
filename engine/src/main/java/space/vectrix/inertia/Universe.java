@@ -32,6 +32,7 @@ import space.vectrix.inertia.entity.Entity;
 import space.vectrix.inertia.entity.EntityFunction;
 import space.vectrix.inertia.injection.InjectionStructure;
 import space.vectrix.inertia.system.System;
+import space.vectrix.inertia.util.CustomIterator;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -293,23 +294,31 @@ public interface Universe {
   void clearComponents(final @NonNull Entity entity);
 
   /**
-   * Returns an {@link Iterator} of {@link System}s in this universe.
+   * Returns an {@link CustomIterator} of {@link System}s in this universe.
    *
    * @return an iterator of systems
    * @since 0.3.0
    */
-  @NonNull Iterator<System> systems();
+  @NonNull CustomIterator<System> systems();
 
   /**
-   * Returns an {@link Iterator} of {@link Entity}s in this universe.
+   * Returns an {@link CustomIterator} of {@link ComponentType}s in this universe.
+   *
+   * @return an iterator of component types
+   * @since 0.3.0
+   */
+  @NonNull CustomIterator<ComponentType> types();
+
+  /**
+   * Returns an {@link CustomIterator} of {@link Entity}s in this universe.
    *
    * @return an iterator of entities
    * @since 0.3.0
    */
-  @NonNull Iterator<Entity> entities();
+  @NonNull CustomIterator<Entity> entities();
 
   /**
-   * Returns an {@link Iterator} of {@code T} component instances for
+   * Returns an {@link CustomIterator} of {@code T} component instances for
    * the specified {@link ComponentType}.
    *
    * @param type the component type
@@ -317,25 +326,25 @@ public interface Universe {
    * @return an iterator of components
    * @since 0.3.0
    */
-  <T> @NonNull Iterator<T> components(final @NonNull ComponentType type);
+  <T> @NonNull CustomIterator<T> components(final @NonNull ComponentType type);
 
   /**
-   * Returns an {@link Iterator} of component instances for the specified
+   * Returns an {@link CustomIterator} of component instances for the specified
    * {@link Entity}.
    *
    * @param entity the entity
    * @return an iterator of components
    * @since 0.3.0
    */
-  @NonNull Iterator<Object> components(final @NonNull Entity entity);
+  @NonNull CustomIterator<Object> components(final @NonNull Entity entity);
 
   /**
-   * Returns an {@link Iterator} of component instances in this universe.
+   * Returns an {@link CustomIterator} of component instances in this universe.
    *
    * @return an iterator of components
    * @since 0.3.0
    */
-  @NonNull Iterator<Object> components();
+  @NonNull CustomIterator<Object> components();
 
   /**
    * Destroys the universe.

@@ -29,8 +29,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import space.vectrix.inertia.Universe;
 import space.vectrix.inertia.component.ComponentType;
-
-import java.util.Iterator;
+import space.vectrix.inertia.util.CustomIterator;
 
 /**
  * The abstract {@link Entity}.
@@ -87,7 +86,7 @@ public abstract class AbstractEntity implements Entity {
   }
 
   @Override
-  public @NonNull Iterator<Object> components() {
+  public @NonNull CustomIterator<Object> components() {
     return this.universe.components(this);
   }
 }

@@ -30,8 +30,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import space.vectrix.inertia.Universe;
 import space.vectrix.inertia.component.Component;
 import space.vectrix.inertia.component.ComponentType;
+import space.vectrix.inertia.util.CustomIterator;
 
-import java.util.Iterator;
 import java.util.Optional;
 
 /**
@@ -135,10 +135,10 @@ public interface Entity {
   void destroy();
 
   /**
-   * Returns an {@link Iterator} of components.
+   * Returns an {@link CustomIterator} of components.
    *
    * @return an iterator of components
    * @since 0.3.0
    */
-  @NonNull Iterator<Object> components();
+  @NonNull CustomIterator<Object> components();
 }
