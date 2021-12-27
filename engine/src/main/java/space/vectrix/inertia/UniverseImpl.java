@@ -34,7 +34,7 @@ import it.unimi.dsi.fastutil.ints.IntIntPair;
 import it.unimi.dsi.fastutil.ints.IntPriorityQueue;
 import it.unimi.dsi.fastutil.ints.IntPriorityQueues;
 import it.unimi.dsi.fastutil.objects.ObjectArrayFIFOQueue;
-import it.unimi.dsi.fastutil.objects.ObjectObjectMutablePair;
+import it.unimi.dsi.fastutil.objects.ObjectObjectImmutablePair;
 import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -56,6 +56,7 @@ import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.IntFunction;
 
@@ -126,6 +127,21 @@ public final class UniverseImpl implements Universe {
   }
 
   @Override
+  public boolean hasEntity(final @NonNull Entity entity) {
+    requireNonNull(entity, "entity");
+    final EntityEntry entry = this.entities.get(entity.index());
+    return entry != null && Objects.equals(entry.entity(), entity);
+  }
+
+  @Override
+  public boolean hasComponent(final @NonNull Entity entity, final @NonNull ComponentType type) {
+    requireNonNull(entity, "entity");
+    requireNonNull(type, "type");
+    final EntityEntry entry = this.entities.get(entity.index());
+    return entry != null && entry.get(type) != null;
+  }
+
+  @Override
   @SuppressWarnings("unchecked")
   public <T extends System> @Nullable T getSystem(final @NonNull Class<T> target) {
     requireNonNull(target, "target");
@@ -159,14 +175,6 @@ public final class UniverseImpl implements Universe {
   }
 
   @Override
-  public boolean hasComponent(final @NonNull Entity entity, final @NonNull ComponentType type) {
-    requireNonNull(entity, "entity");
-    requireNonNull(type, "type");
-    final EntityEntry entry = this.entities.get(entity.index());
-    return entry != null && entry.get(type) != null;
-  }
-
-  @Override
   public @Nullable Object getComponent(final @NonNegative int component) {
     final ComponentEntry entry = this.components.get(component);
     if(entry != null) return entry.component();
@@ -186,13 +194,12 @@ public final class UniverseImpl implements Universe {
     Universe.checkActive(this);
     requireNonNull(system, "system");
     this.systems.computeIfAbsent(system.getClass(), key -> {
-      final SystemEntry systemEntry = new SystemEntry(system, null);
       if(this.factory != null) {
         final InjectionStructure structure = this.factory.create(key);
         this.injectSystem(system, structure);
-        systemEntry.right(structure);
+        return new SystemEntry(system, structure);
       }
-      return systemEntry;
+      return new SystemEntry(system, null);
     });
   }
 
@@ -486,7 +493,7 @@ public final class UniverseImpl implements Universe {
     }
   }
 
-  /* package */ static class SystemEntry extends ObjectObjectMutablePair<System, InjectionStructure> implements Comparable<SystemEntry> {
+  /* package */ static class SystemEntry extends ObjectObjectImmutablePair<System, InjectionStructure> implements Comparable<SystemEntry> {
     private static final long serialVersionUID = 0L;
 
     public SystemEntry(final @NonNull System left, final @Nullable InjectionStructure right) {

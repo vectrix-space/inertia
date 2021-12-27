@@ -118,6 +118,25 @@ public interface Universe {
   void injector(final InjectionStructure.@Nullable Factory factory);
 
   /**
+   * Returns {@code true} if the universe contains the specified {@link Entity},
+   * otherwise {@code false}.
+   *
+   * @param entity the entity
+   * @return true if the entity exists, otherwise false
+   */
+  boolean hasEntity(final @NonNull Entity entity);
+
+  /**
+   * Returns {@code true} if the specified {@link Entity} contains the
+   * {@link ComponentType} if it exists, otherwise {@code false}.
+   *
+   * @param entity the entity
+   * @param type the component type
+   * @return true if the component exists, otherwise false
+   */
+  boolean hasComponent(final @NonNull Entity entity, final @NonNull ComponentType type);
+
+  /**
    * Returns the {@code T} system for the specified {@link Class} if
    * it exists, otherwise {@code null}.
    *
@@ -167,16 +186,6 @@ public interface Universe {
    * @since 0.3.0
    */
   @Nullable Entity getEntityFromComponent(final @NonNegative int component);
-
-  /**
-   * Returns {@code true} if the specified {@link Entity} contains the
-   * {@link ComponentType} if it exists, otherwise {@code false}.
-   *
-   * @param entity the entity
-   * @param type the component type
-   * @return true if the component exists, otherwise false
-   */
-  boolean hasComponent(final @NonNull Entity entity, final @NonNull ComponentType type);
 
   /**
    * Returns the component instance with the specified {@code int}
