@@ -58,7 +58,7 @@ class UniverseTest {
     assertEquals(universe, Universe.get(index), "Universe#get should equal the new universe.");
     universe.destroy();
     assertFalse(universe.active(), "Universe should be inactive.");
-    assertThrows(IllegalStateException.class, universe::createEntity, "Universe#createEntity should throw an exception.");
+    assertThrows(InactiveUniverseException.class, universe::createEntity, "Universe#createEntity should throw an exception.");
     assertNull(Universe.get(index), "Universe should be null.");
   }
 

@@ -48,7 +48,6 @@ import space.vectrix.inertia.injection.InjectionStructure;
 import space.vectrix.inertia.system.Dependency;
 import space.vectrix.inertia.system.System;
 import space.vectrix.inertia.util.CustomIterator;
-import space.vectrix.inertia.util.CustomIteratorImpl;
 import space.vectrix.inertia.util.IndexCounter;
 
 import java.util.ArrayList;
@@ -59,23 +58,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Function;
 import java.util.function.IntFunction;
 
 import static java.util.Objects.requireNonNull;
 
 public final class UniverseImpl implements Universe {
-  private static final Function<SystemEntry, System> SYSTEM_FUNCTION = SystemEntry::left;
-  private static final Function<EntityEntry, Entity> ENTITY_FUNCTION = EntityEntry::entity;
-
-  private static Function<ComponentEntry, Object> componentFunction() {
-    return ComponentEntry::component;
-  }
-
-  private static <E> Function<ComponentEntry, E> componentFunction(final @NonNull ComponentType type) {
-    return entry -> entry.type().index() == type.index() ? entry.component() : null;
-  }
-
   /**
    * Stores the processors by class type.
    */
@@ -218,7 +205,6 @@ public final class UniverseImpl implements Universe {
 
   @Override
   public @NonNull Entity createEntity() {
-    Universe.checkActive(this);
     return this.createEntity(Entity.simple());
   }
 
@@ -285,42 +271,42 @@ public final class UniverseImpl implements Universe {
     requireNonNull(entity, "entity");
     final int index = entity.index();
     final EntityEntry entityEntry = this.entities.get(index);
-    if(entityEntry == null) throw new IllegalArgumentException("Entity does not exist!");
+    if(entityEntry == null) return;
     entityEntry.entries().forEach(entry -> this.entityComponentRemovals.enqueue(IntIntPair.of(index, entry.type().index())));
   }
 
   @Override
   public @NonNull CustomIterator<System> systems() {
-    return new CustomIteratorImpl<>(this.systems.values().iterator(), UniverseImpl.SYSTEM_FUNCTION, system -> this.removeSystem(system.getClass()));
+    return CustomIterator.of(this.systems.values().iterator(), SystemEntry::left, system -> this.removeSystem(system.getClass()));
   }
 
   @Override
   public @NonNull CustomIterator<ComponentType> types() {
-    return new CustomIteratorImpl<>(this.types.values().iterator());
+    return CustomIterator.of(this.types.values().iterator());
   }
 
   @Override
   public @NonNull CustomIterator<Entity> entities() {
-    return new CustomIteratorImpl<>(this.entities.values().iterator(), UniverseImpl.ENTITY_FUNCTION);
+    return CustomIterator.of(this.entities.values().iterator(), EntityEntry::entity);
   }
 
   @Override
   public <T> @NonNull CustomIterator<T> components(final @NonNull ComponentType type) {
     requireNonNull(type, "type");
-    return new CustomIteratorImpl<>(this.components.values().iterator(), UniverseImpl.componentFunction(type));
+    return CustomIterator.of(this.components.values().iterator(), entry -> entry.type().index() == type.index() ? entry.component() : null);
   }
 
   @Override
   public @NonNull CustomIterator<Object> components(final @NonNull Entity entity) {
     requireNonNull(entity, "entity");
     final EntityEntry entityEntry = this.entities.get(entity.index());
-    if(entityEntry == null) throw new IllegalArgumentException("Entity does not exist!");
-    return new CustomIteratorImpl<>(entityEntry.entries().iterator(), UniverseImpl.componentFunction());
+    if(entityEntry == null) return CustomIterator.empty();
+    return CustomIterator.of(entityEntry.entries().iterator(), ComponentEntry::component);
   }
 
   @Override
   public @NonNull CustomIterator<Object> components() {
-    return new CustomIteratorImpl<>(this.components.values().iterator(), UniverseImpl.componentFunction());
+    return CustomIterator.of(this.components.values().iterator(), ComponentEntry::component);
   }
 
   @Override
@@ -403,24 +389,20 @@ public final class UniverseImpl implements Universe {
     }
   }
 
-  private boolean destroyEntity(final @NonNegative int entity) {
+  private void destroyEntity(final @NonNegative int entity) {
     final EntityEntry entityEntry = this.entities.remove(entity);
     if(entityEntry != null) {
       entityEntry.entries().forEach(entry -> this.components.remove(entry.index()));
-      return true;
     }
-    return false;
   }
 
-  private boolean destroyComponent(final @NonNegative int entity, final @NonNegative int type) {
+  private void destroyComponent(final @NonNegative int entity, final @NonNegative int type) {
     final EntityEntry entityEntry = this.entities.get(entity);
     final ComponentEntry componentEntry;
     if(entityEntry != null && (componentEntry = entityEntry.remove(type)) != null) {
       this.components.remove(componentEntry.index());
-      if(entityEntry.empty()) return this.entities.remove(entity) != null;
-      return true;
+      if(entityEntry.empty()) this.entities.remove(entity);
     }
-    return false;
   }
 
   private void clear() {
@@ -549,10 +531,6 @@ public final class UniverseImpl implements Universe {
 
     public @Nullable ComponentEntry get(final @NonNull ComponentType type) {
       return this.components.get(type.index());
-    }
-
-    public @Nullable ComponentEntry get(final @NonNegative int type) {
-      return this.components.get(type);
     }
 
     public void add(final @NonNull ComponentEntry entry) {

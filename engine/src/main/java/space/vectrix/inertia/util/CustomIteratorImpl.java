@@ -26,6 +26,8 @@ package space.vectrix.inertia.util;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import space.vectrix.inertia.util.functional.ThrowableConsumer;
+import space.vectrix.inertia.util.functional.ThrowableFunction;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;
@@ -35,24 +37,15 @@ import java.util.function.Predicate;
 
 public final class CustomIteratorImpl<T, E> implements CustomIterator<E> {
   private final Iterator<T> backingIterator;
-  private Function<T, E> mapper = ignored -> (E) ignored;
+  private final Function<T, E> mapper;
+  private final Consumer<E> remove;
   private Predicate<E> filter = ignored -> true;
-  private Consumer<E> remove = ignored -> {};
   private E next;
   private E current;
 
-  public CustomIteratorImpl(final @NonNull Iterator<T> backingIterator) {
-    this.backingIterator = backingIterator;
-    this.next = this.nextValue();
-  }
-
-  public CustomIteratorImpl(final @NonNull Iterator<T> backingIterator, final @NonNull Function<T, E> mapper) {
-    this.backingIterator = backingIterator;
-    this.mapper = mapper;
-    this.next = this.nextValue();
-  }
-
-  public CustomIteratorImpl(final @NonNull Iterator<T> backingIterator, final @NonNull Function<T, E> mapper, final @NonNull Consumer<E> remove) {
+  public CustomIteratorImpl(final @NonNull Iterator<@NonNull T> backingIterator,
+                            final @NonNull ThrowableFunction<@NonNull T, @Nullable E, ? extends Throwable> mapper,
+                            final @NonNull ThrowableConsumer<@NonNull E, ? extends Throwable> remove) {
     this.backingIterator = backingIterator;
     this.mapper = mapper;
     this.remove = remove;

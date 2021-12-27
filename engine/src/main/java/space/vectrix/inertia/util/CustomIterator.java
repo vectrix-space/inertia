@@ -25,17 +25,81 @@
 package space.vectrix.inertia.util;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import space.vectrix.inertia.util.functional.ThrowableConsumer;
+import space.vectrix.inertia.util.functional.ThrowableFunction;
 
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.function.Predicate;
 
 /**
  * A custom iterator that can be used to filter elements while iterating.
  *
- * @param <E> the element type
+ * @param <T> the element type
  * @since 0.3.0
  */
-public interface CustomIterator<E> extends Iterator<E> {
+public interface CustomIterator<T> extends Iterator<T> {
+  /**
+   * Returns a new empty custom iterator.
+   *
+   * @param <T> the element type
+   * @return a new empty custom iterator
+   * @since 0.3.0
+   */
+  static <T> @NonNull CustomIterator<T> empty() {
+    return new CustomIteratorImpl<>(Collections.<T>emptyIterator(), x -> x, ThrowableConsumer.throwing(new UnsupportedOperationException()));
+  }
+
+  /**
+   * Returns a new custom iterator with the specified backing iterator.
+   *
+   * @param iterator the backing iterator
+   * @param <T> the element type
+   * @return a new custom iterator
+   * @since 0.3.0
+   */
+  static <T> @NonNull CustomIterator<T> of(final @NonNull Iterator<@NonNull T> iterator) {
+    return new CustomIteratorImpl<>(iterator, x -> x, ThrowableConsumer.throwing(new UnsupportedOperationException()));
+  }
+
+  /**
+   * Returns a new custom iterator with the specified backing iterator, and
+   * {@link ThrowableFunction} to remap elements.
+   *
+   * @param iterator the backing iterator
+   * @param mapper the remapping function
+   * @param <A> the input type
+   * @param <T> the output type
+   * @param <E> the exception type
+   * @return a new custom iterator
+   * @since 0.3.0
+   */
+  static <A, T, E extends Throwable> @NonNull CustomIterator<T> of(final @NonNull Iterator<@NonNull A> iterator,
+                                                                   final @NonNull ThrowableFunction<@NonNull A, @Nullable T, E> mapper) {
+    return new CustomIteratorImpl<>(iterator, mapper, ThrowableConsumer.throwing(new UnsupportedOperationException()));
+  }
+
+  /**
+   * Returns a new custom iterator, with the specified backing iterator,
+   * {@link ThrowableFunction} to remap elements, and {@link ThrowableConsumer}
+   * to remove elements.
+   *
+   * @param iterator the backing iterator
+   * @param mapper the remapping function
+   * @param remove the removal function
+   * @param <A> the input type
+   * @param <T> the output type
+   * @param <E> the exception type
+   * @return a new custom iterator
+   * @since 0.3.0
+   */
+  static <A, T, E extends Throwable> @NonNull CustomIterator<T> of(final @NonNull Iterator<@NonNull A> iterator,
+                                                                   final @NonNull ThrowableFunction<@NonNull A, @Nullable T, E> mapper,
+                                                                   final @NonNull ThrowableConsumer<@NonNull T, E> remove) {
+    return new CustomIteratorImpl<>(iterator, mapper, remove);
+  }
+
   /**
    * Returns this iterator with the next elements filtered with the specified
    * {@link Predicate} returning {@code true}.
@@ -44,7 +108,7 @@ public interface CustomIterator<E> extends Iterator<E> {
    * @return this iterator
    * @since 0.3.0
    */
-  @NonNull CustomIterator<E> with(final @NonNull Predicate<? super E> predicate);
+  @NonNull CustomIterator<T> with(final @NonNull Predicate<? super T> predicate);
 
   /**
    * Returns this iterator with the next elements filtered without the specified
@@ -54,5 +118,5 @@ public interface CustomIterator<E> extends Iterator<E> {
    * @return this iterator
    * @since 0.3.0
    */
-  @NonNull CustomIterator<E> without(final @NonNull Predicate<? super E> predicate);
+  @NonNull CustomIterator<T> without(final @NonNull Predicate<? super T> predicate);
 }

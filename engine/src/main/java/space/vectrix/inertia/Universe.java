@@ -45,13 +45,14 @@ import java.util.Iterator;
 public interface Universe {
   /**
    * Ensures the specified {@link Universe} is active, otherwise
-   * throws an {@link IllegalStateException}.
+   * throws an {@link InactiveUniverseException}.
    *
    * @param universe the universe to check
+   * @throws InactiveUniverseException if the universe is not active
    * @since 0.3.0
    */
   static void checkActive(final @NonNull Universe universe) {
-    if(!universe.active()) throw new IllegalStateException("Universe is not active!");
+    if(!universe.active()) throw new InactiveUniverseException(universe);
   }
 
   /**
@@ -106,6 +107,7 @@ public interface Universe {
    * Ticks the {@link System}s in this universe.
    *
    * @return the tick result
+   * @throws InactiveUniverseException if the universe is not active
    * @since 0.3.0
    */
   @NonNull Tick tick();
@@ -215,6 +217,7 @@ public interface Universe {
    *
    * @param system the system
    * @param <T> the system type
+   * @throws InactiveUniverseException if the universe is not active
    * @since 0.3.0
    */
   <T extends System> void addSystem(final @NonNull T system);
@@ -223,6 +226,7 @@ public interface Universe {
    * Returns a new {@link Entity}.
    *
    * @return the new entity
+   * @throws InactiveUniverseException if the universe is not active
    * @since 0.3.0
    */
   @NonNull Entity createEntity();
@@ -234,6 +238,7 @@ public interface Universe {
    * @param function the entity function
    * @param <T> the entity type
    * @return the new entity
+   * @throws InactiveUniverseException if the universe is not active
    * @since 0.3.0
    */
   <T extends Entity> @NonNull T createEntity(final @NonNull EntityFunction<T> function);
@@ -246,6 +251,8 @@ public interface Universe {
    * @param type the component type
    * @param <T> the component instance type
    * @return the new component
+   * @throws InactiveUniverseException if the universe is not active
+   * @throws IllegalArgumentException if the entity does not exist
    * @since 0.3.0
    */
   <T> @NonNull T addComponent(final @NonNull Entity entity, final @NonNull ComponentType type);
@@ -254,6 +261,7 @@ public interface Universe {
    * Removes the specified {@link System} from this universe.
    *
    * @param system the system
+   * @throws InactiveUniverseException if the universe is not active
    * @since 0.3.0
    */
   void removeSystem(final @NonNull Class<? extends System> system);
@@ -262,6 +270,7 @@ public interface Universe {
    * Marks the specified {@code int} entity for removal.
    *
    * @param entity the entity index
+   * @throws InactiveUniverseException if the universe is not active
    * @since 0.3.0
    */
   void removeEntity(final @NonNegative int entity);
@@ -270,6 +279,7 @@ public interface Universe {
    * Marks the specified {@link Entity} for removal.
    *
    * @param entity the entity
+   * @throws InactiveUniverseException if the universe is not active
    * @since 0.3.0
    */
   void removeEntity(final @NonNull Entity entity);
@@ -280,6 +290,7 @@ public interface Universe {
    *
    * @param entity the entity
    * @param type the component type
+   * @throws InactiveUniverseException if the universe is not active
    * @since 0.3.0
    */
   void removeComponent(final @NonNull Entity entity, final @NonNull ComponentType type);
@@ -289,6 +300,7 @@ public interface Universe {
    * removed.
    *
    * @param entity the entity
+   * @throws InactiveUniverseException if the universe is not active
    * @since 0.3.0
    */
   void clearComponents(final @NonNull Entity entity);
@@ -348,6 +360,9 @@ public interface Universe {
 
   /**
    * Destroys the universe.
+   *
+   * @throws InactiveUniverseException if the universe is not active
+   * @since 0.3.0
    */
   void destroy();
 
