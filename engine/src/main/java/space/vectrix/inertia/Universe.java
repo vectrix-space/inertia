@@ -284,7 +284,7 @@ public interface Universe {
   void clearComponents(final @NonNull Entity entity);
 
   /**
-   * Returns a {@link Iterator} of {@link System}s in this universe.
+   * Returns an {@link Iterator} of {@link System}s in this universe.
    *
    * @return an iterator of systems
    * @since 0.3.0
@@ -292,41 +292,41 @@ public interface Universe {
   @NonNull Iterator<System> systems();
 
   /**
-   * Returns a {@link Collection} of {@link Entity}s in this universe.
+   * Returns an {@link Iterator} of {@link Entity}s in this universe.
    *
-   * @return a collection of entities
+   * @return an iterator of entities
    * @since 0.3.0
    */
-  @NonNull Collection<Entity> entities();
+  @NonNull Iterator<Entity> entities();
 
   /**
-   * Returns a {@link Collection} of {@code T} component instances for
+   * Returns an {@link Iterator} of {@code T} component instances for
    * the specified {@link ComponentType}.
    *
    * @param type the component type
    * @param <T> the component instance type
-   * @return a collection of components
+   * @return an iterator of components
    * @since 0.3.0
    */
-  <T> @NonNull Collection<T> components(final @NonNull ComponentType type);
+  <T> @NonNull Iterator<T> components(final @NonNull ComponentType type);
 
   /**
-   * Returns a {@link Collection} of component instances for the specified
+   * Returns an {@link Iterator} of component instances for the specified
    * {@link Entity}.
    *
    * @param entity the entity
-   * @return a collection of components
+   * @return an iterator of components
    * @since 0.3.0
    */
-  @NonNull Collection<Object> components(final @NonNull Entity entity);
+  @NonNull Iterator<Object> components(final @NonNull Entity entity);
 
   /**
-   * Returns a {@link Collection} of component instances in this universe.
+   * Returns an {@link Iterator} of component instances in this universe.
    *
-   * @return a collection of components
+   * @return an iterator of components
    * @since 0.3.0
    */
-  @NonNull Collection<Object> components();
+  @NonNull Iterator<Object> components();
 
   /**
    * Destroys the universe.

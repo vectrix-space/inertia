@@ -28,6 +28,7 @@ import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.PriorityQueue;
 import it.unimi.dsi.fastutil.PriorityQueues;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntArrayFIFOQueue;
 import it.unimi.dsi.fastutil.ints.IntIntPair;
 import it.unimi.dsi.fastutil.ints.IntPriorityQueue;
@@ -75,12 +76,6 @@ public final class UniverseImpl implements Universe {
   private final IndexCounter typeCounter = IndexCounter.counter("types", this.types);
 
   /**
-   * Stored by the unique {@code int} entity identifier and unique {@code int}
-   * component type identifier.
-   */
-  private final Int2ObjectMap<Int2ObjectMap<ComponentEntry>> entityComponents = Int2ObjectSyncMap.hashmap(100);
-
-  /**
    * Stored by unique {@code int} component index.
    */
   private final Int2ObjectMap<ComponentEntry> components = Int2ObjectSyncMap.hashmap(100);
@@ -89,7 +84,7 @@ public final class UniverseImpl implements Universe {
   /**
    * Stored by unique {@code int} entity index.
    */
-  private final Int2ObjectMap<Entity> entities = Int2ObjectSyncMap.hashmap(100);
+  private final Int2ObjectMap<EntityEntry> entities = Int2ObjectSyncMap.hashmap(100);
   private final IndexCounter entityCounter = IndexCounter.counter("entities", this.entities);
 
   /**
@@ -151,7 +146,9 @@ public final class UniverseImpl implements Universe {
 
   @Override
   public @Nullable Entity getEntity(final @NonNegative int entity) {
-    return this.entities.get(entity);
+    final EntityEntry entry = this.entities.get(entity);
+    if(entry != null) return entry.entity();
+    return null;
   }
 
   @Override
@@ -165,12 +162,8 @@ public final class UniverseImpl implements Universe {
   public boolean hasComponent(final @NonNull Entity entity, final @NonNull ComponentType type) {
     requireNonNull(entity, "entity");
     requireNonNull(type, "type");
-    final Int2ObjectMap<ComponentEntry> components = this.entityComponents.get(entity.index());
-    if(components != null) {
-      final ComponentEntry entry = components.get(type.index());
-      return entry != null;
-    }
-    return false;
+    final EntityEntry entry = this.entities.get(entity.index());
+    return entry != null && entry.get(type) != null;
   }
 
   @Override
@@ -184,12 +177,8 @@ public final class UniverseImpl implements Universe {
   public @Nullable <T> T getComponent(final @NonNull Entity entity, final @NonNull ComponentType type) {
     requireNonNull(entity, "entity");
     requireNonNull(type, "type");
-    final Int2ObjectMap<ComponentEntry> components = this.entityComponents.get(entity.index());
-    if(components != null) {
-      final ComponentEntry entry = components.get(type.index());
-      return entry != null ? entry.component() : null;
-    }
-    return null;
+    final EntityEntry entry = this.entities.get(entity.index());
+    return entry != null ? entry.component(type) : null;
   }
 
   @Override
@@ -219,7 +208,7 @@ public final class UniverseImpl implements Universe {
     requireNonNull(function, "function");
     return this.entityCounter.next(index -> {
       final T entity = function.apply(this, index);
-      this.entities.put(index, entity);
+      this.entities.put(index, new EntityEntry(entity));
       return entity;
     });
   }
@@ -231,18 +220,13 @@ public final class UniverseImpl implements Universe {
     requireNonNull(entity, "entity");
     requireNonNull(type, "type");
     return this.componentCounter.next(index -> {
-      Int2ObjectMap<ComponentEntry> components = this.entityComponents.get(entity.index());
-      ComponentEntry entry;
-      if(components != null) {
-        if((entry = components.get(type.index())) != null) {
-          return entry.component();
-        }
-      } else {
-        components = Int2ObjectSyncMap.hashmap(100);
-      }
+      final EntityEntry entityEntry = this.entities.get(entity.index());
+      if(entityEntry == null) throw new IllegalArgumentException("Entity does not exist!");
+      ComponentEntry entry = entityEntry.get(type);
+      if(entry != null) return entry.component();
       final T componentReference = (T) this.createInstance(type.type());
       entry = new ComponentEntry(type, index, componentReference, entity);
-      components.put(type.index(), entry);
+      entityEntry.add(entry);
       this.components.put(index, entry);
       return componentReference;
     });
@@ -280,10 +264,9 @@ public final class UniverseImpl implements Universe {
     Universe.checkActive(this);
     requireNonNull(entity, "entity");
     final int index = entity.index();
-    final Int2ObjectMap<ComponentEntry> components = this.entityComponents.get(entity.index());
-    if(components != null) {
-      components.values().forEach(entry -> this.entityComponentRemovals.enqueue(IntIntPair.of(index, entry.type().index())));
-    }
+    final EntityEntry entityEntry = this.entities.get(index);
+    if(entityEntry == null) throw new IllegalArgumentException("Entity does not exist!");
+    entityEntry.entries().forEach(entry -> this.entityComponentRemovals.enqueue(IntIntPair.of(index, entry.type().index())));
   }
 
   @Override
@@ -292,38 +275,29 @@ public final class UniverseImpl implements Universe {
   }
 
   @Override
-  public @NonNull Collection<Entity> entities() {
-    return Collections.unmodifiableCollection(this.entities.values());
+  public @NonNull Iterator<Entity> entities() {
+    return new EntityIterator(this.entities.values().iterator());
   }
 
   @Override
-  public <T> @NonNull Collection<T> components(final @NonNull ComponentType type) {
+  public <T> @NonNull Iterator<T> components(final @NonNull ComponentType type) {
     requireNonNull(type, "type");
-    final List<T> collection = new ArrayList<>();
-    this.components.values().forEach(entry -> {
-      if(entry.type().index() == type.index()) {
-        collection.add(entry.component());
-      }
-    });
-    return collection;
+    return new ComponentIterator<T>(this.components.values().stream()
+      .filter(entry -> entry.type().index() == type.index())
+      .iterator());
   }
 
   @Override
-  public @NonNull Collection<Object> components(final @NonNull Entity entity) {
+  public @NonNull Iterator<Object> components(final @NonNull Entity entity) {
     requireNonNull(entity, "entity");
-    final List<Object> collection = new ArrayList<>();
-    final Int2ObjectMap<ComponentEntry> components = this.entityComponents.get(entity.index());
-    if(components != null) {
-      components.values().forEach(entry -> collection.add(entry.component()));
-    }
-    return collection;
+    final EntityEntry entityEntry = this.entities.get(entity.index());
+    if(entityEntry == null) throw new IllegalArgumentException("Entity does not exist!");
+    return new ComponentIterator<>(entityEntry.entries().iterator());
   }
 
   @Override
-  public @NonNull Collection<Object> components() {
-    final List<Object> collection = new ArrayList<>();
-    this.components.values().forEach(entry -> collection.add(entry.component()));
-    return collection;
+  public @NonNull Iterator<Object> components() {
+    return new ComponentIterator<>(this.components.values().iterator());
   }
 
   @Override
@@ -407,26 +381,26 @@ public final class UniverseImpl implements Universe {
   }
 
   private boolean destroyEntity(final @NonNegative int entity) {
-    final Int2ObjectMap<ComponentEntry> components = this.entityComponents.remove(entity);
-    if(components != null) {
-      components.values().forEach(entry -> this.components.remove(entry.index()));
-      return this.entities.remove(entity) != null;
+    final EntityEntry entityEntry = this.entities.remove(entity);
+    if(entityEntry != null) {
+      entityEntry.entries().forEach(entry -> this.components.remove(entry.index()));
+      return true;
     }
     return false;
   }
 
   private boolean destroyComponent(final @NonNegative int entity, final @NonNegative int type) {
-    final Int2ObjectMap<ComponentEntry> components = this.entityComponents.get(entity);
-    if(components != null) {
-      final ComponentEntry entry = components.remove(type);
-      if(components.isEmpty()) this.entityComponents.remove(entity);
-      return entry != null && this.components.remove(entry.index()) != null;
+    final EntityEntry entityEntry = this.entities.get(entity);
+    final ComponentEntry componentEntry;
+    if(entityEntry != null && (componentEntry = entityEntry.remove(type)) != null) {
+      this.components.remove(componentEntry.index());
+      if(entityEntry.empty()) return this.entities.remove(entity) != null;
+      return true;
     }
     return false;
   }
 
   private void clear() {
-    this.entityComponents.clear();
     this.components.clear();
     this.entities.clear();
     this.systems.clear();
@@ -512,6 +486,65 @@ public final class UniverseImpl implements Universe {
     }
   }
 
+  /* package */ static class SystemEntry extends ObjectObjectMutablePair<System, InjectionStructure> implements Comparable<SystemEntry> {
+    private static final long serialVersionUID = 0L;
+
+    public SystemEntry(final @NonNull System left, final @Nullable InjectionStructure right) {
+      super(left, right);
+    }
+
+    @Override
+    public int compareTo(final @NonNull SystemEntry other) {
+      return this.left.compareTo(other.left());
+    }
+  }
+
+  /* package */ static final class EntityEntry {
+    private final Int2ObjectMap<ComponentEntry> components = new Int2ObjectOpenHashMap<>();
+    private final Entity entityReference;
+
+    /* package */ EntityEntry(final @NonNull Entity entityReference) {
+      this.entityReference = entityReference;
+    }
+
+    public @NonNegative int index() {
+      return this.entityReference.index();
+    }
+
+    public @NonNull Entity entity() {
+      return this.entityReference;
+    }
+
+    public boolean empty() {
+      return this.components.isEmpty();
+    }
+
+    public <T> @Nullable T component(final @NonNull ComponentType type) {
+      final ComponentEntry entry = this.components.get(type.index());
+      return entry != null ? entry.component() : null;
+    }
+
+    public @Nullable ComponentEntry get(final @NonNull ComponentType type) {
+      return this.components.get(type.index());
+    }
+
+    public @Nullable ComponentEntry get(final @NonNegative int type) {
+      return this.components.get(type);
+    }
+
+    public void add(final @NonNull ComponentEntry entry) {
+      this.components.put(entry.type().index(), entry);
+    }
+
+    public @Nullable ComponentEntry remove(final @NonNegative int type) {
+      return this.components.remove(type);
+    }
+
+    public Collection<ComponentEntry> entries() {
+      return Collections.unmodifiableCollection(this.components.values());
+    }
+  }
+
   /* package */ static final class ComponentEntry {
     private final ComponentType componentType;
     private final int componentIndex;
@@ -547,17 +580,6 @@ public final class UniverseImpl implements Universe {
     }
   }
 
-  /* package */ static class SystemEntry extends ObjectObjectMutablePair<System, InjectionStructure> implements Comparable<SystemEntry> {
-    public SystemEntry(final @NonNull System left, final @Nullable InjectionStructure right) {
-      super(left, right);
-    }
-
-    @Override
-    public int compareTo(final @NonNull SystemEntry other) {
-      return this.left.compareTo(other.left());
-    }
-  }
-
   /* package */ static class SystemIterator implements Iterator<System> {
     private final Iterator<SystemEntry> iterator;
     private SystemEntry next;
@@ -580,6 +602,44 @@ public final class UniverseImpl implements Universe {
     public void remove() {
       if(this.next == null) throw new IllegalStateException("remove() called before next()");
       this.iterator.remove();
+    }
+  }
+
+  /* package */ static class EntityIterator implements Iterator<Entity> {
+    private final Iterator<EntityEntry> iterator;
+    private EntityEntry next;
+
+    /* package */ EntityIterator(final @NonNull Iterator<EntityEntry> iterator) {
+      this.iterator = iterator;
+    }
+
+    @Override
+    public boolean hasNext() {
+      return this.iterator.hasNext();
+    }
+
+    @Override
+    public @NonNull Entity next() {
+      return (this.next = this.iterator.next()).entity();
+    }
+  }
+
+  /* package */ static class ComponentIterator<T> implements Iterator<T> {
+    private final Iterator<ComponentEntry> iterator;
+    private ComponentEntry next;
+
+    /* package */ ComponentIterator(final @NonNull Iterator<ComponentEntry> iterator) {
+      this.iterator = iterator;
+    }
+
+    @Override
+    public boolean hasNext() {
+      return this.iterator.hasNext();
+    }
+
+    @Override
+    public @NonNull T next() {
+      return (this.next = this.iterator.next()).component();
     }
   }
 }

@@ -31,7 +31,7 @@ import space.vectrix.inertia.Universe;
 import space.vectrix.inertia.component.Component;
 import space.vectrix.inertia.component.ComponentType;
 
-import java.util.Collection;
+import java.util.Iterator;
 import java.util.Optional;
 
 /**
@@ -135,10 +135,10 @@ public interface Entity {
   void destroy();
 
   /**
-   * Returns a {@link Collection} of components.
+   * Returns an {@link Iterator} of components.
    *
-   * @return the components
+   * @return an iterator of components
    * @since 0.3.0
    */
-  @NonNull Collection<Object> components();
+  @NonNull Iterator<Object> components();
 }
