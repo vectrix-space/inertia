@@ -24,7 +24,13 @@
  */
 package space.vectrix.inertia;
 
+import org.checkerframework.checker.index.qual.NonNegative;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.junit.jupiter.api.Test;
+import space.vectrix.inertia.component.Component;
+import space.vectrix.inertia.component.ComponentType;
+import space.vectrix.inertia.entity.AbstractEntity;
+import space.vectrix.inertia.entity.Entity;
 import space.vectrix.inertia.system.System;
 
 import java.util.Iterator;
@@ -130,8 +136,158 @@ class UniverseTest {
     fail("Could not locate the created system in the iterator.");
   }
 
+  @Test
+  public void testCreateEntity() {
+    final Universe universe = Universe.create();
+    final Entity firstEntity = assertDoesNotThrow(() -> universe.createEntity(), "Entity creation should not throw an exception.");
+
+    assertNotNull(firstEntity, "Entity should be created.");
+    assertEquals(firstEntity, universe.getEntity(firstEntity.index()), "Entity#get should equal the new entity.");
+    assertTrue(universe.hasEntity(firstEntity), "Universe#hasEntity should return true.");
+
+    final EntityExample secondEntity = assertDoesNotThrow(() -> universe.createEntity(EntityExample::new), "Entity creation should not throw an exception.");
+
+    assertNotNull(secondEntity, "Entity should be created.");
+    assertEquals(secondEntity, universe.getEntity(secondEntity.index()), "Entity#get should equal the new entity.");
+    assertTrue(universe.hasEntity(secondEntity), "Universe#hasEntity should return true.");
+  }
+
+  @Test
+  public void testRemoveEntity() {
+    final Universe universe = Universe.create();
+    final Entity firstEntity = universe.createEntity();
+
+    assertDoesNotThrow(() -> universe.removeEntity(firstEntity), "Entity removal should not throw an exception.");
+    assertNotNull(universe.getEntity(firstEntity.index()), "Entity should exist in the universe.");
+    assertTrue(universe.hasEntity(firstEntity), "Universe#hasEntity should return true.");
+    assertDoesNotThrow(universe::tick, "Tick should not throw an exception.");
+    assertNull(universe.getEntity(firstEntity.index()), "Entity should not exist in the universe.");
+    assertFalse(universe.hasEntity(firstEntity), "Universe#hasEntity should return false.");
+
+    final Entity secondEntity = universe.createEntity();
+
+    assertDoesNotThrow(() -> universe.removeEntity(secondEntity.index()), "Entity removal should not throw an exception.");
+    assertNotNull(universe.getEntity(secondEntity.index()), "Entity should exist in the universe.");
+    assertTrue(universe.hasEntity(secondEntity), "Universe#hasEntity should return true.");
+    assertDoesNotThrow(universe::tick, "Tick should not throw an exception.");
+    assertNull(universe.getEntity(secondEntity.index()), "Entity should not exist in the universe.");
+    assertFalse(universe.hasEntity(secondEntity), "Universe#hasEntity should return false.");
+  }
+
+  @Test
+  public void testIterateEntities() {
+    final Universe universe = Universe.create();
+    final Entity entity = universe.createEntity();
+
+    final Iterator<Entity> iterator = universe.entities();
+    assertNotNull(iterator, "Entity iterator should not be null.");
+    assertTrue(iterator.hasNext(), "Entity iterator should have a next entity.");
+    while(iterator.hasNext()) {
+      final Entity element = iterator.next();
+      final int elementIndex = element.index();
+
+      if(elementIndex == entity.index()) {
+        assertDoesNotThrow(iterator::remove, "Entity iterator should not throw an exception.");
+        assertNotNull(universe.getEntity(entity.index()), "Entity should exist in the universe.");
+        assertDoesNotThrow(universe::tick, "Tick should not throw an exception.");
+        assertNull(universe.getEntity(entity.index()), "Entity should not exist in the universe.");
+        return;
+      }
+    }
+
+    fail("Could not locate the created entity in the iterator.");
+  }
+
+  @Test
+  public void testCreateComponent() {
+    final Universe universe = Universe.create();
+    final Entity entity = universe.createEntity();
+
+    final ComponentType type = assertDoesNotThrow(() -> ComponentType.create(universe, ComponentExample.class), "Component type creation should not throw an exception.");
+    final ComponentExample component = assertDoesNotThrow(() -> universe.addComponent(entity, type), "Component addition should not throw an exception.");
+
+    assertNotNull(component, "Component should be created.");
+    assertEquals(type, universe.getType(type.index()), "Universe#getType should equal the component type.");
+    assertEquals(type, universe.getType(ComponentExample.class), "Universe#getType should equal the component type.");
+    assertEquals(component, universe.getComponent(entity, type), "Component#get should equal the new component.");
+    assertTrue(universe.hasComponent(entity, type), "Universe#hasComponent should return true.");
+  }
+
+  @Test
+  public void testRemoveComponent() {
+    final Universe universe = Universe.create();
+    final Entity entity = universe.createEntity();
+
+    final ComponentType type = ComponentType.create(universe, ComponentExample.class);
+    final ComponentExample firstComponent = universe.addComponent(entity, type);
+
+    assertNotNull(firstComponent, "Component should be created.");
+    assertEquals(firstComponent, universe.getComponent(entity, type), "Component#get should equal the new component.");
+    assertTrue(universe.hasComponent(entity, type), "Universe#hasComponent should return true.");
+
+    assertDoesNotThrow(() -> universe.removeComponent(entity, type), "Component removal should not throw an exception.");
+    assertNotNull(universe.getComponent(entity, type), "Component should exist in the universe.");
+    assertTrue(universe.hasComponent(entity, type), "Universe#hasComponent should return true.");
+    assertDoesNotThrow(universe::tick, "Tick should not throw an exception.");
+    assertNull(universe.getComponent(entity, type), "Component should not exist in the universe.");
+    assertFalse(universe.hasComponent(entity, type), "Universe#hasComponent should return false.");
+
+    final ComponentExample secondComponent = universe.addComponent(entity, type);
+
+    assertDoesNotThrow(() -> universe.clearComponents(entity), "Component clearing should not throw an exception.");
+    assertEquals(secondComponent, universe.getComponent(entity, type), "Component#get should equal the new component.");
+    assertTrue(universe.hasComponent(entity, type), "Universe#hasComponent should return true.");
+    assertDoesNotThrow(universe::tick, "Tick should not throw an exception.");
+    assertNull(universe.getComponent(entity, type), "Component should not exist in the universe.");
+    assertFalse(universe.hasComponent(entity, type), "Universe#hasComponent should return false.");
+  }
+
+  @Test
+  public void testIterateComponents() {
+    final Universe universe = Universe.create();
+    final Entity entity = universe.createEntity();
+
+    final ComponentType type = ComponentType.create(universe, ComponentExample.class);
+    universe.addComponent(entity, type);
+
+    final Iterator<ComponentType> typeIterator = universe.types();
+    assertNotNull(typeIterator, "Component type iterator should not be null.");
+    assertTrue(typeIterator.hasNext(), "Component type iterator should have a next component type.");
+    assertNotNull(typeIterator.next(), "Component type iterator should have a next component type.");
+    assertThrows(RuntimeException.class, typeIterator::next, "Component type iterator should throw an exception.");
+
+    final Iterator<ComponentExample> specificIterator = universe.components(type);
+    assertNotNull(specificIterator, "Component iterator should not be null.");
+    assertTrue(specificIterator.hasNext(), "Component iterator should have a next component.");
+    assertNotNull(specificIterator.next(), "Component iterator should have a next component.");
+    assertThrows(RuntimeException.class, specificIterator::remove, "Component iterator should not throw an exception.");
+
+    final Iterator<Object> entityIterator = universe.components(entity);
+    assertNotNull(entityIterator, "Component iterator should not be null.");
+    assertTrue(entityIterator.hasNext(), "Component iterator should have a next component.");
+    assertNotNull(entityIterator.next(), "Component iterator should have a next component.");
+    assertThrows(RuntimeException.class, entityIterator::remove, "Component iterator should not throw an exception.");
+
+    final Iterator<Object> iterator = universe.components();
+    assertNotNull(iterator, "Component iterator should not be null.");
+    assertTrue(iterator.hasNext(), "Component iterator should have a next component.");
+    assertNotNull(iterator.next(), "Component iterator should have a next component.");
+    assertThrows(RuntimeException.class, iterator::remove, "Component iterator should not throw an exception.");
+  }
+
   static final class SystemExample implements System {
     @Override
     public void execute() throws Throwable {}
+  }
+
+  static final class EntityExample extends AbstractEntity {
+    private EntityExample(final @NonNull Universe universe, final @NonNegative int index) {
+      super(universe, index);
+    }
+  }
+
+  @Component(id = "component_example", name = "Component Example")
+  static final class ComponentExample {
+    // No-op
   }
 }

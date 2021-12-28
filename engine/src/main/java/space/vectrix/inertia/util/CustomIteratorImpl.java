@@ -72,7 +72,7 @@ public final class CustomIteratorImpl<T, E> implements CustomIterator<E> {
   }
 
   @Override
-  public E next() {
+  public @NonNull E next() {
     if((this.current = this.next) == null) throw new NoSuchElementException();
     this.next = this.nextValue();
     return this.current;

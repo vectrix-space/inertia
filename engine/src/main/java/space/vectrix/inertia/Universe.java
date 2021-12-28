@@ -181,26 +181,6 @@ public interface Universe {
   @Nullable Entity getEntity(final @NonNegative int entity);
 
   /**
-   * Returns the {@link Entity} with the specified {@code int}
-   * component index if it exists, otherwise {@code null}.
-   *
-   * @param component the component index
-   * @return the entity, if present
-   * @since 0.3.0
-   */
-  @Nullable Entity getEntityFromComponent(final @NonNegative int component);
-
-  /**
-   * Returns the component instance with the specified {@code int}
-   * component index if it exists, otherwise {@code null}.
-   *
-   * @param component the component index
-   * @return the component, if present
-   * @since 0.3.0
-   */
-  @Nullable Object getComponent(final @NonNegative int component);
-
-  /**
    * Returns the {@code T} component instance for the specified {@link Entity}
    * index and {@link ComponentType} if it exists, otherwise {@code null}.
    *

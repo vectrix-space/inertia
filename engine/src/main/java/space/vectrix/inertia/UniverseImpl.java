@@ -168,20 +168,6 @@ public final class UniverseImpl implements Universe {
   }
 
   @Override
-  public @Nullable Entity getEntityFromComponent(final @NonNegative int component) {
-    final ComponentEntry entry = this.components.get(component);
-    if(entry != null) return entry.entity();
-    return null;
-  }
-
-  @Override
-  public @Nullable Object getComponent(final @NonNegative int component) {
-    final ComponentEntry entry = this.components.get(component);
-    if(entry != null) return entry.component();
-    return null;
-  }
-
-  @Override
   public @Nullable <T> T getComponent(final @NonNull Entity entity, final @NonNull ComponentType type) {
     requireNonNull(entity, "entity");
     requireNonNull(type, "type");
@@ -231,7 +217,7 @@ public final class UniverseImpl implements Universe {
       ComponentEntry entry = entityEntry.get(type);
       if(entry != null) return entry.component();
       final T componentReference = (T) this.createInstance(type.type());
-      entry = new ComponentEntry(type, index, componentReference, entity);
+      entry = new ComponentEntry(type, index, componentReference);
       entityEntry.add(entry);
       this.components.put(index, entry);
       return componentReference;
@@ -287,7 +273,7 @@ public final class UniverseImpl implements Universe {
 
   @Override
   public @NonNull CustomIterator<Entity> entities() {
-    return CustomIterator.of(this.entities.values().iterator(), EntityEntry::entity);
+    return CustomIterator.of(this.entities.values().iterator(), EntityEntry::entity, this::removeEntity);
   }
 
   @Override
@@ -401,7 +387,6 @@ public final class UniverseImpl implements Universe {
     final ComponentEntry componentEntry;
     if(entityEntry != null && (componentEntry = entityEntry.remove(type)) != null) {
       this.components.remove(componentEntry.index());
-      if(entityEntry.empty()) this.entities.remove(entity);
     }
   }
 
@@ -454,12 +439,12 @@ public final class UniverseImpl implements Universe {
   }
 
   private void sanitize() {
-    while(!this.entityRemovals.isEmpty()) {
-      this.destroyEntity(this.entityRemovals.dequeueInt());
-    }
     while(!this.entityComponentRemovals.isEmpty()) {
       final IntIntPair pair = this.entityComponentRemovals.dequeue();
       this.destroyComponent(pair.firstInt(), pair.secondInt());
+    }
+    while(!this.entityRemovals.isEmpty()) {
+      this.destroyEntity(this.entityRemovals.dequeueInt());
     }
   }
 
@@ -520,10 +505,6 @@ public final class UniverseImpl implements Universe {
       return this.entityReference;
     }
 
-    public boolean empty() {
-      return this.components.isEmpty();
-    }
-
     public <T> @Nullable T component(final @NonNull ComponentType type) {
       final ComponentEntry entry = this.components.get(type.index());
       return entry != null ? entry.component() : null;
@@ -550,16 +531,13 @@ public final class UniverseImpl implements Universe {
     private final ComponentType componentType;
     private final int componentIndex;
     private final Object componentReference;
-    private final Entity entityReference;
 
     /* package */ ComponentEntry(final @NonNull ComponentType componentType,
                                  final @NonNegative int componentIndex,
-                                 final @NonNull Object componentReference,
-                                 final @NonNull Entity entityReference) {
+                                 final @NonNull Object componentReference) {
       this.componentType = componentType;
       this.componentIndex = componentIndex;
       this.componentReference = componentReference;
-      this.entityReference = entityReference;
     }
 
     public @NonNull ComponentType type() {
@@ -574,10 +552,6 @@ public final class UniverseImpl implements Universe {
     public <T> @NonNull T component() {
       final Class<?> clazz = this.componentType.type();
       return (T) clazz.cast(this.componentReference);
-    }
-
-    public @NonNull Entity entity() {
-      return this.entityReference;
     }
   }
 }
