@@ -31,7 +31,9 @@ import space.vectrix.inertia.component.Component;
 import space.vectrix.inertia.component.ComponentType;
 import space.vectrix.inertia.entity.AbstractEntity;
 import space.vectrix.inertia.entity.Entity;
+import space.vectrix.inertia.system.Dependency;
 import space.vectrix.inertia.system.System;
+import space.vectrix.inertia.util.CustomIterator;
 
 import java.util.Iterator;
 
@@ -278,19 +280,11 @@ class UniverseTest {
   @Test
   public void testUniverseTick() {
     final Universe universe = Universe.create();
-    final Entity entity = universe.createEntity();
 
-    final System firstSystem = () -> {};
-
-    final System secondSystem = () -> {
+    universe.addSystem(new SystemExample());
+    universe.addSystem(() -> {
       throw new RuntimeException("Example exception.");
-    };
-
-    universe.addSystem(firstSystem);
-    universe.addSystem(secondSystem);
-
-    final ComponentType type = ComponentType.create(universe, ComponentExample.class);
-    universe.addComponent(entity, type);
+    });
 
     final Universe.Tick firstTick = assertDoesNotThrow(universe::tick, "Tick should not throw an exception.");
     assertEquals(0, firstTick.time(), "Tick time should be 0.");

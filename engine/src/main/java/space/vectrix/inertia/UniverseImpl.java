@@ -333,14 +333,14 @@ public final class UniverseImpl implements Universe {
       final SystemEntry systemEntry = entry.getValue();
       final System system = systemEntry.left();
       final InjectionStructure structure = systemEntry.right();
-      if(structure != null) {
+      if(system != null && structure != null) {
         final InjectionStructure.Entry injectionEntry = structure.injectors().get(type.type());
-        if (system == null || injectionEntry == null) continue;
+        if(injectionEntry == null) continue;
         final Dependency dependency = injectionEntry.annotation();
-        if (!dependency.optional()) continue;
+        if(!dependency.optional()) continue;
         try {
           injectionEntry.target().inject(system, type);
-        } catch (final Throwable throwable) {
+        } catch(final Throwable throwable) {
           throw new IllegalStateException(
             "Unable to inject component type '"
               + type.type().getSimpleName() + "' into system '"
