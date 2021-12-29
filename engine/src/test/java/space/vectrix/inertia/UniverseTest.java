@@ -275,9 +275,35 @@ class UniverseTest {
     assertThrows(RuntimeException.class, iterator::remove, "Component iterator should not throw an exception.");
   }
 
+  @Test
+  public void testUniverseTick() {
+    final Universe universe = Universe.create();
+    final Entity entity = universe.createEntity();
+
+    final System firstSystem = () -> {};
+
+    final System secondSystem = () -> {
+      throw new RuntimeException("Example exception.");
+    };
+
+    universe.addSystem(firstSystem);
+    universe.addSystem(secondSystem);
+
+    final ComponentType type = ComponentType.create(universe, ComponentExample.class);
+    universe.addComponent(entity, type);
+
+    final Universe.Tick firstTick = assertDoesNotThrow(universe::tick, "Tick should not throw an exception.");
+    assertEquals(0, firstTick.time(), "Tick time should be 0.");
+    assertEquals(1, firstTick.errors().size(), "Tick errors should contain 1 error.");
+
+    final Universe.Tick secondTick = assertDoesNotThrow(universe::tick, "Tick should not throw an exception.");
+    assertEquals(1, secondTick.time(), "Tick time should be 0.");
+    assertEquals(1, secondTick.errors().size(), "Tick errors should contain 1 error.");
+  }
+
   static final class SystemExample implements System {
     @Override
-    public void execute() throws Throwable {}
+    public void execute() {}
   }
 
   static final class EntityExample extends AbstractEntity {
