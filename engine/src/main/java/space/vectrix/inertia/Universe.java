@@ -302,6 +302,17 @@ public interface Universe {
   @NonNull CustomIterator<ComponentType> types();
 
   /**
+   * Returns an {@link CustomIterator} of {@link Entity}s of the specified
+   * {@link Class} type in this universe.
+   *
+   * @param type the entity class type
+   * @param <T> the entity type
+   * @return an iterator of entities
+   * @since 0.3.0
+   */
+  <T extends Entity> @NonNull CustomIterator<T> entities(final @NonNull Class<T> type);
+
+  /**
    * Returns an {@link CustomIterator} of {@link Entity}s in this universe.
    *
    * @return an iterator of entities

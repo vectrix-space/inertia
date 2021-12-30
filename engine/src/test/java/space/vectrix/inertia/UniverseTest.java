@@ -179,25 +179,28 @@ class UniverseTest {
   @Test
   public void testIterateEntities() {
     final Universe universe = Universe.create();
-    final Entity entity = universe.createEntity();
 
-    final Iterator<Entity> iterator = universe.entities();
-    assertNotNull(iterator, "Entity iterator should not be null.");
-    assertTrue(iterator.hasNext(), "Entity iterator should have a next entity.");
-    while(iterator.hasNext()) {
-      final Entity element = iterator.next();
-      final int elementIndex = element.index();
+    final Entity firstEntity = universe.createEntity();
 
-      if(elementIndex == entity.index()) {
-        assertDoesNotThrow(iterator::remove, "Entity iterator should not throw an exception.");
-        assertNotNull(universe.getEntity(entity.index()), "Entity should exist in the universe.");
-        assertDoesNotThrow(universe::tick, "Tick should not throw an exception.");
-        assertNull(universe.getEntity(entity.index()), "Entity should not exist in the universe.");
-        return;
-      }
-    }
+    final Iterator<Entity> iteratorRaw = universe.entities();
+    assertNotNull(iteratorRaw, "Entity iterator should not be null.");
+    assertTrue(iteratorRaw.hasNext(), "Entity iterator should have a next entity.");
+    assertNotNull(iteratorRaw.next(), "Entity iterator should have a next entity.");
+    assertDoesNotThrow(iteratorRaw::remove, "Entity iterator should not throw an exception.");
+    assertNotNull(universe.getEntity(firstEntity.index()), "Entity should exist in the universe.");
+    assertDoesNotThrow(universe::tick, "Tick should not throw an exception.");
+    assertNull(universe.getEntity(firstEntity.index()), "Entity should not exist in the universe.");
 
-    fail("Could not locate the created entity in the iterator.");
+    final EntityExample secondEntity = universe.createEntity(EntityExample::new);
+
+    final Iterator<EntityExample> iteratorCustom = universe.entities(EntityExample.class);
+    assertNotNull(iteratorCustom, "Entity iterator should not be null.");
+    assertTrue(iteratorCustom.hasNext(), "Entity iterator should have a next entity.");
+    assertNotNull(iteratorCustom.next(), "Entity iterator should have a next entity.");
+    assertDoesNotThrow(iteratorCustom::remove, "Entity iterator should not throw an exception.");
+    assertNotNull(universe.getEntity(secondEntity.index()), "Entity should exist in the universe.");
+    assertDoesNotThrow(universe::tick, "Tick should not throw an exception.");
+    assertNull(universe.getEntity(secondEntity.index()), "Entity should not exist in the universe.");
   }
 
   @Test

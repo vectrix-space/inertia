@@ -272,6 +272,11 @@ public final class UniverseImpl implements Universe {
   }
 
   @Override
+  public @NonNull <T extends Entity> CustomIterator<T> entities(final @NonNull Class<T> type) {
+    return CustomIterator.<EntityEntry, T, Throwable>of(this.entities.values().iterator(), entry -> entry.entity(type), this::removeEntity);
+  }
+
+  @Override
   public @NonNull CustomIterator<Entity> entities() {
     return CustomIterator.of(this.entities.values().iterator(), EntityEntry::entity, this::removeEntity);
   }
@@ -499,6 +504,12 @@ public final class UniverseImpl implements Universe {
 
     public @NonNegative int index() {
       return this.entityReference.index();
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T extends Entity> @Nullable T entity(final @NonNull Class<T> type) {
+      if(!type.isAssignableFrom(this.entityReference.getClass())) return null;
+      return (T) this.entityReference;
     }
 
     public @NonNull Entity entity() {
