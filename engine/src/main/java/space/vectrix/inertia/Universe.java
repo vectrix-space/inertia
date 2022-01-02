@@ -51,8 +51,8 @@ public interface Universe {
    * @throws InactiveUniverseException if the universe is not active
    * @since 0.3.0
    */
-  static void checkActive(final @NonNull Universe universe) {
-    if(!universe.active()) throw new InactiveUniverseException(universe);
+  static void checkActive(final @Nullable Universe universe) {
+    if(universe == null || !universe.active()) throw new InactiveUniverseException(universe);
   }
 
   /**
@@ -181,6 +181,19 @@ public interface Universe {
   @Nullable Entity getEntity(final @NonNegative int entity);
 
   /**
+   * Returns the {@code T} entity with the specified {@code int}
+   * entity index and {@link Class} target if it exists, otherwise
+   * {@code null}.
+   *
+   * @param entity the entity index
+   * @param target the entity class type
+   * @param <T> the entity type
+   * @return the entity, if present
+   * @since 0.3.0
+   */
+  <T extends Entity> @Nullable T getEntity(final @NonNegative int entity, final @NonNull Class<T> target);
+
+  /**
    * Returns the {@code T} component instance for the specified {@link Entity}
    * index and {@link ComponentType} if it exists, otherwise {@code null}.
    *
@@ -286,7 +299,7 @@ public interface Universe {
   void clearComponents(final @NonNull Entity entity);
 
   /**
-   * Returns an {@link CustomIterator} of {@link System}s in this universe.
+   * Returns a {@link CustomIterator} of {@link System}s in this universe.
    *
    * @return an iterator of systems
    * @since 0.3.0
@@ -294,7 +307,7 @@ public interface Universe {
   @NonNull CustomIterator<System> systems();
 
   /**
-   * Returns an {@link CustomIterator} of {@link ComponentType}s in this universe.
+   * Returns a {@link CustomIterator} of {@link ComponentType}s in this universe.
    *
    * @return an iterator of component types
    * @since 0.3.0
@@ -302,7 +315,7 @@ public interface Universe {
   @NonNull CustomIterator<ComponentType> types();
 
   /**
-   * Returns an {@link CustomIterator} of {@link Entity}s of the specified
+   * Returns a {@link CustomIterator} of {@link Entity}s of the specified
    * {@link Class} type in this universe.
    *
    * @param type the entity class type
@@ -313,7 +326,7 @@ public interface Universe {
   <T extends Entity> @NonNull CustomIterator<T> entities(final @NonNull Class<T> type);
 
   /**
-   * Returns an {@link CustomIterator} of {@link Entity}s in this universe.
+   * Returns a {@link CustomIterator} of {@link Entity}s in this universe.
    *
    * @return an iterator of entities
    * @since 0.3.0
@@ -321,7 +334,7 @@ public interface Universe {
   @NonNull CustomIterator<Entity> entities();
 
   /**
-   * Returns an {@link CustomIterator} of {@code T} component instances for
+   * Returns a {@link CustomIterator} of {@code T} component instances for
    * the specified {@link ComponentType}.
    *
    * @param type the component type
@@ -332,7 +345,7 @@ public interface Universe {
   <T> @NonNull CustomIterator<T> components(final @NonNull ComponentType type);
 
   /**
-   * Returns an {@link CustomIterator} of component instances for the specified
+   * Returns a {@link CustomIterator} of component instances for the specified
    * {@link Entity}.
    *
    * @param entity the entity
@@ -342,7 +355,7 @@ public interface Universe {
   @NonNull CustomIterator<Object> components(final @NonNull Entity entity);
 
   /**
-   * Returns an {@link CustomIterator} of component instances in this universe.
+   * Returns a {@link CustomIterator} of component instances in this universe.
    *
    * @return an iterator of components
    * @since 0.3.0

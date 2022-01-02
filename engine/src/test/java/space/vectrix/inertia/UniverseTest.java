@@ -31,9 +31,8 @@ import space.vectrix.inertia.component.Component;
 import space.vectrix.inertia.component.ComponentType;
 import space.vectrix.inertia.entity.AbstractEntity;
 import space.vectrix.inertia.entity.Entity;
-import space.vectrix.inertia.system.Dependency;
+import space.vectrix.inertia.entity.EntityStash;
 import space.vectrix.inertia.system.System;
-import space.vectrix.inertia.util.CustomIterator;
 
 import java.util.Iterator;
 
@@ -278,6 +277,38 @@ class UniverseTest {
     assertTrue(iterator.hasNext(), "Component iterator should have a next component.");
     assertNotNull(iterator.next(), "Component iterator should have a next component.");
     assertThrows(RuntimeException.class, iterator::remove, "Component iterator should not throw an exception.");
+  }
+
+  @Test
+  public void testEntityStash() {
+    final Universe universe = Universe.create();
+
+    final Entity firstEntity = universe.createEntity();
+    final Entity secondEntity = universe.createEntity();
+
+    final EntityStash stash = assertDoesNotThrow(() -> EntityStash.create(universe), "Entity stash creation should not throw an exception.");
+    assertNotNull(stash, "Entity stash should not be null.");
+
+    assertDoesNotThrow(() -> stash.add(firstEntity), "Adding an entity to the stash should not throw an exception.");
+    assertTrue(stash.contains(firstEntity), "Stash should contain the entity.");
+    assertFalse(stash.contains(secondEntity), "Stash should not contain the entity.");
+    assertFalse(stash.remove(secondEntity), "Stash should not remove the entity.");
+    assertTrue(stash.remove(firstEntity), "Stash should remove the entity.");
+
+    assertTrue(stash.add(secondEntity), "Stash should add the entity.");
+    assertFalse(stash.add(secondEntity), "Stash should not add the entity.");
+
+    final Iterator<Entity> iterator = stash.iterator();
+    assertNotNull(iterator, "Entity stash iterator should not be null.");
+    assertTrue(iterator.hasNext(), "Entity stash iterator should have a next entity.");
+    assertEquals(secondEntity, iterator.next(), "Entity stash iterator should have a next entity.");
+    assertDoesNotThrow(iterator::remove, "Removing an entity from the stash should not throw an exception.");
+
+    final Entity thirdEntity = universe.createEntity();
+    assertTrue(stash.add(thirdEntity), "Stash should add the entity.");
+    assertDoesNotThrow(() -> universe.removeEntity(thirdEntity), "Removing an entity from the universe should not throw an exception.");
+    assertDoesNotThrow(universe::tick, "Tick should not throw an exception.");
+    assertFalse(stash.contains(thirdEntity), "Stash should not contain the entity.");
   }
 
   @Test

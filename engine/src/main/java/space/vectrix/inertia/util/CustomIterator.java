@@ -33,6 +33,8 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.function.Predicate;
 
+import static java.util.Objects.requireNonNull;
+
 /**
  * A custom iterator that can be used to filter elements while iterating.
  *
@@ -60,6 +62,7 @@ public interface CustomIterator<T> extends Iterator<T> {
    * @since 0.3.0
    */
   static <T> @NonNull CustomIterator<T> of(final @NonNull Iterator<@NonNull T> iterator) {
+    requireNonNull(iterator, "iterator");
     return new CustomIteratorImpl<>(iterator, x -> x, ThrowableConsumer.throwing(new UnsupportedOperationException()));
   }
 
@@ -77,6 +80,8 @@ public interface CustomIterator<T> extends Iterator<T> {
    */
   static <A, T, E extends Throwable> @NonNull CustomIterator<T> of(final @NonNull Iterator<@NonNull A> iterator,
                                                                    final @NonNull ThrowableFunction<@NonNull A, @Nullable T, E> mapper) {
+    requireNonNull(iterator, "iterator");
+    requireNonNull(mapper, "mapper");
     return new CustomIteratorImpl<>(iterator, mapper, ThrowableConsumer.throwing(new UnsupportedOperationException()));
   }
 
@@ -97,6 +102,9 @@ public interface CustomIterator<T> extends Iterator<T> {
   static <A, T, E extends Throwable> @NonNull CustomIterator<T> of(final @NonNull Iterator<@NonNull A> iterator,
                                                                    final @NonNull ThrowableFunction<@NonNull A, @Nullable T, E> mapper,
                                                                    final @NonNull ThrowableConsumer<@NonNull T, E> remove) {
+    requireNonNull(iterator, "iterator");
+    requireNonNull(mapper, "mapper");
+    requireNonNull(remove, "remove");
     return new CustomIteratorImpl<>(iterator, mapper, remove);
   }
 

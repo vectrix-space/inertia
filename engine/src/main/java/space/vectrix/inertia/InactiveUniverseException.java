@@ -24,17 +24,17 @@
  */
 package space.vectrix.inertia;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  * An exception thrown when an attempt is made to use an inactive universe.
  *
  * @since 0.3.0
  */
-public class InactiveUniverseException extends RuntimeException {
+public final class InactiveUniverseException extends RuntimeException {
   private static final long serialVersionUID = 0L;
 
-  /* package */ InactiveUniverseException(final @NonNull Universe universe) {
-      super("Attempted to use universe " + universe.index() + " while it is inactive!");
+  /* package */ InactiveUniverseException(final @Nullable Universe universe) {
+      super("Attempted to use universe " + (universe == null ? "~NULL~" : universe.index()) + " while it is inactive!");
   }
 }

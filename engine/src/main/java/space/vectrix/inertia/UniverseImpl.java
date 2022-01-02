@@ -44,6 +44,7 @@ import space.vectrix.inertia.component.Component;
 import space.vectrix.inertia.component.ComponentType;
 import space.vectrix.inertia.entity.Entity;
 import space.vectrix.inertia.entity.EntityFunction;
+import space.vectrix.inertia.entity.EntityStash;
 import space.vectrix.inertia.injection.InjectionStructure;
 import space.vectrix.inertia.system.Dependency;
 import space.vectrix.inertia.system.System;
@@ -57,6 +58,8 @@ import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.WeakHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.IntFunction;
 
@@ -67,6 +70,11 @@ public final class UniverseImpl implements Universe {
    * Stores the processors by class type.
    */
   private final Map<Class<? extends System>, SystemEntry> systems = SyncMap.of(IdentityHashMap::new, 20);
+
+  /**
+   * Store the entity stashes.
+   */
+  private final Set<EntityStash> stashes = SyncMap.setOf(WeakHashMap::new, 20);
 
   /**
    * Stored by unique {@code int} component type index and {@link Class} component
@@ -164,6 +172,13 @@ public final class UniverseImpl implements Universe {
   public @Nullable Entity getEntity(final @NonNegative int entity) {
     final EntityEntry entry = this.entities.get(entity);
     if(entry != null) return entry.entity();
+    return null;
+  }
+
+  @Override
+  public <T extends Entity> @Nullable T getEntity(final @NonNegative int entity, final @NonNull Class<T> target) {
+    final EntityEntry entry = this.entities.get(entity);
+    if(entry != null) return entry.entity(target);
     return null;
   }
 
@@ -320,6 +335,13 @@ public final class UniverseImpl implements Universe {
 
   // Internal
 
+  public @NonNull EntityStash addStash(final @NonNull EntityStash stash) {
+    Universe.checkActive(this);
+    requireNonNull(stash, "stash");
+    this.stashes.add(stash);
+    return stash;
+  }
+
   public @NonNull ComponentType resolveComponent(final @NonNull Class<?> target, final @NonNull IntFunction<ComponentType> function) {
     Universe.checkActive(this);
     requireNonNull(target, "target");
@@ -384,6 +406,7 @@ public final class UniverseImpl implements Universe {
     final EntityEntry entityEntry = this.entities.remove(entity);
     if(entityEntry != null) {
       entityEntry.entries().forEach(entry -> this.components.remove(entry.index()));
+      this.stashes.forEach(stash -> stash.remove(entity));
     }
   }
 

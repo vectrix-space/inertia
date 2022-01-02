@@ -35,7 +35,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-public final class CustomIteratorImpl<T, E> implements CustomIterator<E> {
+/* package */ final class CustomIteratorImpl<T, E> implements CustomIterator<E> {
   private final Iterator<T> backingIterator;
   private final Function<T, E> mapper;
   private final Consumer<E> remove;
@@ -43,9 +43,9 @@ public final class CustomIteratorImpl<T, E> implements CustomIterator<E> {
   private E next;
   private E current;
 
-  public CustomIteratorImpl(final @NonNull Iterator<@NonNull T> backingIterator,
-                            final @NonNull ThrowableFunction<@NonNull T, @Nullable E, ? extends Throwable> mapper,
-                            final @NonNull ThrowableConsumer<@NonNull E, ? extends Throwable> remove) {
+  /* package */ CustomIteratorImpl(final @NonNull Iterator<@NonNull T> backingIterator,
+                                   final @NonNull ThrowableFunction<@NonNull T, @Nullable E, ? extends Throwable> mapper,
+                                   final @NonNull ThrowableConsumer<@NonNull E, ? extends Throwable> remove) {
     this.backingIterator = backingIterator;
     this.mapper = mapper;
     this.remove = remove;
