@@ -126,8 +126,21 @@ public interface Universe {
    *
    * @param entity the entity
    * @return true if the entity exists, otherwise false
+   * @since 0.3.0
    */
   boolean hasEntity(final @NonNull Entity entity);
+
+  /**
+   * Returns {@code true} if the specified {@code int} entity index
+   * contains the {@link ComponentType} if it exists, otherwise
+   * {@code false}.
+   *
+   * @param entity the entity
+   * @param type the component type
+   * @return true if the component exists, otherwise false
+   * @since 0.3.0
+   */
+  boolean hasComponent(final @NonNegative int entity, final @NonNull ComponentType type);
 
   /**
    * Returns {@code true} if the specified {@link Entity} contains the
@@ -136,6 +149,7 @@ public interface Universe {
    * @param entity the entity
    * @param type the component type
    * @return true if the component exists, otherwise false
+   * @since 0.3.0
    */
   boolean hasComponent(final @NonNull Entity entity, final @NonNull ComponentType type);
 
@@ -192,6 +206,18 @@ public interface Universe {
    * @since 0.3.0
    */
   <T extends Entity> @Nullable T getEntity(final @NonNegative int entity, final @NonNull Class<T> target);
+
+  /**
+   * Returns the {@code T} component instance for the specified {@code int} entity
+   * index and {@link ComponentType} if it exists, otherwise {@code null}.
+   *
+   * @param entity the entity index
+   * @param type the component type
+   * @param <T> the component instance type
+   * @return the component, if present
+   * @since 0.3.0
+   */
+  <T> @Nullable T getComponent(final @NonNegative int entity, final @NonNull ComponentType type);
 
   /**
    * Returns the {@code T} component instance for the specified {@link Entity}

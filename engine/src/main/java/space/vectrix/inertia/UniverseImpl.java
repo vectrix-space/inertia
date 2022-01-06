@@ -142,11 +142,16 @@ public final class UniverseImpl implements Universe {
   }
 
   @Override
+  public boolean hasComponent(final @NonNegative int entity, final @NonNull ComponentType type) {
+    requireNonNull(type, "type");
+    final EntityEntry entry = this.entities.get(entity);
+    return entry != null && entry.get(type) != null;
+  }
+
+  @Override
   public boolean hasComponent(final @NonNull Entity entity, final @NonNull ComponentType type) {
     requireNonNull(entity, "entity");
-    requireNonNull(type, "type");
-    final EntityEntry entry = this.entities.get(entity.index());
-    return entry != null && entry.get(type) != null;
+    return this.hasComponent(entity.index(), type);
   }
 
   @Override
@@ -183,11 +188,16 @@ public final class UniverseImpl implements Universe {
   }
 
   @Override
+  public <T> @Nullable T getComponent(final @NonNegative int entity, final @NonNull ComponentType type) {
+    requireNonNull(type, "type");
+    final EntityEntry entry = this.entities.get(entity);
+    return entry != null ? entry.component(type) : null;
+  }
+
+  @Override
   public @Nullable <T> T getComponent(final @NonNull Entity entity, final @NonNull ComponentType type) {
     requireNonNull(entity, "entity");
-    requireNonNull(type, "type");
-    final EntityEntry entry = this.entities.get(entity.index());
-    return entry != null ? entry.component(type) : null;
+    return this.getComponent(entity.index(), type);
   }
 
   @Override
