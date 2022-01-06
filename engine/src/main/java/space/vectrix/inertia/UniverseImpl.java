@@ -432,33 +432,40 @@ public final class UniverseImpl implements Universe {
       final List<Throwable> errors = new ArrayList<>();
       final int time = this.time.getAndIncrement();
       Collections.sort(systems);
+      // 1. Initialize
       for(final SystemEntry systemEntry : systems) {
         final System system = systemEntry.left();
-        boolean run = true;
         try {
-          if (!system.initialized()) system.initialize();
-        } catch (final Throwable throwable) {
+          if(!system.initialized()) system.initialize();
+        } catch(final Throwable throwable) {
           errors.add(throwable);
-          run = false;
         }
-        if(system.initialized()) {
-          try {
-            if(run) system.prepare();
-          } catch (final Throwable throwable) {
-            errors.add(throwable);
-            run = false;
-          }
-          try {
-            if(run) system.execute();
-          } catch (final Throwable throwable) {
-            errors.add(throwable);
-            run = false;
-          }
-          try {
-            if(run) system.sanitize();
-          } catch (final Throwable throwable) {
-            errors.add(throwable);
-          }
+      }
+      // 2. Prepare
+      for(final SystemEntry systemEntry : systems) {
+        final System system = systemEntry.left();
+        try {
+          if(!system.initialized()) system.prepare();
+        } catch(final Throwable throwable) {
+          errors.add(throwable);
+        }
+      }
+      // 3. Execute
+      for(final SystemEntry systemEntry : systems) {
+        final System system = systemEntry.left();
+        try {
+          if(!system.initialized()) system.execute();
+        } catch(final Throwable throwable) {
+          errors.add(throwable);
+        }
+      }
+      // 4. Sanitize
+      for(final SystemEntry systemEntry : systems) {
+        final System system = systemEntry.left();
+        try {
+          if(!system.initialized()) system.sanitize();
+        } catch(final Throwable throwable) {
+          errors.add(throwable);
         }
       }
       this.sanitize();
