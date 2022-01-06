@@ -455,7 +455,7 @@ public final class UniverseImpl implements Universe {
       for(final SystemEntry systemEntry : systems) {
         final System system = systemEntry.left();
         try {
-          if(!system.initialized()) system.prepare();
+          if(system.initialized()) system.prepare();
         } catch(final Throwable throwable) {
           errors.add(throwable);
         }
@@ -464,7 +464,7 @@ public final class UniverseImpl implements Universe {
       for(final SystemEntry systemEntry : systems) {
         final System system = systemEntry.left();
         try {
-          if(!system.initialized()) system.execute();
+          if(system.initialized()) system.execute();
         } catch(final Throwable throwable) {
           errors.add(throwable);
         }
@@ -473,7 +473,7 @@ public final class UniverseImpl implements Universe {
       for(final SystemEntry systemEntry : systems) {
         final System system = systemEntry.left();
         try {
-          if(!system.initialized()) system.sanitize();
+          if(system.initialized()) system.sanitize();
         } catch(final Throwable throwable) {
           errors.add(throwable);
         }
