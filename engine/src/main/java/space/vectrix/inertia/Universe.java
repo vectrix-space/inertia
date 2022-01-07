@@ -135,7 +135,7 @@ public interface Universe {
    * contains the {@link ComponentType} if it exists, otherwise
    * {@code false}.
    *
-   * @param entity the entity
+   * @param entity the entity index
    * @param type the component type
    * @return true if the component exists, otherwise false
    * @since 0.3.0
@@ -152,6 +152,35 @@ public interface Universe {
    * @since 0.3.0
    */
   boolean hasComponent(final @NonNull Entity entity, final @NonNull ComponentType type);
+
+  /**
+   * Returns {@code true} if the specified {@code int} entity index contains
+   * a component inheriting the specified {@link Class} type, otherwise
+   * {@code false}.
+   *
+   * <p>You should prefer {@link Universe#hasComponent(int, ComponentType)}
+   * for speed over this method as much as possible.</p>
+   *
+   * @param entity the entity index
+   * @param type the class type
+   * @return true if the component exists, otherwise false
+   * @since 0.3.0
+   */
+  boolean hasComponent(final @NonNegative int entity, final @NonNull Class<?> type);
+
+  /**
+   * Returns {@code true} if the specified {@link Entity} contains a component
+   * inheriting the specified {@link Class} type, otherwise {@code false}.
+   *
+   * <p>You should prefer {@link Universe#hasComponent(Entity, ComponentType)}
+   * for speed over this method as much as possible.</p>
+   *
+   * @param entity the entity
+   * @param type the class type
+   * @return true if the component exists, otherwise false
+   * @since 0.3.0
+   */
+  boolean hasComponent(final @NonNull Entity entity, final @NonNull Class<?> type);
 
   /**
    * Returns the {@code T} system for the specified {@link Class} if
@@ -230,6 +259,37 @@ public interface Universe {
    * @since 0.3.0
    */
   <T> @Nullable T getComponent(final @NonNull Entity entity, final @NonNull ComponentType type);
+
+  /**
+   * Returns the {@code T} component instance for the specified {@code int}
+   * entity index and specified {@link Class} type if it exists, otherwise
+   * {@code null}.
+   *
+   * <p>You should prefer {@link Universe#getComponent(int, ComponentType)}
+   * for speed over this method as much as possible.</p>
+   *
+   * @param entity the entity index
+   * @param type the component class type
+   * @param <T> the component type
+   * @return the component, if present
+   * @since 0.3.0
+   */
+  <T> @Nullable T getComponent(final @NonNegative int entity, final @NonNull Class<T> type);
+
+  /**
+   * Returns the {@code T} component instance for the specified {@link Entity}
+   * and specified {@link Class} type if it exists, otherwise {@code null}.
+   *
+   * <p>You should prefer {@link Universe#getComponent(int, ComponentType)}
+   * for speed over this method as much as possible.</p>
+   *
+   * @param entity the entity
+   * @param type the component class type
+   * @param <T> the component type
+   * @return the component, if present
+   * @since 0.3.0
+   */
+  <T> @Nullable T getComponent(final @NonNull Entity entity, final @NonNull Class<T> type);
 
   /**
    * Adds the {@code T} system to this universe.
@@ -358,6 +418,19 @@ public interface Universe {
    * @since 0.3.0
    */
   @NonNull CustomIterator<Entity> entities();
+
+  /**
+   * Returns a {@link CustomIterator} of {@link Entity}s in this universe
+   * that are queued to be removed.
+   *
+   * <p>Calling {@link CustomIterator#remove()} will remove the entity
+   * from the removal queue and allow it to continue existing in the
+   * universe.</p>
+   *
+   * @return an iterator of entities that are going to be removed
+   * @since 0.3.0
+   */
+  @NonNull CustomIterator<Entity> removingEntities();
 
   /**
    * Returns a {@link CustomIterator} of {@code T} component instances for

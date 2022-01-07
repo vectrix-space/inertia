@@ -33,6 +33,7 @@ import space.vectrix.inertia.entity.AbstractEntity;
 import space.vectrix.inertia.entity.Entity;
 import space.vectrix.inertia.entity.EntityStash;
 import space.vectrix.inertia.system.System;
+import space.vectrix.inertia.util.CustomIterator;
 
 import java.util.Iterator;
 
@@ -176,6 +177,41 @@ class UniverseTest {
   }
 
   @Test
+  public void testRemoveQueue() {
+    final Universe universe = Universe.create();
+
+    final Entity firstEntity = universe.createEntity();
+
+    universe.addSystem(new System() {
+      @Override
+      public void execute() throws Throwable {
+        final CustomIterator<Entity> firstIterator = universe.removingEntities();
+        assertFalse(firstIterator.hasNext(), "Removing entities iterator should not have a next entity.");
+
+        universe.removeEntity(firstEntity);
+
+        final CustomIterator<Entity> secondIterator = universe.removingEntities();
+        assertTrue(secondIterator.hasNext(), "Removing entities iterator should have a next entity.");
+      }
+
+      @Override
+      public void sanitize() throws Throwable {
+        final CustomIterator<Entity> firstIterator = universe.removingEntities();
+        assertTrue(firstIterator.hasNext(), "Removing entities iterator should have a next entity.");
+        assertEquals(firstEntity, firstIterator.next(), "The entity should be the first entity.");
+        assertFalse(firstIterator.hasNext(), "Removing entities iterator should not have a next entity.");
+        assertDoesNotThrow(firstIterator::remove, "Removing entities iterator should not throw an exception.");
+
+        final CustomIterator<Entity> secondIterator = universe.removingEntities();
+        assertFalse(secondIterator.hasNext(), "Removing entities iterator should not have a next entity.");
+      }
+    });
+
+    final Universe.Tick tick = assertDoesNotThrow(universe::tick, "Tick should not throw an exception.");
+    assertTrue(tick.errors().isEmpty(), "Tick should not have any errors.");
+  }
+
+  @Test
   public void testIterateEntities() {
     final Universe universe = Universe.create();
 
@@ -215,6 +251,10 @@ class UniverseTest {
     assertEquals(type, universe.getType(ComponentExample.class), "Universe#getType should equal the component type.");
     assertEquals(component, universe.getComponent(entity, type), "Component#get should equal the new component.");
     assertTrue(universe.hasComponent(entity, type), "Universe#hasComponent should return true.");
+    assertFalse(universe.hasComponent(entity, SystemExample.class), "Universe#hasComponent should return false.");
+    assertTrue(universe.hasComponent(entity, InheritanceTest.class), "Universe#hasComponent should return true.");
+    assertNull(universe.getComponent(entity, SystemExample.class), "Component#get should be null.");
+    assertNotNull(universe.getComponent(entity, InheritanceTest.class), "Component#get should not be null.");
   }
 
   @Test
@@ -340,8 +380,10 @@ class UniverseTest {
     }
   }
 
+  static class InheritanceTest {}
+
   @Component(id = "component_example", name = "Component Example")
-  static final class ComponentExample {
+  static final class ComponentExample extends InheritanceTest {
     // No-op
   }
 }

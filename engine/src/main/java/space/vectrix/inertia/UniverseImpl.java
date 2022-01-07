@@ -29,10 +29,7 @@ import it.unimi.dsi.fastutil.PriorityQueue;
 import it.unimi.dsi.fastutil.PriorityQueues;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.ints.IntArrayFIFOQueue;
 import it.unimi.dsi.fastutil.ints.IntIntPair;
-import it.unimi.dsi.fastutil.ints.IntPriorityQueue;
-import it.unimi.dsi.fastutil.ints.IntPriorityQueues;
 import it.unimi.dsi.fastutil.objects.ObjectArrayFIFOQueue;
 import it.unimi.dsi.fastutil.objects.ObjectObjectImmutablePair;
 import org.checkerframework.checker.index.qual.NonNegative;
@@ -54,12 +51,14 @@ import space.vectrix.inertia.util.IndexCounter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.WeakHashMap;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.IntFunction;
 
@@ -99,7 +98,7 @@ public final class UniverseImpl implements Universe {
   /**
    * Remove queues, for destroying components and entities on sanitization.
    */
-  private final IntPriorityQueue entityRemovals = IntPriorityQueues.synchronize(new IntArrayFIFOQueue());
+  private final Deque<Integer> entityRemovals = new ConcurrentLinkedDeque<>();
   private final PriorityQueue<IntIntPair> entityComponentRemovals = PriorityQueues.synchronize(new ObjectArrayFIFOQueue<>());
 
   private final AtomicInteger time = new AtomicInteger();
@@ -155,6 +154,19 @@ public final class UniverseImpl implements Universe {
   }
 
   @Override
+  public boolean hasComponent(@NonNegative int entity, @NonNull Class<?> type) {
+    requireNonNull(type, "type");
+    final EntityEntry entry = this.entities.get(entity);
+    return entry != null && entry.get(type) != null;
+  }
+
+  @Override
+  public boolean hasComponent(final @NonNull Entity entity, final @NonNull Class<?> type) {
+    requireNonNull(entity, "entity");
+    return this.hasComponent(entity.index(), type);
+  }
+
+  @Override
   @SuppressWarnings("unchecked")
   public <T extends System> @Nullable T getSystem(final @NonNull Class<T> target) {
     requireNonNull(target, "target");
@@ -196,6 +208,19 @@ public final class UniverseImpl implements Universe {
 
   @Override
   public @Nullable <T> T getComponent(final @NonNull Entity entity, final @NonNull ComponentType type) {
+    requireNonNull(entity, "entity");
+    return this.getComponent(entity.index(), type);
+  }
+
+  @Override
+  public <T> @Nullable T getComponent(final @NonNegative int entity, final @NonNull Class<T> type) {
+    requireNonNull(type, "type");
+    final EntityEntry entry = this.entities.get(entity);
+    return entry != null ? entry.component(type) : null;
+  }
+
+  @Override
+  public <T> @Nullable T getComponent(final @NonNull Entity entity, final @NonNull Class<T> type) {
     requireNonNull(entity, "entity");
     return this.getComponent(entity.index(), type);
   }
@@ -258,14 +283,14 @@ public final class UniverseImpl implements Universe {
   @Override
   public void removeEntity(final @NonNegative int entity) {
     Universe.checkActive(this);
-    this.entityRemovals.enqueue(entity);
+    this.entityRemovals.offerFirst(entity);
   }
 
   @Override
   public void removeEntity(final @NonNull Entity entity) {
     Universe.checkActive(this);
     requireNonNull(entity, "entity");
-    this.entityRemovals.enqueue(entity.index());
+    this.entityRemovals.offerFirst(entity.index());
   }
 
   @Override
@@ -304,6 +329,11 @@ public final class UniverseImpl implements Universe {
   @Override
   public @NonNull CustomIterator<Entity> entities() {
     return CustomIterator.of(this.entities.values().iterator(), EntityEntry::entity, this::removeEntity);
+  }
+
+  @Override
+  public @NonNull CustomIterator<Entity> removingEntities() {
+    return CustomIterator.of(this.entityRemovals.iterator(), this::getEntity, entity -> this.entityRemovals.remove(entity.index()));
   }
 
   @Override
@@ -489,7 +519,7 @@ public final class UniverseImpl implements Universe {
       this.destroyComponent(pair.firstInt(), pair.secondInt());
     }
     while(!this.entityRemovals.isEmpty()) {
-      this.destroyEntity(this.entityRemovals.dequeueInt());
+      this.destroyEntity(this.entityRemovals.pollFirst());
     }
   }
 
@@ -561,8 +591,20 @@ public final class UniverseImpl implements Universe {
       return entry != null ? entry.component() : null;
     }
 
+    public <T> @Nullable T component(final @NonNull Class<T> type) {
+      final ComponentEntry entry = this.get(type);
+      return entry != null ? entry.component() : null;
+    }
+
     public @Nullable ComponentEntry get(final @NonNull ComponentType type) {
       return this.components.get(type.index());
+    }
+
+    public @Nullable ComponentEntry get(final @NonNull Class<?> type) {
+      for(final ComponentEntry entry : this.components.values()) {
+        if(type.isAssignableFrom(entry.component().getClass())) return entry;
+      }
+      return null;
     }
 
     public void add(final @NonNull ComponentEntry entry) {
