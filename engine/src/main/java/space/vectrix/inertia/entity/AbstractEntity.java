@@ -61,7 +61,17 @@ public abstract class AbstractEntity implements Entity {
   }
 
   @Override
+  public boolean contains(final @NonNull Class<?> type) {
+    return this.universe.hasComponent(this, type);
+  }
+
+  @Override
   public <T> @Nullable T get(final @NonNull ComponentType type) {
+    return this.universe.getComponent(this, type);
+  }
+
+  @Override
+  public <T> @Nullable T get(final @NonNull Class<T> type) {
     return this.universe.getComponent(this, type);
   }
 

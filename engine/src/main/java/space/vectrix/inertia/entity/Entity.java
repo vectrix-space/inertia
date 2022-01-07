@@ -78,6 +78,19 @@ public interface Entity {
   boolean contains(final @NonNull ComponentType type);
 
   /**
+   * Returns {@code true} if the entity has a component inheriting the
+   * specified {@link Class}.
+   *
+   * <p>You should prefer {@link Universe#components(ComponentType)}
+   * for speed over this method as much as possible.</p>
+   *
+   * @param type the class type
+   * @return whether the component exists in this entity
+   * @since 0.3.0
+   */
+  boolean contains(final @NonNull Class<?> type);
+
+  /**
    * Returns the {@code T} component with the specified {@link ComponentType},
    * if it exists.
    *
@@ -87,6 +100,20 @@ public interface Entity {
    * @since 0.3.0
    */
   <T> @Nullable T get(final @NonNull ComponentType type);
+
+  /**
+   * Returns the {@code T} component instance for the specified {@link Entity}
+   * and specified {@link Class} type if it exists, otherwise {@code null}.
+   *
+   * <p>You should prefer {@link Entity#get(ComponentType)} for speed over
+   * this method as much as possible.</p>
+   *
+   * @param type the component class type
+   * @param <T> the component type
+   * @return the component, if present
+   * @since 0.3.0
+   */
+  <T> @Nullable T get(final @NonNull Class<T> type);
 
   /**
    * Returns the {@code T} component with the specified {@link ComponentType},
