@@ -71,7 +71,7 @@ public abstract class AbstractEntity implements Entity {
   }
 
   @Override
-  public <T> @Nullable T get(final @NonNull Class<T> type) {
+  public <T> @Nullable T get(final @NonNull Class<? super T> type) {
     return this.universe.getComponent(this, type);
   }
 

@@ -234,7 +234,7 @@ public interface Universe {
    * @return the entity, if present
    * @since 0.3.0
    */
-  <T extends Entity> @Nullable T getEntity(final @NonNegative int entity, final @NonNull Class<T> target);
+  <T extends Entity> @Nullable T getEntity(final @NonNegative int entity, final @NonNull Class<? super T> target);
 
   /**
    * Returns the {@code T} component instance for the specified {@code int} entity
@@ -274,7 +274,7 @@ public interface Universe {
    * @return the component, if present
    * @since 0.3.0
    */
-  <T> @Nullable T getComponent(final @NonNegative int entity, final @NonNull Class<T> type);
+  <T> @Nullable T getComponent(final @NonNegative int entity, final @NonNull Class<? super T> type);
 
   /**
    * Returns the {@code T} component instance for the specified {@link Entity}
@@ -289,7 +289,7 @@ public interface Universe {
    * @return the component, if present
    * @since 0.3.0
    */
-  <T> @Nullable T getComponent(final @NonNull Entity entity, final @NonNull Class<T> type);
+  <T> @Nullable T getComponent(final @NonNull Entity entity, final @NonNull Class<? super T> type);
 
   /**
    * Adds the {@code T} system to this universe.
@@ -409,7 +409,7 @@ public interface Universe {
    * @return an iterator of entities
    * @since 0.3.0
    */
-  <T extends Entity> @NonNull CustomIterator<T> entities(final @NonNull Class<T> type);
+  <T extends Entity> @NonNull CustomIterator<T> entities(final @NonNull Class<? super T> type);
 
   /**
    * Returns a {@link CustomIterator} of {@link Entity}s in this universe.

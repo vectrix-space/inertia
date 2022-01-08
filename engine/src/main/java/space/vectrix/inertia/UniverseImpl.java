@@ -193,7 +193,7 @@ public final class UniverseImpl implements Universe {
   }
 
   @Override
-  public <T extends Entity> @Nullable T getEntity(final @NonNegative int entity, final @NonNull Class<T> target) {
+  public <T extends Entity> @Nullable T getEntity(final @NonNegative int entity, final @NonNull Class<? super T> target) {
     final EntityEntry entry = this.entities.get(entity);
     if(entry != null) return entry.entity(target);
     return null;
@@ -213,14 +213,14 @@ public final class UniverseImpl implements Universe {
   }
 
   @Override
-  public <T> @Nullable T getComponent(final @NonNegative int entity, final @NonNull Class<T> type) {
+  public <T> @Nullable T getComponent(final @NonNegative int entity, final @NonNull Class<? super T> type) {
     requireNonNull(type, "type");
     final EntityEntry entry = this.entities.get(entity);
     return entry != null ? entry.component(type) : null;
   }
 
   @Override
-  public <T> @Nullable T getComponent(final @NonNull Entity entity, final @NonNull Class<T> type) {
+  public <T> @Nullable T getComponent(final @NonNull Entity entity, final @NonNull Class<? super T> type) {
     requireNonNull(entity, "entity");
     return this.getComponent(entity.index(), type);
   }
@@ -322,7 +322,7 @@ public final class UniverseImpl implements Universe {
   }
 
   @Override
-  public @NonNull <T extends Entity> CustomIterator<T> entities(final @NonNull Class<T> type) {
+  public @NonNull <T extends Entity> CustomIterator<T> entities(final @NonNull Class<? super T> type) {
     return CustomIterator.<EntityEntry, T, Throwable>of(this.entities.values().iterator(), entry -> entry.entity(type), this::removeEntity);
   }
 
@@ -577,7 +577,7 @@ public final class UniverseImpl implements Universe {
     }
 
     @SuppressWarnings("unchecked")
-    public <T extends Entity> @Nullable T entity(final @NonNull Class<T> type) {
+    public <T extends Entity> @Nullable T entity(final @NonNull Class<? super T> type) {
       if(!type.isAssignableFrom(this.entityReference.getClass())) return null;
       return (T) this.entityReference;
     }
@@ -591,7 +591,7 @@ public final class UniverseImpl implements Universe {
       return entry != null ? entry.component() : null;
     }
 
-    public <T> @Nullable T component(final @NonNull Class<T> type) {
+    public <T> @Nullable T component(final @NonNull Class<? super T> type) {
       final ComponentEntry entry = this.get(type);
       return entry != null ? entry.component() : null;
     }

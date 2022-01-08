@@ -81,8 +81,8 @@ public interface Entity {
    * Returns {@code true} if the entity has a component inheriting the
    * specified {@link Class}.
    *
-   * <p>You should prefer {@link Universe#components(ComponentType)}
-   * for speed over this method as much as possible.</p>
+   * <p>You should prefer {@link Entity#contains(ComponentType)} for
+   * speed over this method as much as possible.</p>
    *
    * @param type the class type
    * @return whether the component exists in this entity
@@ -113,7 +113,7 @@ public interface Entity {
    * @return the component, if present
    * @since 0.3.0
    */
-  <T> @Nullable T get(final @NonNull Class<T> type);
+  <T> @Nullable T get(final @NonNull Class<? super T> type);
 
   /**
    * Returns the {@code T} component with the specified {@link ComponentType},
