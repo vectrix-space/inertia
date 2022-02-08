@@ -35,6 +35,8 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+import static java.util.Objects.requireNonNull;
+
 /* package */ final class CustomIteratorImpl<T, E> implements CustomIterator<E> {
   private final Iterator<T> backingIterator;
   private final Function<T, E> mapper;
@@ -54,6 +56,7 @@ import java.util.function.Predicate;
 
   @Override
   public @NonNull CustomIterator<E> with(final @NonNull Predicate<? super E> predicate) {
+    requireNonNull(predicate, "predicate");
     this.filter = this.filter.and(predicate);
     this.next = this.retryValue();
     return this;
@@ -61,6 +64,7 @@ import java.util.function.Predicate;
 
   @Override
   public @NonNull CustomIterator<E> without(final @NonNull Predicate<? super E> predicate) {
+    requireNonNull(predicate, "predicate");
     this.filter = this.filter.and(predicate.negate());
     this.next = this.retryValue();
     return this;
@@ -99,7 +103,7 @@ import java.util.function.Predicate;
   }
 
   private @Nullable E retryValue() {
-    if(this.filter.test(this.next)) return this.next;
+    if(this.next != null && this.filter.test(this.next)) return this.next;
     return this.nextValue();
   }
 }

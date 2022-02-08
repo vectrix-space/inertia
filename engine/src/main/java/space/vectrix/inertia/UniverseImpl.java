@@ -230,11 +230,16 @@ public final class UniverseImpl implements Universe {
     Universe.checkActive(this);
     requireNonNull(system, "system");
     this.systems.computeIfAbsent(system.getClass(), key -> {
-      if(this.factory != null) {
-        final InjectionStructure structure = this.factory.create(key);
-        this.injectSystem(system, structure);
-        return new SystemEntry(system, structure);
+      try {
+        if(this.factory != null) {
+          final InjectionStructure structure = this.factory.create(key);
+          this.injectSystem(system, structure);
+          return new SystemEntry(system, structure);
+        }
+      } catch(final Throwable throwable) {
+        throwable.printStackTrace();
       }
+
       return new SystemEntry(system, null);
     });
   }

@@ -105,7 +105,63 @@ class InjectionTest {
       }
     };
 
+    final System secondSystem = () -> new System() {
+      @Dependency(Foo.class) private ComponentType fooType;
+      @Dependency(Bar.class) private ComponentType barType;
+      @Dependency(value = Baz.class, optional = true) private ComponentType bazType;
+
+      private boolean firstTick = false;
+      private boolean initialized = false;
+
+      @Override
+      public boolean initialized() {
+        return this.initialized;
+      }
+
+      @Override
+      public void initialize() {
+        firstEntity.add(this.fooType);
+        secondEntity.add(this.fooType);
+        secondEntity.add(this.barType);
+
+        if(this.bazType != null) {
+          fail("Baz should not be present.");
+        }
+
+        this.initialized = true;
+      }
+
+      @Override
+      public void execute() {
+        assertNotNull(this.fooType, "Component type should not be null.");
+        assertNotNull(this.barType, "Component type should not be null.");
+
+        final CustomIterator<Entity> firstIterator = universe.entities();
+        assertTrue(firstIterator.hasNext(), "Iterator should have next.");
+        assertNotNull(firstIterator.next(), "Entity iterator should have a next entity.");
+        assertTrue(firstIterator.hasNext(), "Iterator should have next.");
+        assertNotNull(firstIterator.next(), "Entity iterator should have a next entity.");
+        assertFalse(firstIterator.hasNext(), "Iterator should not have next.");
+
+        final CustomIterator<Entity> secondIterator = universe.entities()
+          .with(entity -> entity.contains(this.fooType))
+          .without(entity -> entity.contains(this.barType));
+
+        assertNotNull(secondIterator, "Entity iterator should not be null.");
+        assertTrue(secondIterator.hasNext(), "Entity iterator should have a next entity.");
+        assertNotNull(secondIterator.next(), "Entity iterator should have a next entity.");
+        assertFalse(secondIterator.hasNext(), "Entity iterator should not have a next entity.");
+
+        if(this.firstTick && this.bazType == null) {
+          fail("Baz component should be present.");
+        }
+
+        this.firstTick = true;
+      }
+    };
+
     universe.addSystem(firstSystem);
+    universe.addSystem(secondSystem);
 
     final Universe.Tick firstTick = assertDoesNotThrow(universe::tick, "Tick should not throw an exception.");
     assertEquals(0, firstTick.time(), "Tick time should be 0.");
