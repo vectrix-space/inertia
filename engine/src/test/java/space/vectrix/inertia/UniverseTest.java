@@ -181,34 +181,49 @@ class UniverseTest {
     final Universe universe = Universe.create();
 
     final Entity firstEntity = universe.createEntity();
+    final EntityExample secondEntity = universe.createEntity(EntityExample::new);
 
     universe.addSystem(new System() {
       @Override
       public void execute() throws Throwable {
         final CustomIterator<Entity> firstIterator = universe.removingEntities();
+        final CustomIterator<EntityExample> firstTypedIterator = universe.removingEntities(EntityExample.class);
         assertFalse(firstIterator.hasNext(), "Removing entities iterator should not have a next entity.");
+        assertFalse(firstTypedIterator.hasNext(), "Removing entities iterator should not have a next entity.");
 
         universe.removeEntity(firstEntity);
+        universe.removeEntity(secondEntity);
 
         final CustomIterator<Entity> secondIterator = universe.removingEntities();
+        final CustomIterator<EntityExample> secondTypedIterator = universe.removingEntities(EntityExample.class);
         assertTrue(secondIterator.hasNext(), "Removing entities iterator should have a next entity.");
+        assertTrue(secondTypedIterator.hasNext(), "Removing entities iterator should have a next entity.");
       }
 
       @Override
       public void sanitize() throws Throwable {
-        final CustomIterator<Entity> firstIterator = universe.removingEntities();
+        final CustomIterator<Entity> firstIterator = universe.removingEntities().without(entity -> entity instanceof EntityExample);
+        final CustomIterator<EntityExample> firstTypedIterator = universe.removingEntities(EntityExample.class);
         assertTrue(firstIterator.hasNext(), "Removing entities iterator should have a next entity.");
+        assertTrue(firstTypedIterator.hasNext(), "Removing entities iterator should have a next entity.");
         assertEquals(firstEntity, firstIterator.next(), "The entity should be the first entity.");
+        assertEquals(secondEntity, firstTypedIterator.next(), "The entity should be the second entity.");
         assertFalse(firstIterator.hasNext(), "Removing entities iterator should not have a next entity.");
+        assertFalse(firstTypedIterator.hasNext(), "Removing entities iterator should not have a next entity.");
         assertDoesNotThrow(firstIterator::remove, "Removing entities iterator should not throw an exception.");
+        assertDoesNotThrow(firstTypedIterator::remove, "Removing entities iterator should not throw an exception.");
 
         final CustomIterator<Entity> secondIterator = universe.removingEntities();
+        final CustomIterator<EntityExample> secondTypedIterator = universe.removingEntities(EntityExample.class);
         assertFalse(secondIterator.hasNext(), "Removing entities iterator should not have a next entity.");
+        assertFalse(secondTypedIterator.hasNext(), "Removing entities iterator should not have a next entity.");
       }
     });
 
     final Universe.Tick tick = assertDoesNotThrow(universe::tick, "Tick should not throw an exception.");
-    assertTrue(tick.errors().isEmpty(), "Tick should not have any errors.");
+    assertDoesNotThrow(() -> {
+      if(!tick.errors().isEmpty()) throw tick.errors().iterator().next();
+    }, "Tick should not have any errors.");
   }
 
   @Test

@@ -73,7 +73,20 @@ import space.vectrix.inertia.util.CustomIterator;
   }
 
   @Override
+  public @NonNull <T extends Entity> CustomIterator<T> iterator(final @NonNull Class<? super T> type) {
+    return CustomIterator.of(
+      this.stash.iterator(),
+      index -> this.universe.getEntity(index, type),
+      entity -> this.remove(entity.index())
+    );
+  }
+
+  @Override
   public @NonNull CustomIterator<Entity> iterator() {
-    return CustomIterator.of(this.stash.iterator(), this.universe::getEntity, entity -> this.remove(entity.index()));
+    return CustomIterator.of(
+      this.stash.iterator(),
+      this.universe::getEntity,
+      entity -> this.remove(entity.index())
+    );
   }
 }

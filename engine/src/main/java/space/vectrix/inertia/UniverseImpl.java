@@ -318,7 +318,11 @@ public final class UniverseImpl implements Universe {
 
   @Override
   public @NonNull CustomIterator<System> systems() {
-    return CustomIterator.of(this.systems.values().iterator(), SystemEntry::left, system -> this.removeSystem(system.getClass()));
+    return CustomIterator.of(
+      this.systems.values().iterator(),
+      SystemEntry::left,
+      system -> this.removeSystem(system.getClass())
+    );
   }
 
   @Override
@@ -328,23 +332,47 @@ public final class UniverseImpl implements Universe {
 
   @Override
   public @NonNull <T extends Entity> CustomIterator<T> entities(final @NonNull Class<? super T> type) {
-    return CustomIterator.<EntityEntry, T, Throwable>of(this.entities.values().iterator(), entry -> entry.entity(type), this::removeEntity);
+    return CustomIterator.<EntityEntry, T, Throwable>of(
+      this.entities.values().iterator(),
+      entry -> entry.entity(type),
+      this::removeEntity
+    );
   }
 
   @Override
   public @NonNull CustomIterator<Entity> entities() {
-    return CustomIterator.of(this.entities.values().iterator(), EntityEntry::entity, this::removeEntity);
+    return CustomIterator.of(
+      this.entities.values().iterator(),
+      EntityEntry::entity,
+      this::removeEntity
+    );
+  }
+
+  @Override
+  public @NonNull <T extends Entity> CustomIterator<T> removingEntities(final @NonNull Class<? super T> type) {
+    return CustomIterator.<Integer, T, Throwable>of(
+      this.entityRemovals.iterator(),
+      index -> this.getEntity(index, type),
+      entity -> this.entityRemovals.remove(entity.index())
+    );
   }
 
   @Override
   public @NonNull CustomIterator<Entity> removingEntities() {
-    return CustomIterator.of(this.entityRemovals.iterator(), this::getEntity, entity -> this.entityRemovals.remove(entity.index()));
+    return CustomIterator.of(
+      this.entityRemovals.iterator(),
+      this::getEntity,
+      entity -> this.entityRemovals.remove(entity.index())
+    );
   }
 
   @Override
   public <T> @NonNull CustomIterator<T> components(final @NonNull ComponentType type) {
     requireNonNull(type, "type");
-    return CustomIterator.of(this.components.values().iterator(), entry -> entry.type().index() == type.index() ? entry.component() : null);
+    return CustomIterator.of(
+      this.components.values().iterator(),
+      entry -> entry.type().index() == type.index() ? entry.component() : null
+    );
   }
 
   @Override
@@ -352,12 +380,18 @@ public final class UniverseImpl implements Universe {
     requireNonNull(entity, "entity");
     final EntityEntry entityEntry = this.entities.get(entity.index());
     if(entityEntry == null) return CustomIterator.empty();
-    return CustomIterator.of(entityEntry.entries().iterator(), ComponentEntry::component);
+    return CustomIterator.of(
+      entityEntry.entries().iterator(),
+      ComponentEntry::component
+    );
   }
 
   @Override
   public @NonNull CustomIterator<Object> components() {
-    return CustomIterator.of(this.components.values().iterator(), ComponentEntry::component);
+    return CustomIterator.of(
+      this.components.values().iterator(),
+      ComponentEntry::component
+    );
   }
 
   @Override

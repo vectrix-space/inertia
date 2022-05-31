@@ -421,6 +421,21 @@ public interface Universe {
 
   /**
    * Returns a {@link CustomIterator} of {@link Entity}s in this universe
+   * that are queued to be removed of the specified {@link Class} type.
+   *
+   * <p>Calling {@link CustomIterator#remove()} will remove the entity
+   * from the removal queue and allow it to continue existing in the
+   * universe.</p>
+   *
+   * @param type the entity class type
+   * @param <T> the entity type
+   * @return an iterator of entities that are going to be removed
+   * @since 0.3.0
+   */
+  <T extends Entity> @NonNull CustomIterator<T> removingEntities(final @NonNull Class<? super T> type);
+
+  /**
+   * Returns a {@link CustomIterator} of {@link Entity}s in this universe
    * that are queued to be removed.
    *
    * <p>Calling {@link CustomIterator#remove()} will remove the entity

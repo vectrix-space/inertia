@@ -150,6 +150,20 @@ public interface EntityStash extends Iterable<Entity> {
   void clear();
 
   /**
+   * Returns a {@link CustomIterator} of {@link Entity}s of the specified
+   * {@link Class} type in this universe.
+   *
+   * <p>Calling {@link CustomIterator#remove()} will remove the entity
+   * from the stash and NOT the universe.</p>
+   *
+   * @param type the entity class type
+   * @param <T> the entity type
+   * @return an iterator of entities
+   * @since 0.3.0
+   */
+  <T extends Entity> @NonNull CustomIterator<T> iterator(final @NonNull Class<? super T> type);
+
+  /**
    * Returns a {@link CustomIterator} of the entities in this stash.
    *
    * <p>Calling {@link CustomIterator#remove()} will remove the entity
