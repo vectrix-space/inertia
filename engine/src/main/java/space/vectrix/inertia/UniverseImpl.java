@@ -80,6 +80,7 @@ public final class UniverseImpl implements Universe {
    * type, with a counter.
    */
   private final Int2ObjectMap<ComponentType> types = Int2ObjectSyncMap.hashmap(50);
+  private final Map<String, ComponentType> typeNamed = SyncMap.hashmap(50);
   private final Map<Class<?>, ComponentType> typeClasses = SyncMap.of(IdentityHashMap::new, 50);
   private final IndexCounter typeCounter = IndexCounter.counter("types", this.types);
 
@@ -177,6 +178,11 @@ public final class UniverseImpl implements Universe {
   @Override
   public @Nullable ComponentType getType(final @NonNegative int type) {
     return this.types.get(type);
+  }
+
+  @Override
+  public @Nullable ComponentType getType(final @NonNull String id) {
+    return this.typeNamed.get(id);
   }
 
   @Override
@@ -428,6 +434,7 @@ public final class UniverseImpl implements Universe {
     return this.typeClasses.computeIfAbsent(target, ignored -> this.typeCounter.next(index -> {
       final ComponentType componentType = function.apply(index);
       this.types.put(index, componentType);
+      this.typeNamed.put(componentType.id(), componentType);
       if(this.factory != null) this.injectSystems(componentType);
       return componentType;
     }));

@@ -263,6 +263,7 @@ class UniverseTest {
 
     assertNotNull(component, "Component should be created.");
     assertEquals(type, universe.getType(type.index()), "Universe#getType should equal the component type.");
+    assertEquals(type, universe.getType("component_example"), "Universe#getType should equal the component type.");
     assertEquals(type, universe.getType(ComponentExample.class), "Universe#getType should equal the component type.");
     assertEquals(component, universe.getComponent(entity, type), "Component#get should equal the new component.");
     assertTrue(universe.hasComponent(entity, type), "Universe#hasComponent should return true.");

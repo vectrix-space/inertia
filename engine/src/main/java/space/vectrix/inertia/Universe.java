@@ -204,6 +204,16 @@ public interface Universe {
   @Nullable ComponentType getType(final @NonNegative int type);
 
   /**
+   * Returns the {@link ComponentType} for the specified {@link String}
+   * identifier if it exists, otherwise {@code null}.
+   *
+   * @param id the type identifier
+   * @return the component type, if present
+   * @since 0.3.0
+   */
+  @Nullable ComponentType getType(final @NonNull String id);
+
+  /**
    * Returns the {@link ComponentType} for the specified {@link Class}
    * if it exists, otherwise {@code null}.
    *
