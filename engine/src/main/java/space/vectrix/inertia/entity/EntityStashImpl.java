@@ -24,16 +24,16 @@
  */
 package space.vectrix.inertia.entity;
 
-import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import space.vectrix.flare.fastutil.Int2ObjectSyncMap;
 import space.vectrix.inertia.Universe;
 import space.vectrix.inertia.util.CustomIterator;
 
 /* package */ final class EntityStashImpl implements EntityStash {
-  private final IntSet stash = new IntOpenHashSet();
+  private final IntSet stash = Int2ObjectSyncMap.hashset();
   private final Universe universe;
 
   /* package */ EntityStashImpl(final @NonNull Universe universe) {

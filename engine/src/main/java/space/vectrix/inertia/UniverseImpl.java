@@ -28,7 +28,6 @@ import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.PriorityQueue;
 import it.unimi.dsi.fastutil.PriorityQueues;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntIntPair;
 import it.unimi.dsi.fastutil.objects.ObjectArrayFIFOQueue;
 import it.unimi.dsi.fastutil.objects.ObjectObjectImmutablePair;
@@ -611,7 +610,7 @@ public final class UniverseImpl implements Universe {
   }
 
   /* package */ static final class EntityEntry {
-    private final Int2ObjectMap<ComponentEntry> components = new Int2ObjectOpenHashMap<>();
+    private final Int2ObjectMap<ComponentEntry> components = Int2ObjectSyncMap.hashmap();
     private final Entity entityReference;
 
     /* package */ EntityEntry(final @NonNull Entity entityReference) {
