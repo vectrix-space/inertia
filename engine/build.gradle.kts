@@ -4,7 +4,7 @@ plugins {
 
 dependencies {
   compileOnlyApi("org.checkerframework:checker-qual:3.22.0")
-  api("it.unimi.dsi:fastutil:8.5.8")
+  api("it.unimi.dsi:fastutil:8.5.14")
   api("space.vectrix.flare:flare:2.0.1")
   api("space.vectrix.flare:flare-fastutil:2.0.1")
 }
