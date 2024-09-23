@@ -15,7 +15,7 @@ repositories {
 }
 
 dependencies {
-  testImplementation("com.google.guava:guava-testlib:31.1-jre")
+  testImplementation("com.google.guava:guava-testlib:33.3.1-jre")
   testImplementation(platform("org.junit:junit-bom:5.8.2"))
   testImplementation("org.junit.jupiter:junit-jupiter-api")
   testImplementation("org.junit.jupiter:junit-jupiter-engine")
